@@ -211,13 +211,44 @@ def analyze_motor_data(distances, timestamps):
 
 # ── Voice analysis ───────────────────────────────────────────────────────────
 
+def load_wav_file(file_obj_or_path):
+    import wave
+    import numpy as np
+    
+    if isinstance(file_obj_or_path, str):
+        wav = wave.open(file_obj_or_path, 'rb')
+    else:
+        file_obj_or_path.seek(0)
+        wav = wave.open(file_obj_or_path, 'rb')
+        
+    try:
+        n_channels = wav.getnchannels()
+        sampwidth = wav.getsampwidth()
+        framerate = wav.getframerate()
+        n_frames = wav.getnframes()
+        content = wav.readframes(n_frames)
+    finally:
+        wav.close()
+        
+    if sampwidth == 2:
+        data = np.frombuffer(content, dtype=np.int16)
+        data = data.astype(np.float32) / 32768.0
+    elif sampwidth == 1:
+        data = np.frombuffer(content, dtype=np.uint8)
+        data = data.astype(np.float32) / 128.0 - 1.0
+    else:
+        raise ValueError(f"Unsupported sample width: {sampwidth}")
+        
+    if n_channels > 1:
+        data = data.reshape(-1, n_channels).mean(axis=1)
+        
+    return data, framerate
+
+
 def analyze_voice_audio(audio_path_or_bytes, sample_rate=22050):
     """Analyze voice audio file. Returns dict with score, raw metrics, plot."""
     try:
-        if isinstance(audio_path_or_bytes, str):
-            y, sr = librosa.load(audio_path_or_bytes, sr=sample_rate)
-        else:
-            y, sr = librosa.load(audio_path_or_bytes, sr=sample_rate)
+        y, sr = load_wav_file(audio_path_or_bytes)
     except Exception as e:
         return {'score': 0.0, 'error': f'Could not load audio: {e}'}
 
