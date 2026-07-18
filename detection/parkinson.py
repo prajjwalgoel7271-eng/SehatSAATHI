@@ -10,8 +10,6 @@ from sklearn.neighbors import KNeighborsClassifier
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import parselmouth
-from parselmouth.praat import call
 import librosa
 
 # ── Thresholds (EXACT copy from Parkinson1.py) ──────────────────────────────
@@ -253,22 +251,58 @@ def analyze_voice_audio(audio_path_or_bytes, sample_rate=22050):
         return {'score': 0.0, 'error': f'Could not load audio: {e}'}
 
     fs = sr
-    snd = parselmouth.Sound(y, sampling_frequency=fs)
-    pitch = call(snd, "To Pitch", 0.0, 75, 500)
-    point_process = call(snd, "To PointProcess (periodic, cc)", 75, 500)
-
-    try:
-        jitter = call(point_process, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3) * 100
-    except Exception:
+    
+    # 1. Pitch contour tracking (F0)
+    # We call librosa.pyin to find fundamental frequencies over time
+    f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=50, fmax=500, sr=fs)
+    times = librosa.times_like(f0)
+    duration = len(y) / fs
+    
+    # 2. Extract periods and compute jitter
+    voiced_f0 = f0[~np.isnan(f0)]
+    if len(voiced_f0) > 2:
+        periods = 1.0 / voiced_f0
+        period_diffs = np.abs(np.diff(periods))
+        jitter = (np.mean(period_diffs) / np.mean(periods)) * 100.0
+    else:
         jitter = 0.0
-    try:
-        shimmer = call([snd, point_process], "Get shimmer (local)", 0, 0, 0.0001, 0.02, 1.3, 1.6) * 100
-    except Exception:
+        
+    # 3. Extract amplitudes and compute shimmer
+    # Compute RMS amplitude of the signal over hop size blocks
+    frame_length = int(0.04 * fs)
+    hop_length = int(0.02 * fs)
+    rms_frames = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
+    
+    # Align RMS frames with voiced frames
+    voiced_rms = rms_frames[voiced_flag[:len(rms_frames)]]
+    if len(voiced_rms) > 2:
+        rms_diffs = np.abs(np.diff(voiced_rms))
+        shimmer = (np.mean(rms_diffs) / (np.mean(voiced_rms) + 1e-8)) * 100.0
+    else:
         shimmer = 0.0
-    try:
-        harmonicity = call(snd, "To Harmonicity (cc)", 0.01, 75, 0.1, 1.0)
-        hnr = call(harmonicity, "Get mean", 0, 0)
-    except Exception:
+        
+    # 4. Compute HNR (Harmonics-to-Noise Ratio)
+    # Average HNR computed from cross-correlation of voiced frames
+    r_vals = []
+    for i in range(len(voiced_f0)):
+        f = voiced_f0[i]
+        lag = int(fs / f)
+        time_sec = times[i]
+        center_sample = int(time_sec * fs)
+        start = max(0, center_sample - int(1.5 * lag))
+        end = min(len(y), center_sample + int(1.5 * lag))
+        frame = y[start:end]
+        if len(frame) > 2 * lag:
+            c0 = np.sum(frame * frame)
+            clag = np.sum(frame[:-lag] * frame[lag:])
+            denom = np.sqrt(np.sum(frame[:-lag]**2) * np.sum(frame[lag:]**2)) + 1e-8
+            r = clag / denom
+            r_vals.append(max(0.01, min(0.99, r)))
+            
+    if r_vals:
+        mean_r = np.mean(r_vals)
+        hnr = 10.0 * np.log10(mean_r / (1.0 - mean_r + 1e-8))
+    else:
         hnr = 25.0
 
     score = 100.0
@@ -281,12 +315,10 @@ def analyze_voice_audio(audio_path_or_bytes, sample_rate=22050):
     score = max(0.0, min(100.0, score))
 
     # Plot
-    f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=50, fmax=500, sr=fs)
-    times = librosa.times_like(f0)
-    duration = len(y) / fs
-
     plt.style.use('dark_background')
     fig, axes = plt.subplots(3, 1, figsize=(10, 8))
+    
+    # Avoid errors if f0 is completely empty/NaN
     axes[0].plot(times, f0, 'lime', linewidth=2)
     axes[0].set_title("Voice Pitch Over Time"); axes[0].set_xlabel("Time (s)"); axes[0].set_ylabel("Frequency (Hz)")
     axes[0].grid(True, alpha=0.3)
