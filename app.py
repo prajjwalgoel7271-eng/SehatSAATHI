@@ -9,6 +9,7 @@ import os
 import io
 import json
 import base64
+import traceback
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 
 from detection.parkinson import (
@@ -113,7 +114,8 @@ def api_parkinson_motor():
         result = analyze_motor_data(distances, timestamps)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/parkinson/voice", methods=["POST"])
 def api_parkinson_voice():
@@ -127,7 +129,8 @@ def api_parkinson_voice():
         result = analyze_voice_audio(audio_io)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/parkinson/spiral", methods=["POST"])
 def api_parkinson_spiral():
@@ -137,7 +140,8 @@ def api_parkinson_spiral():
         result = analyze_spiral_data(points)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/parkinson/reaction", methods=["POST"])
 def api_parkinson_reaction():
@@ -148,7 +152,8 @@ def api_parkinson_reaction():
         result = analyze_reaction_data(latencies, mouse_paths)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/parkinson/overall", methods=["POST"])
 def api_parkinson_overall():
@@ -161,7 +166,8 @@ def api_parkinson_overall():
         result = calculate_health_index(motor, voice, spiral, reaction)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/anemia/frame", methods=["POST"])
 def api_anemia_frame():
@@ -174,7 +180,8 @@ def api_anemia_frame():
         result = analyze_frame(image_b64, scan_type)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/anemia/overall", methods=["POST"])
 def api_anemia_overall():
@@ -184,7 +191,8 @@ def api_anemia_overall():
         result = combined_assessment(results_dict)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 @app.route("/api/tb/analyze", methods=["POST"])
 def api_tb_analyze():
@@ -197,7 +205,8 @@ def api_tb_analyze():
         result = analyze_cough_audio(audio_io)
         return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        traceback.print_exc()
+        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

@@ -693,9 +693,9 @@ def _extract_spiral_features(points, mean_dev=None, std_dev=None):
         radii_norm = radii / max_r
 
         # 4. Ideal spiral radii (normalized)
+        ideal_norm = np.linspace(radii_norm[0], radii_norm[-1], len(radii_norm))
+        deviation_norm = radii_norm - ideal_norm
         if mean_dev is None or std_dev is None:
-            ideal_norm = np.linspace(radii_norm[0], radii_norm[-1], len(radii_norm))
-            deviation_norm = radii_norm - ideal_norm
             mean_dev = np.mean(np.abs(deviation_norm))
             std_dev = np.std(deviation_norm)
 
