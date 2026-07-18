@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parkinson's Screening Hub — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="phub-title">[Neuro] Parkinson's Screening Hub</h1>
+            <p class="page-subtitle" data-trn="phub-subtitle">Complete all four neurological tests below to calculate your overall health index.</p>
+            <div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Sub-tests -->
+                <div class="test-controls" style="gap: 1.5rem;">
+                    <div class="progress-container">
+                        <div id="hub-progress" class="progress-bar" style="background-color: var(--color-primary); width: 0%;"></div>
+                    </div>
+                    <div id="hub-progress-text" style="font-size: 0.95rem; color: var(--text-secondary); margin-top: -1rem;">
+                        0 of 4 tests completed
+                    </div>
+
+                    <div class="parkinson-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                        <!-- Motor Test -->
+                        <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                            <div>
+                                <h3 class="card-sm-title" data-trn="phub-card-motor-title">[Motor] Finger Tapping Test</h3>
+                                <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="phub-card-motor-desc">Test finger dexterity & amplitude decrement via camera.</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span id="score-motor" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                                <a href="./parkinson_motor.html" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                            </div>
+                        </div>
+
+                        <!-- Voice Test -->
+                        <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                            <div>
+                                <h3 class="card-sm-title" data-trn="phub-card-voice-title">[Voice] Voice Test</h3>
+                                <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="phub-card-voice-desc">Analyze steady vowel sound jitter, shimmer & HNR stability.</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span id="score-voice" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                                <a href="./parkinson_voice.html" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                            </div>
+                        </div>
+
+                        <!-- Spiral Test -->
+                        <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                            <div>
+                                <h3 class="card-sm-title" data-trn="phub-card-spiral-title">[Spiral] Spiral Drawing Test</h3>
+                                <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="phub-card-spiral-desc">Drawing coordination, tremor frequency & deviation analysis.</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span id="score-spiral" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                                <a href="./parkinson_spiral.html" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                            </div>
+                        </div>
+
+                        <!-- Reaction Test -->
+                        <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                            <div>
+                                <h3 class="card-sm-title" data-trn="phub-card-reaction-title">[Reaction] Reaction Test</h3>
+                                <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="phub-card-reaction-desc">Interactive mouse/touch targets speed & coordination latency.</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span id="score-reaction" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                                <a href="./parkinson_reaction.html" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: Combined Index & Detailed Readings -->
+                <div class="test-controls" style="justify-content: flex-start;">
+                    <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;" data-trn="phub-results-title">Overall Results</h2>
+                    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem;" data-trn="phub-results-desc">
+                        This is a screening estimate, not a diagnosis. Please consult a doctor for confirmation.
+                    </p>
+
+                    <div id="risk-banner-container">
+                        <div class="status-indicator" style="padding: 1.5rem; text-align: center; color: var(--text-muted);" data-trn="phub-banner-initial">
+                            Complete all tests to calculate index
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="btn-calculate" class="btn btn-success btn-block" disabled data-trn="btn-calc-index">
+                            Calculate Health Index
+                        </button>
+                        <button id="btn-readings" class="btn btn-secondary btn-block" disabled data-trn="btn-detailed-readings">
+                            Detailed Readings
+                        </button>
+                    </div>
+
+                    <button id="btn-reset-all" class="btn btn-secondary btn-block" style="margin-top: 1rem; border-color: rgba(255,82,82,0.3); color: var(--color-danger);" data-trn="btn-reset-all-tests">
+                        Reset All Sub-Tests
+                    </button>
+
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-top: 1rem;" data-trn="phub-clinical-summary">Clinical Summary:</h3>
+                    <div id="detailed-readings-box" class="results-box" style="flex-grow: 1; min-height: 150px;" data-trn="phub-readings-initial">
+                        No readings collected yet. Run tests to see data.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tests = ['motor', 'voice', 'spiral', 'reaction'];
+            let completedCount = 0;
+
+            // Load values from localStorage
+            tests.forEach(test => {
+                const dataStr = localStorage.getItem(`sehatsaathi_result_${test}`);
+                const indicator = document.getElementById(`score-${test}`);
+                if (dataStr) {
+                    const data = JSON.parse(dataStr);
+                    indicator.innerText = `${data.score.toFixed(2)}%`;
+                    indicator.classList.remove('status-indicator');
+                    indicator.style.color = 'var(--color-success)';
+                    indicator.style.fontWeight = 'bold';
+                    completedCount++;
+                }
+            });
+
+            const progressPercent = (completedCount / 4) * 100;
+            document.getElementById('hub-progress').style.width = `${progressPercent}%`;
+            
+            let progressText = `${completedCount} of 4 tests completed`;
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            if (activeLang === 'hi') {
+                progressText = `4 में से ${completedCount} परीक्षण पूरे हुए`;
+            } else if (activeLang === 'bn') {
+                progressText = `৪ টির মধ্যে ${completedCount} টি পরীক্ষা সম্পন্ন হয়েছে`;
+            } else if (activeLang === 'mr') {
+                progressText = `४ पैकी ${completedCount} चाचण्या पूर्ण झाल्या`;
+            } else if (activeLang === 'ta') {
+                progressText = `4-இல் ${completedCount} பரிசோதனைகள் முடிந்துள்ளன`;
+            } else if (activeLang === 'te') {
+                progressText = `4 పరీక్షలలో ${completedCount} పూర్తయ్యాయి`;
+            }
+            document.getElementById('hub-progress-text').innerText = progressText;
+
+            const calcBtn = document.getElementById('btn-calculate');
+            const readingsBtn = document.getElementById('btn-readings');
+            const resetBtn = document.getElementById('btn-reset-all');
+
+            if (completedCount === 4) {
+                calcBtn.removeAttribute('disabled');
+                readingsBtn.removeAttribute('disabled');
+            }
+
+            // Explanations dictionary
+            const parkinsonExplanations = {
+                en: {
+                    EXCELLENT: "The AI detected excellent neurological coordination. Tapping, voice, spiral drawing, and reaction metrics are within standard healthy ranges. Continue maintaining active physical and cognitive routines.",
+                    GOOD: "The AI detected good neurological coordination. Most metrics are stable. This is a screening estimate, but we recommend regular physical exercises and hand dexterity activities to maintain motor health.",
+                    FAIR: "The AI detected fair neurological coordination. Subtle indicators of motor speed decrement, slight vocal jitter, or drawing fluctuations were identified. This does not confirm Parkinson's, but it is recommended to monitor your coordination and consult a specialist if you notice tremors or stiffness.",
+                    "Needs Attention": "The AI flagged neurological indicators that need attention. Significant performance reductions in tapping speed, reaction latency, voice stability, or spiral tracing stability were detected. This does not confirm Parkinson's, but it is highly recommended to consult a neurologist for a professional clinical evaluation."
+                },
+                hi: {
+                    EXCELLENT: "एआई ने उत्कृष्ट तंत्रिका संबंधी (neurological) समन्वय का पता लगाया है। फिंगर टैपिंग, आवाज, सर्पिल ड्राइंग और प्रतिक्रिया संकेतक सामान्य स्वस्थ सीमाओं के भीतर हैं। शारीरिक और संज्ञानात्मक गतिविधियों को जारी रखें।",
+                    GOOD: "एआई ने अच्छा तंत्रिका संबंधी समन्वय पाया है। अधिकांश संकेतक स्थिर हैं। यह एक स्क्रीनिंग अनुमान है, लेकिन हम मोटर स्वास्थ्य बनाए रखने के लिए नियमित शारीरिक व्यायाम और हाथ की निपुणता वाले अभ्यासों की सलाह देते हैं।",
+                    FAIR: "एआई ने सामान्य तंत्रिका संबंधी समन्वय का पता लगाया है। मोटर गति में कमी, आवाज में थोड़ा उतार-चढ़ाव, या ड्राइंग में मामूली अस्थिरता के लक्षण पाए गए हैं। यह पार्किंसंस की पुष्टि नहीं करता है, लेकिन अपने समन्वय की निगरानी करने और यदि कंपन महसूस हो तो डॉक्टर से परामर्श करने की सलाह दी जाती है।",
+                    "Needs Attention": "एआई ने कुछ तंत्रिका संबंधी संकेतकों को चिह्नित किया है जिन पर ध्यान देने की आवश्यकता है। टैपिंग गति, प्रतिक्रिया समय, आवाज स्थिरता या ड्राइंग स्थिरता में महत्वपूर्ण कमी पाई गई है। यह पार्किंसंस की पुष्टि नहीं करता है, लेकिन पेशेवर नैदानिक मूल्यांकन के लिए न्यूरोलॉजिस्ट से परामर्श करने की अत्यधिक सलाह दी जाती है।"
+                },
+                bn: {
+                    EXCELLENT: "এআই চমৎকার স্নায়বিক (neurological) সমন্বয় সনাক্ত করেছে। ট্যাপিং, ভয়েস, স্পাইরাল ড্রয়িং এবং প্রতিক্রিয়া গতি সবই স্বাভাবিক সীমার মধ্যে রয়েছে। শারীরিক ও মানসিক ব্যায়াম চালু রাখুন।",
+                    GOOD: "এআই ভালো স্নায়বিক সমন্বয় সনাক্ত করেছে। অধিকাংশ সূচক স্থিতিশীল। এটি একটি স্ক্রিনিং অনুমান, মোটর স্বাস্থ্য ধরে রাখতে হাতের ব্যায়াম এবং সাধারণ শারীরিক ব্যায়ামের পরামর্শ দেওয়া হচ্ছে।",
+                    FAIR: "এআই মাঝারি স্নায়বিক সমন্বয় সনাক্ত করেছে। কাজের গতিতে সামান্য হ্রাস, কণ্ঠস্বরে সামান্য কম্পন, বা ড্রয়িংয়ে মৃদু অস্থিরতা দেখা গেছে। এটি পার্কিনসন রোগ নিশ্চিত করে না, তবে নিজের সমন্বয় পর্যবেক্ষণ করুন এবং পেশী শক্ত ভাব বা কাঁপুনি দেখলে বিশেষজ্ঞের পরামর্শ নিন।",
+                    "Needs Attention": "এআই কিছু স্নায়বিক সূচক সনাক্ত করেছে যেগুলির দিকে মনোযোগ দেওয়া প্রয়োজন। ফিংগার ট্যাপিং গতি, প্রতিক্রিয়ার সময়কাল, ভয়েস বা স্পাইরাল ড্রয়িংয়ের স্থায়িত্বে লক্ষণীয় অবনতি লক্ষ্য করা গেছে। এটি পার্কিনসন রোগ নিশ্চিত করে না, তবে অবিলম্বে একজন নিউরোলজিস্টের শরণাপন্ন হয়ে ক্লিনিকাল মূল্যায়ন করার পরামর্শ দেওয়া হচ্ছে।"
+                },
+                mr: {
+                    EXCELLENT: "एआयने उत्कृष्ट न्यूरोलॉजिकल समन्वय शोधला आहे. टॅपिंग, आवाज, सर्पिल रेखांकन आणि प्रतिक्रिया निर्देशक सामान्य निरोगी मर्यादेत आहेत. शारीरिक आणि मानसिक दिनचर्या चालू ठेवा।",
+                    GOOD: "एआयने चांगला न्यूरोलॉजिकल समन्वय शोधला आहे. बहुतेक निर्देशक स्थिर आहेत. हा प्राथमिक अंदाज आहे, परंतु मोटार आरोग्य टिकवण्यासाठी नियमित शारीरिक व्यायाम करण्याची शिफारस केली जाते।",
+                    FAIR: "एआयने मध्यम न्यूरोलॉजिकल समन्वय शोधला आहे. हालचालींचा वेग किंचित कमी होणे, आवाजात हलकी अस्थिरता किंवा रेखांकनात थोडा फरक आढळला आहे. हे पार्किन्सन्सची खात्री करत नाही, परंतु हालचालींवर लक्ष ठेवा आणि ताठरपणा किंवा कंप जाणवल्यास तज्ञांचा सल्ला घ्या।",
+                    "Needs Attention": "एआयने लक्ष देण्याची गरज असलेले काही न्यूरोलॉजिकल निर्देशक चिन्हांकित केले आहेत. टॅपिंगचा वेग, प्रतिक्रिया वेळ, आवाजाची स्थिरता किंवा रेखांकन अचूकता यामध्ये लक्षणीय घट आढळली आहे. हे पार्किन्सन्सची खात्री करत नाही, परंतु त्वरित न्यूरोलॉजिस्टचा सल्ला घेऊन वैद्यकीय तपासणी करून घेणे शिफारसीय आहे।"
+                },
+                ta: {
+                    EXCELLENT: "செயற்கை நுண்ணறிவு (AI) மூலம் சிறந்த நரம்பியல் (neurological) ஒருங்கிணைப்பு கண்டறியப்பட்டுள்ளது. தட்டுதல், குரல், வரைதல் மற்றும் எதிர்வினை அளவுகள் அனைத்தும் இயல்பான ஆரோக்கியமான வரம்பிற்குள் உள்ளன. உடற்பயிற்சிகளைத் தொடரவும்.",
+                    GOOD: "செயற்கை நுண்ணறிவு (AI) மூலம் நல்ல நரம்பியல் ஒருங்கிணைப்பு கண்டறியப்பட்டுள்ளது. பெரும்பாலான அளவுகள் சீராக உள்ளன. எனினும் தசை ஆரோக்கியத்தை மேம்படுத்த உடற்பயிற்சிகளையும் கை அசைவுப் பயிற்சிகளையும் மேற்கொள்ள பரிந்துரைக்கப்படுகிறது.",
+                    FAIR: "செயற்கை நுண்ணறிவு (AI) மூலம் நடுத்தர நரம்பியல் ஒருங்கிணைப்பு கண்டறியப்பட்டுள்ளது. அசைவுகளின் வேகம் குறைதல், குரலில் லேசான நடுக்கம், அல்லது வரைவதில் சிறிய தடுமாற்றங்கள் கண்டறியப்பட்டுள்ளன. இது பார்க்கின்சனை உறுதிப்படுத்தவில்லை, எனினும் தசை இறுக்கம் அல்லது நடுக்கம் இருந்தால் நிபுணரை அணுகவும்.",
+                    "Needs Attention": "செயற்கை நுண்ணறிவு (AI) மூலம் நரம்பியல் அசைவுகளில் கவனம் செலுத்த வேண்டிய சில அறிகுறிகள் கண்டறியப்பட்டுள்ளன. தட்டுதல் வேகம், எதிர்வினை நேரம், குரல் அல்லது வரைதல் சீரான தன்மையில் கணிசமான குறைபாடு உள்ளது. இது பார்க்கின்சனை உறுதிப்படுத்தவில்லை, எனினும் ஒரு நரம்பியல் நிபுணரை அணுகி பரிசோதிப்பது அவசியமாகும்."
+                },
+                te: {
+                    EXCELLENT: "AI అద్భుతమైన నరాల (neurological) సమన్వయాన్ని గుర్తించింది. ట్యాపింగ్, వాయిస్, స్పైరల్ డ్రాయింగ్ మరియు ప్రతిచర్య సూచికలు సాధారణ ఆరోగ్యకరమైన పరిధిలో ఉన్నాయి. శారీరక మరియు మానసిక వ్యాయామాలను కొనసాగించండి.",
+                    GOOD: "AI మంచి నరాల సమన్వయాన్ని గుర్తించింది. చాలా సూచికలు స్థిరంగా ఉన్నాయి. ఇది ప్రాథమిక అంచనా మాత్రమే, మోటార్ ఆరోగ్యాన్ని కాపాడుకోవడానికి క్రమం తప్పకుండా శారీరక వ్యాయామాలు మరియు చేతి కదలికల వ్యాయామాలు చేయాలని సిఫార్సు చేయబడింది.",
+                    FAIR: "AI మోస్తరు నరాల సమన్వయాన్ని గుర్తించింది. కదలికల వేగం తగ్గడం, వాయిస్ వణుకుడు లేదా డ్రాయింగ్ లో స్వల్ప మార్పులు కనుగొనబడ్డాయి. ఇది పార్కిన్సన్స్ ను ధృవీకరించదు, కానీ మీ సమన్వయాన్ని గమనిస్తూ ఉండండి మరియు వణుకు ఉంటే నిపుణుడిని సంప్రదించండి.",
+                    "Needs Attention": "AI శ్రద్ధ పెట్టాల్సిన కొన్ని నరాల సూచికలను గుర్తించింది. ట్యాపింగ్ వేగం, ప్రతిచర్య సమయం, వాయిస్ లేదా డ్రాయింగ్ స్థిరత్వంలో గణనీयమైన తగ్గుదల కనుగొనబడింది. ఇది పార్కిన్సన్స్ ను ధృవీకరించదు, కానీ వెంటనే న్యూరాలజిస్ట్ ను సంప్రదించి పరీక్ష చేయించుకోవాలని గట్టిగా సిఫార్సు చేయబడింది."
+                }
+            };
+
+            calcBtn.addEventListener('click', () => {
+                const motor = JSON.parse(localStorage.getItem('sehatsaathi_result_motor')).score;
+                const voice = JSON.parse(localStorage.getItem('sehatsaathi_result_voice')).score;
+                const spiral = JSON.parse(localStorage.getItem('sehatsaathi_result_spiral')).score;
+                const reaction = JSON.parse(localStorage.getItem('sehatsaathi_result_reaction')).score;
+
+                // Neurological health index calculation
+                const score = motor * 0.30 + voice * 0.30 + spiral * 0.20 + reaction * 0.20;
+                
+                let status = "Needs Attention";
+                let bannerClass = 'risk-severe';
+                
+                if (score >= 75) {
+                    status = "EXCELLENT";
+                    bannerClass = 'risk-healthy';
+                } else if (score >= 70) {
+                    status = "GOOD";
+                    bannerClass = 'risk-mild';
+                } else if (score >= 65) {
+                    status = "FAIR";
+                    bannerClass = 'risk-moderate';
+                }
+
+                // Save results for Health Score Module
+                localStorage.setItem('sehatsaathi_result_parkinson_overall', JSON.stringify({
+                    score: score,
+                    status: status,
+                    timestamp: Date.now()
+                }));
+
+                function getBannerHtml(lang) {
+                    const explanation = parkinsonExplanations[lang][status];
+                    return `
+                        <div class="risk-banner ${bannerClass}">
+                            NEUROLOGICAL HEALTH INDEX: ${score.toFixed(2)}%<br>
+                            <span style="font-size: 1rem; font-weight: 500;">Status: ${status}</span>
+                        </div>
+                        
+                        <div class="lang-selector-container" style="margin: 1rem 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">🌐 AI Explanation Language / भाषा:</span>
+                            <select id="lang-select" style="background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: Outfit; font-size: 0.8rem;">
+                                <option value="en" ${lang === 'en' ? 'selected' : ''}>🇬🇧 English</option>
+                                <option value="hi" ${lang === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी (Hindi)</option>
+                                <option value="bn" ${lang === 'bn' ? 'selected' : ''}>🇧🇩 বাংলা (Bengali)</option>
+                                <option value="mr" ${lang === 'mr' ? 'selected' : ''}>🇮🇳 मराठी (Marathi)</option>
+                                <option value="ta" ${lang === 'ta' ? 'selected' : ''}>🇮🇳 தமிழ் (Tamil)</option>
+                                <option value="te" ${lang === 'te' ? 'selected' : ''}>🇮🇳 తెలుగు (Telugu)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ai-explanation-box" style="background: rgba(255,255,255,0.03); border-left: 4px solid var(--color-primary); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.9rem; line-height: 1.5; color: var(--text-primary); margin-top: 0.5rem; text-align: left;">
+                            <strong>🤖 AI Report Explanation:</strong><br>
+                            <span>${explanation}</span>
+                        </div>
+                    `;
+                }
+
+                // Initial render in active language
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                document.getElementById('risk-banner-container').innerHTML = getBannerHtml(activeLang);
+
+                // Dynamic selector listener
+                document.getElementById('risk-banner-container').addEventListener('change', (e) => {
+                    if (e.target && e.target.id === 'lang-select') {
+                        document.getElementById('risk-banner-container').innerHTML = getBannerHtml(e.target.value);
+                    }
+                });
+            });
+
+            readingsBtn.addEventListener('click', () => {
+                const motorData = JSON.parse(localStorage.getItem('sehatsaathi_result_motor'));
+                const voiceData = JSON.parse(localStorage.getItem('sehatsaathi_result_voice'));
+                const spiralData = JSON.parse(localStorage.getItem('sehatsaathi_result_spiral'));
+                const reactionData = JSON.parse(localStorage.getItem('sehatsaathi_result_reaction'));
+
+                const readingsHtml = `=========================================
+        DETAILED CLINICAL READINGS
+=========================================
+
+Motor Finger Tapping:
+  - Amplitude Decrement: ${motorData.decrement ? motorData.decrement.toFixed(2) : '0.00'}% (Threshold: 30.0%)
+  - Tapping Speed:      ${motorData.speed ? motorData.speed.toFixed(2) : '0.00'} taps/sec
+
+Voice Stability:
+  - Jitter (local):     ${voiceData.jitter ? voiceData.jitter.toFixed(3) : '0.000'}% (Threshold: 1.04%)
+  - Shimmer (local):    ${voiceData.shimmer ? voiceData.shimmer.toFixed(3) : '0.000'}% (Threshold: 3.81%)
+  - HNR:                ${voiceData.hnr ? voiceData.hnr.toFixed(2) : '0.00'} dB (Threshold: 20.0 dB)
+
+Spiral Tracing:
+  - Mean Deviation:     ${spiralData.deviation ? spiralData.deviation.toFixed(2) : '0.00'} pixels
+  - Tremor Index:       ${spiralData.tremor_index ? spiralData.tremor_index.toFixed(3) : '0.000'}
+  - Curvature Variance: ${spiralData.curvature_var ? spiralData.curvature_var.toFixed(3) : '0.000'}
+
+Reaction Latency:
+  - Mean Latency:       ${reactionData.mean_latency ? reactionData.mean_latency.toFixed(2) : '0.00'} ms (Threshold: 650 ms)
+=========================================`;
+
+                document.getElementById('detailed-readings-box').innerText = readingsHtml;
+            });
+
+            resetBtn.addEventListener('click', () => {
+                tests.forEach(test => localStorage.removeItem(`sehatsaathi_result_${test}`));
+                window.location.reload();
+            });
+
+            // GSAP Stagger Small Cards
+            gsap.from(".card-sm", {
+                duration: 0.8,
+                scale: 0.85,
+                opacity: 0,
+                y: 30,
+                stagger: 0.1,
+                ease: "back.out(1.5)",
+                onComplete: () => {
+                    // Clear inline properties to allow transitions to fire cleanly
+                    gsap.set(".card-sm", { clearProps: "transform,opacity" });
+                    document.querySelectorAll('.card-sm').forEach(card => {
+                        card.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)";
+                    });
+                }
+            });
+        });
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

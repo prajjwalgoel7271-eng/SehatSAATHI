@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Spiral Drawing Test — SehatSaathi{% endblock %}
+
+{% block content %}
+<h1 class="page-title" data-trn="pspiral-title">[Spiral] Spiral Drawing Test</h1>
+<p class="page-subtitle" data-trn="pspiral-subtitle">Trace over the guide spiral from the center outward as accurately as possible.</p>
+<div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+<div class="test-layout">
+    <!-- Left column: Drawing canvas -->
+    <div class="test-workspace">
+        <canvas id="drawing-canvas" class="drawing-canvas" width="460" height="420"></canvas>
+        
+        <div style="display: flex; gap: 1rem; width: 100%; max-width: 480px; margin-top: 1rem;">
+            <button id="btn-clear" class="btn btn-secondary btn-block" data-trn="btn-clear-canvas">Clear Canvas</button>
+            <button id="btn-submit" class="btn btn-primary btn-block" data-trn="btn-submit-drawing">Submit Drawing</button>
+        </div>
+    </div>
+
+    <!-- Right column: Instructions & Status -->
+    <div class="test-controls">
+        <div class="instruction-box">
+            <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary);" data-trn="instructions-header">Instructions:</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;" data-trn="pspiral-instructions">
+                1. Use your mouse, trackpad, or touchscreen (on mobile/tablet).<br>
+                2. Press down and draw over the light gray guide spiral.<br>
+                3. Start from the center and draw outward in one continuous motion.<br>
+                4. Maintain a steady hand. Once finished, click "Submit Drawing".
+            </p>
+        </div>
+
+        <div class="status-indicator status-scanning" id="drawing-status" data-trn="status-spiral-initial">
+            ⏳ READY — START DRAWING FROM CENTER
+        </div>
+
+        <div id="results-display" class="results-box" style="display: none;"></div>
+        
+        <a href="{{ url_for('parkinson_hub') }}" class="btn btn-secondary btn-block" data-trn="btn-back-hub">Back to Hub</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const canvas = document.getElementById('drawing-canvas');
+    const ctx = canvas.getContext('2d');
+    const clearBtn = document.getElementById('btn-clear');
+    const submitBtn = document.getElementById('btn-submit');
+    const drawingStatus = document.getElementById('drawing-status');
+    const resultsDisplay = document.getElementById('results-display');
+
+    // Guide spiral coordinates from Python backend
+    const refSpiral = {{ ref_spiral | tojson }};
+    
+    let isDrawing = false;
+    let drawnPoints = [];
+    let lastX = 0;
+    let lastY = 0;
+
+    // Draw reference guide spiral on load
+    function drawReferenceSpiral() {
+        ctx.strokeStyle = '#444455';
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        if (refSpiral.length > 0) {
+            ctx.moveTo(refSpiral[0][0], refSpiral[0][1]);
+            for (let i = 1; i < refSpiral.length; i++) {
+                ctx.lineTo(refSpiral[i][0], refSpiral[i][1]);
+            }
+        }
+        ctx.stroke();
+    }
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawReferenceSpiral();
+        drawnPoints = [];
+        
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        let readyText = '⏳ READY — START DRAWING FROM CENTER';
+        if (activeLang === 'hi') readyText = '⏳ तैयार — केंद्र से रेखा खींचना शुरू करें';
+        else if (activeLang === 'bn') readyText = '⏳ প্রস্তুত — কেন্দ্র থেকে আঁকা শুরু করুন';
+        else if (activeLang === 'mr') readyText = '⏳ तयार — केंद्रापासून काढण्यास सुरुवात करा';
+        else if (activeLang === 'ta') readyText = '⏳ தயார் — மையத்திலிருந்து வரையத் தொடங்கவும்';
+        else if (activeLang === 'te') readyText = '⏳ సిద్ధం — కేంద్రం నుండి గీయడం ప్రారంభించండి';
+        
+        drawingStatus.className = 'status-indicator status-scanning';
+        drawingStatus.innerText = readyText;
+    }
+
+    // Map screen click coordinates to internal 460x420 coordinates
+    function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        
+        // Handle touch events
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
+        return { x, y };
+    }
+
+    function startDrawing(e) {
+        isDrawing = true;
+        const coords = getCanvasCoordinates(e);
+        lastX = coords.x;
+        lastY = coords.y;
+        
+        // Clear previous lines if user starts over
+        if (drawnPoints.length === 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawReferenceSpiral();
+        }
+        
+        drawnPoints.push([coords.x, coords.y, Date.now() / 1000]);
+        
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        let traceText = '🖊️ TRACING SPIRAL...';
+        if (activeLang === 'hi') traceText = '🖊️ सर्पिल का रेखांकन किया जा रहा है...';
+        else if (activeLang === 'bn') traceText = '🖊️ স্পাইরাল আঁকা হচ্ছে...';
+        else if (activeLang === 'mr') traceText = '🖊️ सर्पिल रेखत आहे...';
+        else if (activeLang === 'ta') traceText = '🖊️ சுருள் வரையப்படுகிறது...';
+        else if (activeLang === 'te') traceText = '🖊️ స్పైరల్ గీస్తున్నారు...';
+        
+        drawingStatus.innerText = traceText;
+        drawingStatus.className = 'status-indicator status-scanning';
+        e.preventDefault();
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const coords = getCanvasCoordinates(e);
+        
+        // Draw connected line segment (not dots)
+        ctx.strokeStyle = '#BB86FC';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(coords.x, coords.y);
+        ctx.stroke();
+
+        lastX = coords.x;
+        lastY = coords.y;
+
+        drawnPoints.push([coords.x, coords.y, Date.now() / 1000]);
+        e.preventDefault();
+    }
+
+    function stopDrawing(e) {
+        if (isDrawing) {
+            isDrawing = false;
+            drawingStatus.className = 'status-indicator status-detected';
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let completedText = '✓ DRAWING COMPLETED';
+            if (activeLang === 'hi') completedText = '✓ रेखांकन पूर्ण हुआ';
+            else if (activeLang === 'bn') completedText = '✓ আঁকা সম্পন্ন হয়েছে';
+            else if (activeLang === 'mr') completedText = '✓ रेखांकन पूर्ण झाले';
+            else if (activeLang === 'ta') completedText = '✓ வரைதல் முடிந்தது';
+            else if (activeLang === 'te') completedText = '✓ గీయడం పూర్తయింది';
+            drawingStatus.innerText = completedText;
+        }
+        if (e) e.preventDefault();
+    }
+
+    // Touch event compatibility (Universal)
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    window.addEventListener('touchend', stopDrawing);
+
+    clearBtn.addEventListener('click', clearCanvas);
+
+    submitBtn.addEventListener('click', async () => {
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        if (drawnPoints.length < 20) {
+            let alertText = 'Please draw a longer spiral.';
+            if (activeLang === 'hi') alertText = 'कृपया एक लंबी सर्पिल रेखा खींचें।';
+            else if (activeLang === 'bn') alertText = 'অনুগ্রহ করে আরও কিছুক্ষণ স্পাইরাল আঁকুন।';
+            else if (activeLang === 'mr') alertText = 'कृपया थोडे मोठे सर्पिल रेखाटून घ्या.';
+            else if (activeLang === 'ta') alertText = 'தயவுசெய்து இன்னும் நீண்ட சுరుள் வரையவும்.';
+            else if (activeLang === 'te') alertText = 'దయచేసి మరింత పొడవైన స్పైరల్ గీయండి.';
+            alert(alertText);
+            return;
+        }
+
+        let classifyingText = '🔬 CLASSIFYING...';
+        if (activeLang === 'hi') classifyingText = '🔬 वर्गीकरण किया जा रहा है...';
+        else if (activeLang === 'bn') classifyingText = '🔬 শ্রেণীবিভাগ করা হচ্ছে...';
+        else if (activeLang === 'mr') classifyingText = '🔬 वर्गीकरण करत आहे...';
+        else if (activeLang === 'ta') classifyingText = '🔬 வகைப்படுத்தப்படுகிறது...';
+        else if (activeLang === 'te') classifyingText = '🔬 వర్గీకరిస్తున్నారు...';
+        drawingStatus.innerText = classifyingText;
+
+        try {
+            const response = await fetch('/api/parkinson/spiral', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ points: drawnPoints })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                alert(data.error);
+                drawingStatus.innerText = '❌ ERROR';
+                return;
+            }
+
+            // Save results to local storage
+            localStorage.setItem('sehatsaathi_result_spiral', JSON.stringify({
+                score: data.score,
+                deviation: data.deviation,
+                tremor_index: data.tremor_index,
+                curvature_var: data.curvature_var,
+                smoothness_status: data.smoothness_status
+            }));
+
+            let completeText = '✓ ANALYSIS COMPLETE';
+            if (activeLang === 'hi') completeText = '✓ विश्लेषण पूर्ण हुआ';
+            else if (activeLang === 'bn') completeText = '✓ বিশ্লেষণ সম্পন্ন';
+            else if (activeLang === 'mr') completeText = '✓ विश्लेषण पूर्ण झाले';
+            else if (activeLang === 'ta') completeText = '✓ பகுப்பாய்வு முடிந்தது';
+            else if (activeLang === 'te') completeText = '✓ విశ్లేషణ పూర్తయింది';
+            drawingStatus.className = 'status-indicator status-detected';
+            drawingStatus.innerText = completeText;
+
+            // Dynamically translate reports
+            let titleText = "Spiral Tracing Score";
+            let devText = "Mean Path Deviation";
+            let indexText = "Tremor Power Index";
+            let smoothText = "Drawing Smoothness";
+            
+            let smoothnessStatus = data.smoothness_status;
+
+            if (activeLang === 'hi') {
+                titleText = "सर्पिल ट्रेसिंग स्कोर";
+                devText = "औसत पथ विचलन";
+                indexText = "कंपन शक्ति सूचकांक";
+                smoothText = "ड्राइंग की सुगमता";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "सुगम / स्थिर" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "हल्का कंपन" : "गंभीर कंपन";
+            } else if (activeLang === 'bn') {
+                titleText = "স্পাইরাল ট্রেসিং স্কোর";
+                devText = "গড় পথ বিচ্যুতি";
+                indexText = "কম্পন শক্তি সূচক";
+                smoothText = "অঙ্কন মসৃণতা";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "মসৃণ / স্থিতিশীল" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "হালকা কম্পন" : "মারাত্মক কম্পন";
+            } else if (activeLang === 'mr') {
+                titleText = "सर्पिल रेखांकन स्कोर";
+                devText = "सरासरी पथ विचलन";
+                indexText = "कंपन शक्ती निर्देशांक";
+                smoothText = "रेखांकन सुलभता";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "सुलभ / स्थिर" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "किंचित कंपन" : "गंभीर कंपन";
+            } else if (activeLang === 'ta') {
+                titleText = "சுருள் வரைதல் மதிப்பெண்";
+                devText = "சராசரி பாதை விலகல்";
+                indexText = "நடுக்க குறியீடு";
+                smoothText = "வரைதல் சீரான தன்மை";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "சீராக உள்ளது / நிலையானது" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "மிதமான நடுக்கம்" : "கடுமையான நடுக்கம்";
+            } else if (activeLang === 'te') {
+                titleText = "స్పైరల్ డ్రాయింగ్ స్కోరు";
+                devText = "సగటు రేఖ విచలనం";
+                indexText = "వణుకు తీవ్రత సూచిక";
+                smoothText = "డ్రాయింగ్ సున్నితత్వం";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "సున్నితంగా / స్థిరంగా" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "స్వల్ప వణుకు" : "తీవ్రమైన వణుకు";
+            }
+
+            resultsDisplay.style.display = 'block';
+            resultsDisplay.innerHTML = `${titleText}: ${data.score.toFixed(2)}%\n` +
+                                        `${devText}: ${data.deviation.toFixed(2)} px\n` +
+                                        `${indexText}: ${data.tremor_index.toFixed(3)}%\n` +
+                                        `${smoothText}: ${smoothnessStatus}`;
+        } catch (err) {
+            console.error('Error submitting drawing:', err);
+            drawingStatus.innerText = '❌ SERVER ERROR';
+        }
+    });
+
+    // Initialize guide spiral drawing
+    drawReferenceSpiral();
+    
+    // Set initial text depending on active language on load
+    const activeLangOnLoad = localStorage.getItem('sehatsaathi_lang') || 'en';
+    if (activeLangOnLoad !== 'en') {
+        clearCanvas();
+    }
+</script>
+{% endblock %}

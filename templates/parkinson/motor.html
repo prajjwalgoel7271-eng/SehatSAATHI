@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+
+{% block title %}Finger Tapping Test — SehatSaathi{% endblock %}
+
+{% block extra_head %}
+<!-- MediaPipe dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title" data-trn="pmotor-title">[Motor] Finger Tapping Test</h1>
+<p class="page-subtitle" data-trn="pmotor-subtitle">Rhythmically tap your thumb and index finger together and apart in front of the camera.</p>
+<div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+<div class="test-layout">
+    <!-- Left column: Live camera feed with canvas overlays -->
+    <div class="test-workspace">
+        <div class="media-container">
+            <video id="video-feed" class="video-feed" autoplay playsinline></video>
+            <canvas id="canvas-overlay" class="canvas-overlay"></canvas>
+            <div id="countdown-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: bold; display: none; color: var(--color-warning); text-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 10; text-align: center; line-height: 1.2;">Ready...</div>
+        </div>
+        <div class="status-indicator status-scanning" id="camera-status" style="margin-top: 1rem; width: 100%;" data-trn="status-init-camera">
+            ⏳ INITIALIZING CAMERA...
+        </div>
+    </div>
+
+    <!-- Right column: Controls & Progress -->
+    <div class="test-controls">
+        <div class="instruction-box">
+            <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary);" data-trn="instructions-header">Instructions:</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;" data-trn="pmotor-instructions">
+                1. Allow camera permissions.<br>
+                2. Position your hand so it is fully visible in the frame.<br>
+                3. Once ready, click "Start Test". You will have 20 seconds to perform the tapping gesture.<br>
+                4. Tap your thumb and index finger together and open them wide repeatedly.<br>
+                5. Keep your hand as steady as possible.
+            </p>
+        </div>
+
+        <div class="progress-container">
+            <div id="test-progress-bar" class="progress-bar" style="background-color: var(--color-primary);"></div>
+        </div>
+        <div id="timer-label" style="font-weight: bold; text-align: center;" data-trn="timer-label-initial">20.0s remaining</div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button id="btn-start" class="btn btn-primary btn-block" data-trn="btn-start-test">
+                Start Test
+            </button>
+            <a href="{{ url_for('parkinson_hub') }}" class="btn btn-secondary btn-block" data-trn="btn-back-hub">Back to Hub</a>
+        </div>
+
+        <div id="results-display" class="results-box" style="display: none;"></div>
+        <img id="results-plot" class="analysis-plot" style="display: none;" alt="Finger Tapping Plot">
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const video = document.getElementById('video-feed');
+    const canvas = document.getElementById('canvas-overlay');
+    const ctx = canvas.getContext('2d');
+    const cameraStatus = document.getElementById('camera-status');
+    const startBtn = document.getElementById('btn-start');
+    const progressBar = document.getElementById('test-progress-bar');
+    const timerLabel = document.getElementById('timer-label');
+    const resultsDisplay = document.getElementById('results-display');
+    const resultsPlot = document.getElementById('results-plot');
+
+    let handDetector;
+    let cameraHelper;
+    let distances = [];
+    let timestamps = [];
+    let testActive = false;
+    let startTime = 0;
+    const duration = 20.0; // 20 seconds
+    let animationFrameId;
+
+    // Rescale canvas overlay size
+    function resizeCanvas() {
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+    }
+    video.onloadedmetadata = () => {
+        resizeCanvas();
+        startBtn.removeAttribute('disabled');
+        cameraStatus.className = 'status-indicator status-detected';
+        
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        let readyText = '✓ CAMERA READY — CLICK START';
+        if (activeLang === 'hi') readyText = '✓ कैमरा तैयार — शुरू करने के लिए क्लिक करें';
+        else if (activeLang === 'bn') readyText = '✓ ক্যামেরা প্রস্তুত — শুরু করতে ক্লিক করুন';
+        else if (activeLang === 'mr') readyText = '✓ कॅमेरा तयार — सुरू करण्यासाठी क्लिक करा';
+        else if (activeLang === 'ta') readyText = '✓ கேமரா தயார் — தொடங்க கிளிக் செய்யவும்';
+        else if (activeLang === 'te') readyText = '✓ కెమెరా సిద్ధంగా ఉంది — ప్రారంభించడానికి క్లిక్ చేయండి';
+        cameraStatus.innerText = readyText;
+    };
+
+    // Load preferred device
+    const preferredCameraId = localStorage.getItem('sehatsaathi_preferred_camera');
+
+    // Initialize MediaPipe Hands
+    handDetector = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+    handDetector.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.5
+    });
+
+    handDetector.onResults((results) => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        
+        // Check if hand is detected
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            cameraStatus.className = 'status-indicator status-detected';
+            
+            let detectedText = '✓ HAND DETECTED';
+            if (activeLang === 'hi') detectedText = '✓ हाथ का पता चला';
+            else if (activeLang === 'bn') detectedText = '✓ হাত সনাক্ত করা হয়েছে';
+            else if (activeLang === 'mr') detectedText = '✓ हात आढळला';
+            else if (activeLang === 'ta') detectedText = '✓ கை கண்டறியப்பட்டது';
+            else if (activeLang === 'te') detectedText = '✓ చేయి గుర్తించబడింది';
+            cameraStatus.innerText = detectedText;
+
+            const landmarks = results.multiHandLandmarks[0];
+            const thumb = landmarks[4];
+            const index = landmarks[8];
+
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const x1 = thumb.x * w;
+            const y1 = thumb.y * h;
+            const x2 = index.x * w;
+            const y2 = index.y * h;
+
+            // Draw line and points
+            // Thumb
+            ctx.beginPath();
+            ctx.arc(x1, y1, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = '#FF5252';
+            ctx.fill();
+
+            // Index
+            ctx.beginPath();
+            ctx.arc(x2, y2, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = '#2ECC71';
+            ctx.fill();
+
+            // Connector
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = '#FFFF00';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            const dist = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+
+            // Draw labels and distance text unmirrored
+            ctx.save();
+            ctx.translate(w, 0);
+            ctx.scale(-1, 1);
+            ctx.textAlign = 'right';
+
+            // Point labels
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '14px Outfit';
+            
+            let labelThumb = 'Thumb';
+            let labelIndex = 'Index';
+            if (activeLang === 'hi') { labelThumb = 'अंगूठा'; labelIndex = 'तर्जनी'; }
+            else if (activeLang === 'bn') { labelThumb = 'বুড়ো আঙুল'; labelIndex = 'তর্জনী'; }
+            else if (activeLang === 'mr') { labelThumb = 'अंगठा'; labelIndex = 'तर्जनी'; }
+            else if (activeLang === 'ta') { labelThumb = 'கட்டைவிரல்'; labelIndex = 'ஆள்காட்டி விரல்'; }
+            else if (activeLang === 'te') { labelThumb = 'బొటనవేలు'; labelIndex = 'చూపుడు వేలు'; }
+
+            ctx.fillText(labelThumb, w - x1 - 15, y1 + 5);
+            ctx.fillText(labelIndex, w - x2 - 15, y2 + 5);
+
+            if (testActive) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                distances.push(dist);
+                timestamps.push(elapsed);
+
+                // Distance HUD
+                ctx.font = '20px Outfit';
+                let distText = `Distance: ${Math.round(dist)}px`;
+                if (activeLang === 'hi') distText = `दूरी: ${Math.round(dist)}px`;
+                else if (activeLang === 'bn') distText = `দূরত্ব: ${Math.round(dist)}px`;
+                else if (activeLang === 'mr') distText = `अंतर: ${Math.round(dist)}px`;
+                else if (activeLang === 'ta') distText = `தூரம்: ${Math.round(dist)}px`;
+                else if (activeLang === 'te') distText = `దూరం: ${Math.round(dist)}px`;
+                ctx.fillText(distText, w - 20, 40);
+            }
+            ctx.restore();
+        } else {
+            cameraStatus.className = 'status-indicator status-scanning';
+            let alignText = '⏳ ALIGN HAND IN FRAME';
+            if (activeLang === 'hi') alignText = '⏳ फ्रेम में हाथ संरेखित करें';
+            else if (activeLang === 'bn') alignText = '⏳ ফ্রেমে হাত সারিবদ্ধ করুন';
+            else if (activeLang === 'mr') alignText = '⏳ फ्रेममध्ये हात व्यवस्थित ठेवा';
+            else if (activeLang === 'ta') alignText = '⏳ ஃபிரேமிற்குள் கையை வைக்கவும்';
+            else if (activeLang === 'te') alignText = '⏳ ఫ్రేమ్‌లో చేయి సరిచేయండి';
+            cameraStatus.innerText = alignText;
+        }
+    });
+
+    // Start video stream
+    async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            cameraStatus.className = 'status-indicator status-scanning';
+            startBtn.setAttribute('disabled', 'true');
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let secureErr = '❌ SECURE CONTEXT REQUIRED: Browsers require HTTPS to access the camera. Please deploy this site using HTTPS or run it on localhost.';
+            if (activeLang === 'hi') secureErr = '❌ सुरक्षित संदर्भ आवश्यक: कैमरा तक पहुंचने के लिए ब्राउज़रों को HTTPS की आवश्यकता होती है। कृपया साइट के सुरक्षित संस्करण (HTTPS) का उपयोग करें।';
+            else if (activeLang === 'bn') secureErr = '❌ সুরক্ষিত সংযোগ আবশ্যক: ক্যামেরা ব্যবহারের জন্য ব্রাউজারের HTTPS প্রয়োজন। অনুগ্রহ করে সাইটের নিরাপদ সংস্করণ (HTTPS) ব্যবহার করুন।';
+            else if (activeLang === 'mr') secureErr = '❌ सुरक्षित संदर्भ आवश्यक: कॅमेरा वापरण्यासाठी ब्राउझरला HTTPS आवश्यक आहे. कृपया साइटच्या सुरक्षित आवृत्तीचा (HTTPS) वापर करा.';
+            else if (activeLang === 'ta') secureErr = '❌ பாதுகாப்பான இணைப்பு தேவை: கேமராவை அணுக உலாவிக்கு HTTPS தேவைப்படுகிறது। தயவுசெய்து தளம் பாதுகாப்பான (HTTPS) பதிப்பை அணுகவும்।';
+            else if (activeLang === 'te') secureErr = '❌ సురక్షిత కనెక్షన్ అవసరం: కెమెరా ఉపయోగించడానికి బ్రౌజర్లకు HTTPS అవసరం। దయచేసి సైట్ యొక్క సురక్షిత సంస్కరణను (HTTPS) ఉపయోగించండి।';
+            cameraStatus.innerText = secureErr;
+            return;
+        }
+        try {
+            const constraints = {
+                video: preferredCameraId ? { deviceId: { exact: preferredCameraId } } : true,
+                audio: false
+            };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            
+            // Enable button as soon as camera is successfully streaming
+            video.play().then(() => {
+                resizeCanvas();
+                startBtn.removeAttribute('disabled');
+                cameraStatus.className = 'status-indicator status-detected';
+                
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                let readyText = '✓ CAMERA READY — CLICK START';
+                if (activeLang === 'hi') readyText = '✓ कैमरा तैयार — शुरू करने के लिए क्लिक करें';
+                else if (activeLang === 'bn') readyText = '✓ ক্যামেরা প্রস্তুত — শুরু করতে क्लिक করুন';
+                else if (activeLang === 'mr') readyText = '✓ कॅमेरा तयार — सुरू करण्यासाठी क्लिक करा';
+                else if (activeLang === 'ta') readyText = '✓ கேமரா தயார் — தொடங்க கிளிக் செய்யவும்';
+                else if (activeLang === 'te') readyText = '✓ కెమెరా సిద్ధంగా ఉంది — ప్రారంభించడానికి క్లిక్ చేయండి';
+                cameraStatus.innerText = readyText;
+            });
+
+            cameraHelper = new Camera(video, {
+                onFrame: async () => {
+                    await handDetector.send({ image: video });
+                },
+                width: 640,
+                height: 480
+            });
+            cameraHelper.start();
+        } catch (err) {
+            console.error('Error starting video stream:', err);
+            cameraStatus.className = 'status-indicator status-scanning';
+            cameraStatus.innerText = '❌ CAMERA ERROR: ' + err.message;
+        }
+    }
+
+    startCamera();
+
+    const countdownOverlay = document.getElementById('countdown-overlay');
+
+    startBtn.addEventListener('click', () => {
+        if (testActive) return;
+        
+        startBtn.setAttribute('disabled', 'true');
+        resultsDisplay.style.display = 'none';
+        resultsPlot.style.display = 'none';
+        countdownOverlay.style.display = 'block';
+        
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        let alignText = 'Align Hand...';
+        if (activeLang === 'hi') alignText = 'हाथ संरेखित करें...';
+        else if (activeLang === 'bn') alignText = 'হাত সারিবদ্ধ করুন...';
+        else if (activeLang === 'mr') alignText = 'हात व्यवस्थित ठेवा...';
+        else if (activeLang === 'ta') alignText = 'கையை வைக்கவும்...';
+        else if (activeLang === 'te') alignText = 'చేయి సరిచేయండి...';
+
+        let readyPrefix = 'Get ready... ';
+        if (activeLang === 'hi') readyPrefix = 'तैयार हो जाएं... ';
+        else if (activeLang === 'bn') readyPrefix = 'প্রস্তুত হন... ';
+        else if (activeLang === 'mr') readyPrefix = 'तयार व्हा... ';
+        else if (activeLang === 'ta') readyPrefix = 'தயாராகுங்கள்... ';
+        else if (activeLang === 'te') readyPrefix = 'సిద్ధం కండి... ';
+
+        let countdown = 3;
+        countdownOverlay.innerText = `${alignText}\n${countdown}`;
+        timerLabel.innerText = `${readyPrefix}${countdown}s`;
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                countdownOverlay.innerText = `${alignText}\n${countdown}`;
+                timerLabel.innerText = `${readyPrefix}${countdown}s`;
+            } else {
+                clearInterval(countdownInterval);
+                countdownOverlay.style.display = 'none';
+                startTappingTest();
+            }
+        }, 1000);
+    });
+
+    function startTappingTest() {
+        distances = [];
+        timestamps = [];
+        testActive = true;
+        startTime = Date.now();
+
+        function updateProgress() {
+            if (!testActive) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const remaining = Math.max(0, duration - elapsed);
+            progressBar.style.width = `${(elapsed / duration) * 100}%`;
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let labelText = `${remaining.toFixed(1)}s remaining`;
+            if (activeLang === 'hi') labelText = `${remaining.toFixed(1)} सेकंड शेष`;
+            else if (activeLang === 'bn') labelText = `${remaining.toFixed(1)} সেঃ বাকি`;
+            else if (activeLang === 'mr') labelText = `${remaining.toFixed(1)} सेकंद उर्वरित`;
+            else if (activeLang === 'ta') labelText = `${remaining.toFixed(1)}வி வினாடிகள் உள்ளன`;
+            else if (activeLang === 'te') labelText = `${remaining.toFixed(1)}సె సెకన్లు ఉన్నాయి`;
+            timerLabel.innerText = labelText;
+
+            if (elapsed >= duration) {
+                endTest();
+            } else {
+                animationFrameId = requestAnimationFrame(updateProgress);
+            }
+        }
+        animationFrameId = requestAnimationFrame(updateProgress);
+    }
+
+    async function endTest() {
+        testActive = false;
+        cancelAnimationFrame(animationFrameId);
+        progressBar.style.width = '100%';
+        
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        let zeroText = '0.0s remaining';
+        if (activeLang === 'hi') zeroText = '0.0 सेकंड शेष';
+        else if (activeLang === 'bn') zeroText = '0.0 সেঃ बाकी';
+        else if (activeLang === 'mr') zeroText = '0.0 सेकंद उर्वरित';
+        else if (activeLang === 'ta') zeroText = '0.0வி வினாடிகள் உள்ளன';
+        else if (activeLang === 'te') zeroText = '0.0సె సెకన్లు ఉన్నాయి';
+        timerLabel.innerText = zeroText;
+
+        let analyzingText = '🔬 ANALYZING RESULTS...';
+        if (activeLang === 'hi') analyzingText = '🔬 परिणामों का विश्लेषण किया जा रहा है...';
+        else if (activeLang === 'bn') analyzingText = '🔬 ফলাফল বিশ্লেষণ করা হচ্ছে...';
+        else if (activeLang === 'mr') analyzingText = '🔬 विश्‍लेषण सुरू आहे...';
+        else if (activeLang === 'ta') analyzingText = '🔬 முடிவுகள் ஆராயப்படுகின்றன...';
+        else if (activeLang === 'te') analyzingText = '🔬 ఫలితాలను విశ్లేషిస్తున్నారు...';
+        cameraStatus.innerText = analyzingText;
+
+        // Send to backend API
+        try {
+            const response = await fetch('/api/parkinson/motor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ distances, timestamps })
+            });
+            const data = await response.json();
+            
+            if (data.error) {
+                cameraStatus.innerText = '❌ ANALYSIS ERROR';
+                alert(data.error);
+                startBtn.removeAttribute('disabled');
+                return;
+            }
+
+            // Save results to local storage
+            localStorage.setItem('sehatsaathi_result_motor', JSON.stringify({
+                score: data.score,
+                decrement: data.decrement,
+                speed: data.speed
+            }));
+
+            // Display results
+            cameraStatus.className = 'status-indicator status-detected';
+            let completeText = '✓ SCREENING COMPLETE';
+            if (activeLang === 'hi') completeText = '✓ स्क्रीनिंग पूरी हुई';
+            else if (activeLang === 'bn') completeText = '✓ স্ক্রিনিং সম্পূর্ণ';
+            else if (activeLang === 'mr') completeText = '✓ स्क्रीनिंग पूर्ण';
+            else if (activeLang === 'ta') completeText = '✓ பரிசோதனை முடிந்தது';
+            else if (activeLang === 'te') completeText = '✓ స్క్రీనింగ్ పూర్తయింది';
+            cameraStatus.innerText = completeText;
+            
+            resultsDisplay.style.display = 'block';
+            
+            let labelScore = 'Motor Test Score';
+            let labelDec = 'Finger Decrement';
+            let labelSpeed = 'Tapping Speed';
+            let labelRhythm = 'Rhythm Stability';
+            let labelWarning = '⚠️ WARNING';
+            let speedUnit = 'taps/sec';
+            
+            let statusVal = data.rhythm_status;
+            let warnVal = data.rhythm_warning;
+
+            if (activeLang === 'hi') {
+                labelScore = 'मोटर परीक्षण स्कोर';
+                labelDec = 'फिंगर डिक्रीमेंट';
+                labelSpeed = 'टैपिंग गति';
+                labelRhythm = 'ताल स्थिरता';
+                labelWarning = '⚠️ चेतावनी';
+                speedUnit = 'टैप/सेकंड';
+                if (statusVal === 'Stable') statusVal = 'स्थिर';
+                else if (statusVal === 'Irregular') statusVal = 'अनियमित';
+                if (warnVal && warnVal.includes("irregularity")) warnVal = 'बढ़ती हुई अनियमितता या टैपिंग की गति में महत्वपूर्ण कमी देखी गई है।';
+            } else if (activeLang === 'bn') {
+                labelScore = 'মোটর টেস্ট স্কোর';
+                labelDec = 'আঙুলের স্থবিরতা';
+                labelSpeed = 'ট্যাপিং গতি';
+                labelRhythm = 'ছন্দের স্থায়িত্ব';
+                labelWarning = '⚠️ সতর্কতা';
+                speedUnit = 'ট্যাপ/সেকেন্ড';
+                if (statusVal === 'Stable') statusVal = 'স্থিতিশীল';
+                else if (statusVal === 'Irregular') statusVal = 'অনিয়মিত';
+                if (warnVal && warnVal.includes("irregularity")) warnVal = 'ট্যাপিং গতিতে উল্লেখযোগ্য হ্রাস বা ছন্দহীনতা লক্ষ্য করা গেছে।';
+            } else if (activeLang === 'mr') {
+                labelScore = 'मोटार चाचणी स्कोर';
+                labelDec = 'नखांचे/बोटांचे गुणोत्तर कमी होणे';
+                labelSpeed = 'टॅपिंग वेग';
+                labelRhythm = 'ताल स्थिरता';
+                labelWarning = '⚠️ चेतावणी';
+                speedUnit = 'टॅप/सेकंद';
+                if (statusVal === 'Stable') statusVal = 'स्थिर';
+                else if (statusVal === 'Irregular') statusVal = 'अनियमित';
+                if (warnVal && warnVal.includes("irregularity")) warnVal = 'टॅपिंगच्या गतीमध्ये आणि वेळेमध्ये अनियमितता आढळली आहे.';
+            } else if (activeLang === 'ta') {
+                labelScore = 'மோட்டார் பரிசோதனை மதிப்பெண்';
+                labelDec = 'விரல் அசைவு வீழ்ச்சி';
+                labelSpeed = 'தட்டும் வேகம்';
+                labelRhythm = 'தாள சீரான தன்மை';
+                labelWarning = '⚠️ எச்சரிக்கை';
+                speedUnit = 'தட்டுகள்/வினாடி';
+                if (statusVal === 'Stable') statusVal = 'சீரானது';
+                else if (statusVal === 'Irregular') statusVal = 'ஒழுங்கற்றது';
+                if (warnVal && warnVal.includes("irregularity")) warnVal = 'விரல் தட்டுதலில் ஒழுங்கற்ற தன்மை அல்லது கணிசமான வேகம் குறைவு கண்டறியப்பட்டுள்ளது.';
+            } else if (activeLang === 'te') {
+                labelScore = 'మోటార్ పరీక్ష స్కోరు';
+                labelDec = 'వేలి కదలికల తగ్గుదల';
+                labelSpeed = 'ట్యాపింగ్ వేగం';
+                labelRhythm = 'లయ స్థిరత్వం';
+                labelWarning = '⚠️ హెచ్చరిక';
+                speedUnit = 'ట్యాప్‌లు/సెకను';
+                if (statusVal === 'Stable') statusVal = 'స్థిరంగా ఉంది';
+                else if (statusVal === 'Irregular') statusVal = 'క్రమరహితం';
+                if (warnVal && warnVal.includes("irregularity")) warnVal = 'ట్యాపింగ్ వేగంలో క్రమరహితం లేదా గణనీయమైన వేగం తగ్గుదల కనుగొనబడింది.';
+            }
+
+            resultsDisplay.innerHTML = `${labelScore}: ${data.score.toFixed(2)}%\n` +
+                                        `${labelDec}: ${data.decrement.toFixed(2)}%\n` +
+                                        `${labelSpeed}: ${data.speed.toFixed(2)} ${speedUnit}\n` +
+                                        `${labelRhythm}: ${statusVal}\n` +
+                                        (data.rhythm_warning ? `${labelWarning}: ${warnVal}\n` : '');
+
+            if (data.plot) {
+                resultsPlot.style.display = 'block';
+                resultsPlot.src = `data:image/png;base64,${data.plot}`;
+            }
+
+            startBtn.removeAttribute('disabled');
+        } catch (err) {
+            console.error('Error submitting test data:', err);
+            cameraStatus.innerText = '❌ SERVER ERROR';
+            startBtn.removeAttribute('disabled');
+        }
+    }
+</script>
+{% endblock %}

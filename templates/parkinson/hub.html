@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %}Parkinson's Screening Hub — SehatSaathi{% endblock %}
+
+{% block content %}
+<h1 class="page-title" data-trn="phub-title">[Neuro] Parkinson's Screening Hub</h1>
+<p class="page-subtitle" data-trn="phub-subtitle">Complete all four neurological tests below to calculate your overall health index.</p>
+<div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+<div class="test-layout">
+    <!-- Left column: Sub-tests -->
+    <div class="test-controls" style="gap: 1.5rem;">
+        <div class="progress-container">
+            <div id="hub-progress" class="progress-bar" style="background-color: var(--color-primary);"></div>
+        </div>
+        <div id="hub-progress-text" style="font-size: 0.95rem; color: var(--text-secondary); margin-top: -1rem;" data-trn="phub-progress-initial">
+            0 of 4 tests completed
+        </div>
+
+        <div class="parkinson-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+            <!-- Motor Test -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                <div>
+                    <h3 class="card-sm-title" data-trn="pmotor-title">[Motor] Finger Tapping Test</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="pmotor-desc">Test finger dexterity &amp; amplitude decrement via camera.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="score-motor" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                    <a href="{{ url_for('motor_test') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                </div>
+            </div>
+
+            <!-- Voice Test -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                <div>
+                    <h3 class="card-sm-title" data-trn="pvoice-title">[Voice] Voice Test</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="pvoice-desc">Analyze steady vowel sound jitter, shimmer &amp; HNR stability.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="score-voice" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                    <a href="{{ url_for('voice_test') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                </div>
+            </div>
+
+            <!-- Spiral Test -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                <div>
+                    <h3 class="card-sm-title" data-trn="pspiral-title">[Spiral] Spiral Drawing Test</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="pspiral-desc">Drawing coordination, tremor frequency &amp; deviation analysis.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="score-spiral" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                    <a href="{{ url_for('spiral_test') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                </div>
+            </div>
+
+            <!-- Reaction Test -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.25rem;">
+                <div>
+                    <h3 class="card-sm-title" data-trn="preact-title">[Reaction] Reaction Test</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;" data-trn="preact-desc">Interactive mouse/touch targets speed &amp; coordination latency.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="score-reaction" class="status-indicator" data-trn="status-not-started">Not Started</span>
+                    <a href="{{ url_for('reaction_test') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;" data-trn="btn-start">Start</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column: Combined Index & Detailed Readings -->
+    <div class="test-controls" style="justify-content: flex-start;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;" data-trn="phub-results-title">Overall Results</h2>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem;" data-trn="phub-results-desc">
+            This is a screening estimate, not a diagnosis. Please consult a doctor for confirmation.
+        </p>
+
+        <div id="risk-banner-container">
+            <div class="status-indicator" style="padding: 1.5rem; text-align: center; color: var(--text-muted);" data-trn="phub-banner-initial">
+                Complete all tests to calculate index
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button id="btn-calculate" class="btn btn-success btn-block" disabled data-trn="btn-calc-index">
+                Calculate Health Index
+            </button>
+            <button id="btn-readings" class="btn btn-secondary btn-block" disabled data-trn="btn-detailed-readings">
+                Detailed Readings
+            </button>
+        </div>
+
+        <button id="btn-download-report" class="btn btn-primary btn-block" style="margin-top: 1rem; display: none; background: linear-gradient(135deg, #BB86FC, #03DAC5); border: none; color: #0D0D12; font-weight: bold; font-size: 1rem; padding: 0.85rem;">
+            📥 Download Clinical Report
+        </button>
+
+        <button id="btn-reset-all" class="btn btn-secondary btn-block" style="margin-top: 1rem; border-color: rgba(255,82,82,0.3); color: var(--color-danger);" data-trn="btn-reset-all-tests">
+            Reset All Sub-Tests
+        </button>
+
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-top: 1rem;" data-trn="phub-clinical-summary">Clinical Summary:</h3>
+        <div id="detailed-readings-box" class="results-box" style="flex-grow: 1; min-height: 150px;" data-trn="phub-readings-initial">
+            No readings collected yet. Run tests to see data.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tests = ['motor', 'voice', 'spiral', 'reaction'];
+        let completedCount = 0;
+
+        // Load values from localStorage — runs AFTER translate.js so we have final say
+        tests.forEach(test => {
+            const dataStr = localStorage.getItem(`sehatsaathi_result_${test}`);
+            const indicator = document.getElementById(`score-${test}`);
+            if (dataStr) {
+                const data = JSON.parse(dataStr);
+                // Remove data-trn so translate.js cannot overwrite the score
+                indicator.removeAttribute('data-trn');
+                indicator.innerHTML = `<span style="font-size:0.75rem;opacity:0.7;">&#10003; Saved</span><br>${data.score.toFixed(2)}%`;
+                indicator.classList.remove('status-indicator');
+                indicator.style.color = 'var(--color-success)';
+                indicator.style.fontWeight = 'bold';
+                indicator.style.textAlign = 'right';
+                indicator.style.lineHeight = '1.2';
+                completedCount++;
+
+                // Change the Start button next to this indicator to "Re-test"
+                const startLink = indicator.parentElement.querySelector('a.btn');
+                if (startLink) {
+                    startLink.innerText = '\u21BB Re-test';
+                    startLink.removeAttribute('data-trn');
+                    startLink.style.background = 'rgba(187,134,252,0.2)';
+                    startLink.style.borderColor = 'var(--color-primary)';
+                }
+            }
+        });
+
+        const progressPercent = (completedCount / 4) * 100;
+        document.getElementById('hub-progress').style.width = `${progressPercent}%`;
+
+        // Remove data-trn so translate.js cannot overwrite the dynamic count
+        const progressTextEl = document.getElementById('hub-progress-text');
+        progressTextEl.removeAttribute('data-trn');
+
+        let progressText = `${completedCount} of 4 tests completed`;
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        if (activeLang === 'hi') {
+            progressText = `4 \u092E\u0947\u0902 \u0938\u0947 ${completedCount} \u092A\u0930\u0940\u0915\u094D\u0937\u0923 \u092A\u0942\u0930\u0947 \u0939\u0941\u090F`;
+        } else if (activeLang === 'bn') {
+            progressText = `\u09EA \u099F\u09BF\u09B0 \u09AE\u09A7\u09CD\u09AF\u09C7 ${completedCount} \u099F\u09BF \u09AA\u09B0\u09C0\u0995\u09CD\u09B7\u09BE \u09B8\u09AE\u09CD\u09AA\u09A8\u09CD\u09A8 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7`;
+        } else if (activeLang === 'mr') {
+            progressText = `\u096A \u092A\u0948\u0915\u0940 ${completedCount} \u091A\u093E\u091A\u0923\u094D\u092F\u093E \u092A\u0942\u0930\u094D\u0923 \u091D\u093E\u0932\u094D\u092F\u093E`;
+        } else if (activeLang === 'ta') {
+            progressText = `4-\u0B87\u0BB2\u0BCD ${completedCount} \u0BAA\u0BB0\u0BBF\u0B9A\u0BCB\u0BA4\u0BA9\u0BC8\u0B95\u0BB3\u0BCD \u0BAE\u0BC1\u0B9F\u0BBF\u0BA8\u0BCD\u0BA4\u0BC1\u0BB3\u0BCD\u0BB3\u0BA9`;
+        } else if (activeLang === 'te') {
+            progressText = `4 \u0C2A\u0C30\u0C40\u0C15\u0C4D\u0C37\u0C32\u0C32\u0C4B ${completedCount} \u0C2A\u0C42\u0C30\u0C4D\u0C24\u0C2F\u0C4D\u0C2F\u0C3E\u0C2F\u0C3F`;
+        }
+        progressTextEl.innerText = progressText;
+
+        const calcBtn = document.getElementById('btn-calculate');
+        const readingsBtn = document.getElementById('btn-readings');
+        const resetBtn = document.getElementById('btn-reset-all');
+        const downloadBtn = document.getElementById('btn-download-report');
+
+        if (completedCount === 4) {
+            calcBtn.removeAttribute('disabled');
+            readingsBtn.removeAttribute('disabled');
+        }
+
+        // Explanations dictionary
+        const parkinsonExplanations = {
+            en: {
+                EXCELLENT: "The AI detected excellent neurological coordination. Tapping, voice, spiral drawing, and reaction metrics are within standard healthy ranges. Continue maintaining active physical and cognitive routines.",
+                GOOD: "The AI detected good neurological coordination. Most metrics are stable. This is a screening estimate, but we recommend regular physical exercises and hand dexterity activities to maintain motor health.",
+                FAIR: "The AI detected fair neurological coordination. Subtle indicators of motor speed decrement, slight vocal jitter, or drawing fluctuations were identified. This does not confirm Parkinson\u2019s, but it is recommended to monitor your coordination and consult a specialist if you notice tremors or stiffness.",
+                "Needs Attention": "The AI flagged neurological indicators that need attention. Significant performance reductions in tapping speed, reaction latency, voice stability, or spiral tracing stability were detected. This does not confirm Parkinson\u2019s, but it is highly recommended to consult a neurologist for a professional clinical evaluation."
+            },
+            hi: {
+                EXCELLENT: "\u090F\u0906\u0908 \u0928\u0947 \u0909\u0924\u094D\u0915\u0943\u0937\u094D\u091F \u0924\u0902\u0924\u094D\u0930\u093F\u0915\u093E \u0938\u0902\u092C\u0902\u0927\u0940 \u0938\u092E\u0928\u094D\u0935\u092F \u0915\u093E \u092A\u0924\u093E \u0932\u0917\u093E\u092F\u093E \u0939\u0948\u0964 \u0938\u092D\u0940 \u0938\u0902\u0915\u0947\u0924\u0915 \u0938\u093E\u092E\u093E\u0928\u094D\u092F \u0938\u0940\u092E\u093E\u0913\u0902 \u0915\u0947 \u092D\u0940\u0924\u0930 \u0939\u0948\u0902\u0964",
+                GOOD: "\u090F\u0906\u0908 \u0928\u0947 \u0905\u091A\u094D\u091B\u093E \u0924\u0902\u0924\u094D\u0930\u093F\u0915\u093E \u0938\u0902\u092C\u0902\u0927\u0940 \u0938\u092E\u0928\u094D\u0935\u092F \u092A\u093E\u092F\u093E \u0939\u0948\u0964 \u0905\u0927\u093F\u0915\u093E\u0902\u0936 \u0938\u0902\u0915\u0947\u0924\u0915 \u0938\u094D\u0925\u093F\u0930 \u0939\u0948\u0902\u0964",
+                FAIR: "\u090F\u0906\u0908 \u0928\u0947 \u0938\u093E\u092E\u093E\u0928\u094D\u092F \u0924\u0902\u0924\u094D\u0930\u093F\u0915\u093E \u0938\u0902\u092C\u0902\u0927\u0940 \u0938\u092E\u0928\u094D\u0935\u092F \u0915\u093E \u092A\u0924\u093E \u0932\u0917\u093E\u092F\u093E \u0939\u0948\u0964 \u092E\u0949\u091F\u0930 \u0917\u0924\u093F \u092E\u0947\u0902 \u0915\u092E\u0940, \u0906\u0935\u093E\u091C \u092E\u0947\u0902 \u0909\u0924\u093E\u0930-\u091A\u0922\u093C\u093E\u0935, \u092F\u093E \u0921\u094D\u0930\u093E\u0907\u0902\u0917 \u092E\u0947\u0902 \u0905\u0938\u094D\u0925\u093F\u0930\u0924\u093E \u0915\u0947 \u0932\u0915\u094D\u0937\u0923 \u092A\u093E\u090F \u0917\u090F \u0939\u0948\u0902\u0964",
+                "Needs Attention": "\u090F\u0906\u0908 \u0928\u0947 \u0915\u0941\u091B \u0924\u0902\u0924\u094D\u0930\u093F\u0915\u093E \u0938\u0902\u092C\u0902\u0927\u0940 \u0938\u0902\u0915\u0947\u0924\u0915\u094B\u0902 \u0915\u094B \u091A\u093F\u0939\u094D\u0928\u093F\u0924 \u0915\u093F\u092F\u093E \u0939\u0948 \u091C\u093F\u0928 \u092A\u0930 \u0927\u094D\u092F\u093E\u0928 \u0926\u0947\u0928\u0947 \u0915\u0940 \u0906\u0935\u0936\u094D\u092F\u0915\u0924\u093E \u0939\u0948\u0964 \u0928\u094D\u092F\u0942\u0930\u094B\u0932\u0949\u091C\u093F\u0938\u094D\u091F \u0938\u0947 \u092A\u0930\u093E\u092E\u0930\u094D\u0936 \u0915\u0940 \u0938\u0932\u093E\u0939 \u0926\u0940 \u091C\u093E\u0924\u0940 \u0939\u0948\u0964"
+            },
+            bn: {
+                EXCELLENT: "\u098F\u0986\u0987 \u099A\u09AE\u09CE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09BE\u09AF\u09BC\u09AC\u09BF\u0995 \u09B8\u09AE\u09A8\u09CD\u09AC\u09AF\u09BC \u09B8\u09A8\u09BE\u0995\u09CD\u09A4 \u0995\u09B0\u09C7\u099B\u09C7\u0964 \u09B8\u09AC \u09B8\u09C2\u099A\u0995 \u09B8\u09CD\u09AC\u09BE\u09AD\u09BE\u09AC\u09BF\u0995 \u09B8\u09C0\u09AE\u09BE\u09B0 \u09AE\u09A7\u09CD\u09AF\u09C7 \u09B0\u09AF\u09BC\u09C7\u099B\u09C7\u0964",
+                GOOD: "\u098F\u0986\u0987 \u09AD\u09BE\u09B2\u09CB \u09B8\u09CD\u09A8\u09BE\u09AF\u09BC\u09AC\u09BF\u0995 \u09B8\u09AE\u09A8\u09CD\u09AC\u09AF\u09BC \u09B8\u09A8\u09BE\u0995\u09CD\u09A4 \u0995\u09B0\u09C7\u099B\u09C7\u0964 \u0985\u09A7\u09BF\u0995\u09BE\u0982\u09B6 \u09B8\u09C2\u099A\u0995 \u09B8\u09CD\u09A5\u09BF\u09A4\u09BF\u09B6\u09C0\u09B2\u0964",
+                FAIR: "\u098F\u0986\u0987 \u09AE\u09BE\u099D\u09BE\u09B0\u09BF \u09B8\u09CD\u09A8\u09BE\u09AF\u09BC\u09AC\u09BF\u0995 \u09B8\u09AE\u09A8\u09CD\u09AC\u09AF\u09BC \u09B8\u09A8\u09BE\u0995\u09CD\u09A4 \u0995\u09B0\u09C7\u099B\u09C7\u0964 \u0995\u09BE\u099C\u09C7\u09B0 \u0997\u09A4\u09BF\u09A4\u09C7 \u09B8\u09BE\u09AE\u09BE\u09A8\u09CD\u09AF \u09B9\u09CD\u09B0\u09BE\u09B8 \u09A6\u09C7\u0996\u09BE \u0997\u09C7\u099B\u09C7\u0964",
+                "Needs Attention": "\u098F\u0986\u0987 \u0995\u09BF\u099B\u09C1 \u09B8\u09CD\u09A8\u09BE\u09AF\u09BC\u09AC\u09BF\u0995 \u09B8\u09C2\u099A\u0995 \u09B8\u09A8\u09BE\u0995\u09CD\u09A4 \u0995\u09B0\u09C7\u099B\u09C7 \u09AF\u09C7\u0997\u09C1\u09B2\u09BF\u09B0 \u09A6\u09BF\u0995\u09C7 \u09AE\u09A8\u09CB\u09AF\u09CB\u0997 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09CD\u09B0\u09AF\u09BC\u09CB\u099C\u09A8\u0964 \u09A8\u09BF\u0989\u09B0\u09CB\u09B2\u099C\u09BF\u09B8\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09BE\u09AE\u09B0\u09CD\u09B6 \u09A8\u09BF\u09A8\u0964"
+            },
+            mr: {
+                EXCELLENT: "\u090F\u0906\u092F\u0928\u0947 \u0909\u0924\u094D\u0915\u0943\u0937\u094D\u091F \u0928\u094D\u092F\u0942\u0930\u094B\u0932\u0949\u091C\u093F\u0915\u0932 \u0938\u092E\u0928\u094D\u0935\u092F \u0936\u094B\u0927\u0932\u093E \u0906\u0939\u0947. \u0938\u0930\u094D\u0935 \u0928\u093F\u0930\u094D\u0926\u0947\u0936\u0915 \u0938\u093E\u092E\u093E\u0928\u094D\u092F \u092E\u0930\u094D\u092F\u093E\u0926\u0947\u0924 \u0906\u0939\u0947\u0924.",
+                GOOD: "\u090F\u0906\u092F\u0928\u0947 \u091A\u093E\u0902\u0917\u0932\u093E \u0928\u094D\u092F\u0942\u0930\u094B\u0932\u0949\u091C\u093F\u0915\u0932 \u0938\u092E\u0928\u094D\u0935\u092F \u0936\u094B\u0927\u0932\u093E \u0906\u0939\u0947. \u092C\u0939\u0941\u0924\u0947\u0915 \u0928\u093F\u0930\u094D\u0926\u0947\u0936\u0915 \u0938\u094D\u0925\u093F\u0930 \u0906\u0939\u0947\u0924.",
+                FAIR: "\u090F\u0906\u092F\u0928\u0947 \u092E\u0927\u094D\u092F\u092E \u0928\u094D\u092F\u0942\u0930\u094B\u0932\u0949\u091C\u093F\u0915\u0932 \u0938\u092E\u0928\u094D\u0935\u092F \u0936\u094B\u0927\u0932\u093E \u0906\u0939\u0947. \u0939\u093E\u0932\u091A\u093E\u0932\u0940\u0902\u0935\u0930 \u0932\u0915\u094D\u0937 \u0920\u0947\u0935\u093E \u0906\u0923\u093F \u0915\u0902\u092A \u091C\u093E\u0923\u0935\u0932\u094D\u092F\u093E\u0938 \u0924\u091C\u094D\u091E\u093E\u0902\u091A\u093E \u0938\u0932\u094D\u0932\u093E \u0918\u094D\u092F\u093E.",
+                "Needs Attention": "\u090F\u0906\u092F\u0928\u0947 \u0932\u0915\u094D\u0937 \u0926\u0947\u0923\u094D\u092F\u093E\u091A\u0940 \u0917\u0930\u091C \u0905\u0938\u0932\u0947\u0932\u0947 \u0928\u093F\u0930\u094D\u0926\u0947\u0936\u0915 \u091A\u093F\u0928\u094D\u0939\u093E\u0902\u0915\u091F \u0915\u0947\u0932\u0947 \u0906\u0939\u0947\u0924. \u0924\u094D\u0935\u0930\u093F\u0924 \u0928\u094D\u092F\u0942\u0930\u094B\u0932\u0949\u091C\u093F\u0938\u094D\u091F\u091A\u093E \u0938\u0932\u094D\u0932\u093E \u0918\u094D\u092F\u093E."
+            },
+            ta: {
+                EXCELLENT: "\u0B9A\u0BBF\u0BB1\u0BA8\u0BCD\u0BA4 \u0BA8\u0BB0\u0BAE\u0BCD\u0BAA\u0BBF\u0BAF\u0BB2\u0BCD \u0B92\u0BB0\u0BC1\u0B99\u0BCD\u0B95\u0BBF\u0BA3\u0BC8\u0BAA\u0BCD\u0BAA\u0BC1 \u0B95\u0BA3\u0BCD\u0B9F\u0BB1\u0BBF\u0BAF\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BC1\u0BB3\u0BCD\u0BB3\u0BA4\u0BC1. \u0B89\u0B9F\u0BB1\u0BCD\u0BAA\u0BAF\u0BBF\u0BB1\u0BCD\u0B9A\u0BBF\u0B95\u0BB3\u0BC8\u0BA4\u0BCD \u0BA4\u0BCA\u0B9F\u0BB0\u0BB5\u0BC1\u0BAE\u0BCD.",
+                GOOD: "\u0BA8\u0BB2\u0BCD\u0BB2 \u0BA8\u0BB0\u0BAE\u0BCD\u0BAA\u0BBF\u0BAF\u0BB2\u0BCD \u0B92\u0BB0\u0BC1\u0B99\u0BCD\u0B95\u0BBF\u0BA3\u0BC8\u0BAA\u0BCD\u0BAA\u0BC1 \u0B95\u0BA3\u0BCD\u0B9F\u0BB1\u0BBF\u0BAF\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BC1\u0BB3\u0BCD\u0BB3\u0BA4\u0BC1. \u0BA4\u0B9A\u0BC8 \u0B86\u0BB0\u0BCB\u0B95\u0BCD\u0B95\u0BBF\u0BAF\u0BA4\u0BCD\u0BA4\u0BC8 \u0BAE\u0BC7\u0BAE\u0BCD\u0BAA\u0B9F\u0BC1\u0BA4\u0BCD\u0BA4 \u0BAA\u0BAF\u0BBF\u0BB1\u0BCD\u0B9A\u0BBF\u0B95\u0BB3\u0BCD \u0BAA\u0BB0\u0BBF\u0BA8\u0BCD\u0BA4\u0BC1\u0BB0\u0BC8\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BC1\u0B95\u0BBF\u0BB1\u0BA4\u0BC1.",
+                FAIR: "\u0BA8\u0B9F\u0BC1\u0BA4\u0BCD\u0BA4\u0BB0 \u0BA8\u0BB0\u0BAE\u0BCD\u0BAA\u0BBF\u0BAF\u0BB2\u0BCD \u0B92\u0BB0\u0BC1\u0B99\u0BCD\u0B95\u0BBF\u0BA3\u0BC8\u0BAA\u0BCD\u0BAA\u0BC1 \u0B95\u0BA3\u0BCD\u0B9F\u0BB1\u0BBF\u0BAF\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BC1\u0BB3\u0BCD\u0BB3\u0BA4\u0BC1. \u0BA4\u0B9A\u0BC8 \u0B87\u0BB1\u0BC1\u0B95\u0BCD\u0B95\u0BAE\u0BCD \u0B87\u0BB0\u0BC1\u0BA8\u0BCD\u0BA4\u0BBE\u0BB2\u0BCD \u0BA8\u0BBF\u0BAA\u0BC1\u0BA3\u0BB0\u0BC8 \u0B85\u0BA3\u0BC1\u0B95\u0BB5\u0BC1\u0BAE\u0BCD.",
+                "Needs Attention": "\u0BA8\u0BB0\u0BAE\u0BCD\u0BAA\u0BBF\u0BAF\u0BB2\u0BCD \u0B85\u0B9A\u0BC8\u0BB5\u0BC1\u0B95\u0BB3\u0BBF\u0BB2\u0BCD \u0B95\u0BB5\u0BA9\u0BAE\u0BCD \u0B9A\u0BC6\u0BB2\u0BC1\u0BA4\u0BCD\u0BA4 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BBF\u0BAF \u0B85\u0BB1\u0BBF\u0B95\u0BC1\u0BB1\u0BBF\u0B95\u0BB3\u0BCD \u0B95\u0BA3\u0BCD\u0B9F\u0BB1\u0BBF\u0BAF\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BC1\u0BB3\u0BCD\u0BB3\u0BA9. \u0BA8\u0BB0\u0BAE\u0BCD\u0BAA\u0BBF\u0BAF\u0BB2\u0BCD \u0BA8\u0BBF\u0BAA\u0BC1\u0BA3\u0BB0\u0BC8 \u0B85\u0BA3\u0BC1\u0B95\u0BBF \u0BAA\u0BB0\u0BBF\u0B9A\u0BCB\u0BA4\u0BBF\u0BAA\u0BCD\u0BAA\u0BA4\u0BC1 \u0B85\u0BB5\u0B9A\u0BBF\u0BAF\u0BAE\u0BBE\u0B95\u0BC1\u0BAE\u0BCD."
+            },
+            te: {
+                EXCELLENT: "AI \u0C05\u0C26\u0C4D\u0C2D\u0C41\u0C24\u0C2E\u0C48\u0C28 \u0C28\u0C30\u0C3E\u0C32 \u0C38\u0C2E\u0C28\u0C4D\u0C35\u0C2F\u0C3E\u0C28\u0C4D\u0C28\u0C3F \u0C17\u0C41\u0C30\u0C4D\u0C24\u0C3F\u0C02\u0C1A\u0C3F\u0C02\u0C26\u0C3F. \u0C36\u0C3E\u0C30\u0C40\u0C30\u0C15 \u0C2E\u0C30\u0C3F\u0C2F\u0C41 \u0C2E\u0C3E\u0C28\u0C38\u0C3F\u0C15 \u0C35\u0C4D\u0C2F\u0C3E\u0C2F\u0C3E\u0C2E\u0C3E\u0C32\u0C28\u0C41 \u0C15\u0C4A\u0C28\u0C38\u0C3E\u0C17\u0C3F\u0C02\u0C1A\u0C02\u0C21\u0C3F.",
+                GOOD: "AI \u0C2E\u0C02\u0C1A\u0C3F \u0C28\u0C30\u0C3E\u0C32 \u0C38\u0C2E\u0C28\u0C4D\u0C35\u0C2F\u0C3E\u0C28\u0C4D\u0C28\u0C3F \u0C17\u0C41\u0C30\u0C4D\u0C24\u0C3F\u0C02\u0C1A\u0C3F\u0C02\u0C26\u0C3F. \u0C1A\u0C3E\u0C32\u0C3E \u0C38\u0C42\u0C1A\u0C3F\u0C15\u0C32\u0C41 \u0C38\u0C4D\u0C25\u0C3F\u0C30\u0C02\u0C17\u0C3E \u0C09\u0C28\u0C4D\u0C28\u0C3E\u0C2F\u0C3F.",
+                FAIR: "AI \u0C2E\u0C4B\u0C38\u0C4D\u0C24\u0C30\u0C41 \u0C28\u0C30\u0C3E\u0C32 \u0C38\u0C2E\u0C28\u0C4D\u0C35\u0C2F\u0C3E\u0C28\u0C4D\u0C28\u0C3F \u0C17\u0C41\u0C30\u0C4D\u0C24\u0C3F\u0C02\u0C1A\u0C3F\u0C02\u0C26\u0C3F. \u0C35\u0C23\u0C41\u0C15\u0C41 \u0C09\u0C02\u0C1F\u0C47 \u0C28\u0C3F\u0C2A\u0C41\u0C23\u0C41\u0C21\u0C3F\u0C28\u0C3F \u0C38\u0C02\u0C2A\u0C4D\u0C30\u0C26\u0C3F\u0C02\u0C1A\u0C02\u0C21\u0C3F.",
+                "Needs Attention": "AI \u0C36\u0C4D\u0C30\u0C26\u0C4D\u0C27 \u0C2A\u0C46\u0C1F\u0C4D\u0C1F\u0C3E\u0C32\u0C4D\u0C38\u0C3F\u0C28 \u0C15\u0C4A\u0C28\u0C4D\u0C28\u0C3F \u0C28\u0C30\u0C3E\u0C32 \u0C38\u0C42\u0C1A\u0C3F\u0C15\u0C32\u0C28\u0C41 \u0C17\u0C41\u0C30\u0C4D\u0C24\u0C3F\u0C02\u0C1A\u0C3F\u0C02\u0C26\u0C3F. \u0C35\u0C46\u0C02\u0C1F\u0C28\u0C47 \u0C28\u0C4D\u0C2F\u0C42\u0C30\u0C3E\u0C32\u0C1C\u0C3F\u0C38\u0C4D\u0C1F\u0C4D \u0C28\u0C41 \u0C38\u0C02\u0C2A\u0C4D\u0C30\u0C26\u0C3F\u0C02\u0C1A\u0C3F \u0C2A\u0C30\u0C40\u0C15\u0C4D\u0C37 \u0C1A\u0C47\u0C2F\u0C3F\u0C02\u0C1A\u0C41\u0C15\u0C4B\u0C35\u0C3E\u0C32\u0C28\u0C3F \u0C38\u0C3F\u0C2B\u0C3E\u0C30\u0C41\u0C38\u0C41."
+            }
+        };
+
+        // Store report data globally for download
+        let reportData = null;
+
+        calcBtn.addEventListener('click', async () => {
+            const motor = JSON.parse(localStorage.getItem('sehatsaathi_result_motor')).score;
+            const voice = JSON.parse(localStorage.getItem('sehatsaathi_result_voice')).score;
+            const spiral = JSON.parse(localStorage.getItem('sehatsaathi_result_spiral')).score;
+            const reaction = JSON.parse(localStorage.getItem('sehatsaathi_result_reaction')).score;
+
+            const response = await fetch('/api/parkinson/overall', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ motor, voice, spiral, reaction })
+            });
+
+            const data = await response.json();
+
+            // Render overall banner
+            let status = data.status;
+            let bannerClass = 'risk-severe';
+            if (status === 'GOOD') bannerClass = 'risk-mild';
+            else if (status === 'FAIR') bannerClass = 'risk-moderate';
+            else if (status === 'EXCELLENT') bannerClass = 'risk-healthy';
+
+            // Save results for Health Score Module
+            localStorage.setItem('sehatsaathi_result_parkinson_overall', JSON.stringify({
+                score: data.score,
+                status: status,
+                timestamp: Date.now()
+            }));
+
+            // Store full report data for download
+            reportData = {
+                overallScore: data.score,
+                status: status,
+                motor: JSON.parse(localStorage.getItem('sehatsaathi_result_motor')),
+                voice: JSON.parse(localStorage.getItem('sehatsaathi_result_voice')),
+                spiral: JSON.parse(localStorage.getItem('sehatsaathi_result_spiral')),
+                reaction: JSON.parse(localStorage.getItem('sehatsaathi_result_reaction'))
+            };
+
+            function getBannerHtml(lang) {
+                const explanation = parkinsonExplanations[lang][status] || parkinsonExplanations[lang]['Needs Attention'];
+                let statusLabel = status;
+                if (lang === 'hi') {
+                    statusLabel = status === 'EXCELLENT' ? '\u0909\u0924\u094D\u0915\u0943\u0937\u094D\u091F' : status === 'GOOD' ? '\u0905\u091A\u094D\u091B\u093E' : status === 'FAIR' ? '\u0938\u093E\u092E\u093E\u0928\u094D\u092F' : '\u0927\u094D\u092F\u093E\u0928 \u0926\u0947\u0928\u0947 \u0915\u0940 \u0906\u0935\u0936\u094D\u092F\u0915\u0924\u093E';
+                } else if (lang === 'bn') {
+                    statusLabel = status === 'EXCELLENT' ? '\u099A\u09AE\u09CE\u0995\u09BE\u09B0' : status === 'GOOD' ? '\u09AD\u09BE\u09B2\u09CB' : status === 'FAIR' ? '\u09AE\u09BE\u099D\u09BE\u09B0\u09BF' : '\u09AE\u09A8\u09CB\u09AF\u09CB\u0997 \u09AA\u09CD\u09B0\u09AF\u09BC\u09CB\u099C\u09A8';
+                } else if (lang === 'mr') {
+                    statusLabel = status === 'EXCELLENT' ? '\u0909\u0924\u094D\u0915\u0943\u0937\u094D\u091F' : status === 'GOOD' ? '\u091A\u093E\u0902\u0917\u0932\u093E' : status === 'FAIR' ? '\u092E\u0927\u094D\u092F\u092E' : '\u0932\u0915\u094D\u0937 \u0926\u0947\u0923\u094D\u092F\u093E\u091A\u0940 \u0917\u0930\u091C';
+                } else if (lang === 'ta') {
+                    statusLabel = status === 'EXCELLENT' ? '\u0B9A\u0BBF\u0BB1\u0BA8\u0BCD\u0BA4\u0BA4\u0BC1' : status === 'GOOD' ? '\u0BA8\u0BB2\u0BCD\u0BB2\u0BA4\u0BC1' : status === 'FAIR' ? '\u0BA8\u0B9F\u0BC1\u0BA4\u0BCD\u0BA4\u0BB0\u0BAE\u0BCD' : '\u0B95\u0BB5\u0BA9\u0BAE\u0BCD \u0BA4\u0BC7\u0BB5\u0BC8';
+                } else if (lang === 'te') {
+                    statusLabel = status === 'EXCELLENT' ? '\u0C05\u0C26\u0C4D\u0C2D\u0C41\u0C24\u0C2E\u0C48\u0C28\u0C26\u0C3F' : status === 'GOOD' ? '\u0C2E\u0C02\u0C1A\u0C3F\u0C26\u0C3F' : status === 'FAIR' ? '\u0C2E\u0C27\u0C4D\u0C2F\u0C38\u0C4D\u0C25\u0C02' : '\u0C36\u0C4D\u0C30\u0C26\u0C4D\u0C27 \u0C2A\u0C46\u0C1F\u0C4D\u0C1F\u0C3E\u0C32\u0C3F';
+                }
+
+                return `
+                    <div class="risk-banner ${bannerClass}">
+                        NEUROLOGICAL HEALTH INDEX: ${data.score.toFixed(2)}%<br>
+                        <span style="font-size: 1rem; font-weight: 500;">Status: ${statusLabel}</span>
+                    </div>
+                    <div class="lang-selector-container" style="margin: 1rem 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);">🌐 AI Explanation Language:</span>
+                        <select id="lang-select" style="background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: Outfit; font-size: 0.8rem;">
+                            <option value="en" ${lang === 'en' ? 'selected' : ''}>English</option>
+                            <option value="hi" ${lang === 'hi' ? 'selected' : ''}>Hindi</option>
+                            <option value="bn" ${lang === 'bn' ? 'selected' : ''}>Bengali</option>
+                            <option value="mr" ${lang === 'mr' ? 'selected' : ''}>Marathi</option>
+                            <option value="ta" ${lang === 'ta' ? 'selected' : ''}>Tamil</option>
+                            <option value="te" ${lang === 'te' ? 'selected' : ''}>Telugu</option>
+                        </select>
+                    </div>
+                    <div class="ai-explanation-box" style="background: rgba(255,255,255,0.03); border-left: 4px solid var(--color-primary); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.9rem; line-height: 1.5; color: var(--text-primary); margin-top: 0.5rem; text-align: left;">
+                        <strong>🤖 AI Report Explanation:</strong><br>
+                        <span>${explanation}</span>
+                    </div>
+                `;
+            }
+
+            // Initial render in active language
+            const curLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            document.getElementById('risk-banner-container').innerHTML = getBannerHtml(curLang);
+
+            // Show download button
+            downloadBtn.style.display = 'block';
+
+            // Dynamic selector listener
+            document.getElementById('risk-banner-container').addEventListener('change', (e) => {
+                if (e.target && e.target.id === 'lang-select') {
+                    document.getElementById('risk-banner-container').innerHTML = getBannerHtml(e.target.value);
+                }
+            });
+        });
+
+        readingsBtn.addEventListener('click', () => {
+            const motorData = JSON.parse(localStorage.getItem('sehatsaathi_result_motor'));
+            const voiceData = JSON.parse(localStorage.getItem('sehatsaathi_result_voice'));
+            const spiralData = JSON.parse(localStorage.getItem('sehatsaathi_result_spiral'));
+            const reactionData = JSON.parse(localStorage.getItem('sehatsaathi_result_reaction'));
+
+            const readingsHtml = `=========================================
+    DETAILED CLINICAL READINGS
+=========================================
+
+Motor Finger Tapping:
+  - Amplitude Decrement: ${motorData.decrement ? motorData.decrement.toFixed(2) : '0.00'}% (Threshold: 30.0%)
+  - Tapping Speed:      ${motorData.speed ? motorData.speed.toFixed(2) : '0.00'} taps/sec
+
+Voice Stability:
+  - Jitter (local):     ${voiceData.jitter ? voiceData.jitter.toFixed(3) : '0.000'}% (Threshold: 1.04%)
+  - Shimmer (local):    ${voiceData.shimmer ? voiceData.shimmer.toFixed(3) : '0.000'}% (Threshold: 3.81%)
+  - HNR:                ${voiceData.hnr ? voiceData.hnr.toFixed(2) : '0.00'} dB (Threshold: 20.0 dB)
+
+Spiral Tracing:
+  - Mean Deviation:     ${spiralData.deviation ? spiralData.deviation.toFixed(2) : '0.00'} pixels
+  - Tremor Index:       ${spiralData.tremor_index ? spiralData.tremor_index.toFixed(3) : '0.000'}
+  - Curvature Variance: ${spiralData.curvature_var ? spiralData.curvature_var.toFixed(3) : '0.000'}
+
+Reaction Latency:
+  - Mean Latency:       ${reactionData.mean_latency ? reactionData.mean_latency.toFixed(2) : '0.00'} ms (Threshold: 650 ms)
+=========================================`;
+
+            document.getElementById('detailed-readings-box').innerText = readingsHtml;
+        });
+
+        // ── Download Clinical Report ──
+        downloadBtn.addEventListener('click', () => {
+            if (!reportData) return;
+
+            const lang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            const explanation = parkinsonExplanations[lang][reportData.status] || parkinsonExplanations['en'][reportData.status];
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+            const bannerCls = reportData.status === 'EXCELLENT' ? 'risk-healthy' : reportData.status === 'GOOD' ? 'risk-mild' : reportData.status === 'FAIR' ? 'risk-moderate' : 'risk-severe';
+
+            const reportHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SehatSaathi Parkinson Report</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0D0D12;color:#E8E8EC;padding:2.5rem}
+.rc{max-width:800px;margin:0 auto}
+.rh{text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:2px solid rgba(187,134,252,0.3)}
+.rh h1{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#BB86FC,#03DAC5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.rh p{color:#A0A0B0;margin-top:.5rem;font-size:.95rem}
+.dl{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:#7A7A8A;margin-top:.5rem}
+.sb{text-align:center;padding:1.5rem;border-radius:12px;margin:1.5rem 0;font-size:1.4rem;font-weight:700}
+.sb .sl{font-size:1rem;font-weight:500;display:block;margin-top:.25rem}
+.risk-healthy{background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:#2ECC71}
+.risk-mild{background:rgba(187,134,252,0.15);border:1px solid rgba(187,134,252,0.3);color:#BB86FC}
+.risk-moderate{background:rgba(255,179,0,0.15);border:1px solid rgba(255,179,0,0.3);color:#FFB300}
+.risk-severe{background:rgba(255,82,82,0.15);border:1px solid rgba(255,82,82,0.3);color:#FF5252}
+.sec{margin:1.5rem 0}
+.sec h2{font-size:1.15rem;font-weight:700;margin-bottom:.75rem;color:#BB86FC}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.mc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem}
+.mc h3{font-size:.95rem;font-weight:600;margin-bottom:.5rem}
+.mr{display:flex;justify-content:space-between;padding:.25rem 0;font-size:.85rem;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(255,255,255,0.05)}
+.mr:last-child{border:none}
+.ml{color:#A0A0B0}
+.mv{color:#E8E8EC;font-weight:500}
+.ab{background:rgba(255,255,255,0.03);border-left:4px solid #BB86FC;padding:1rem 1.25rem;border-radius:6px;margin:1.5rem 0;font-size:.9rem;line-height:1.6}
+.ab strong{display:block;margin-bottom:.5rem}
+.disc{text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);color:#7A7A8A;font-size:.8rem;line-height:1.5}
+@media print{
+body{background:white;color:#1a1a1a;padding:1.5rem}
+.rh h1{background:none;-webkit-text-fill-color:#4a148c;color:#4a148c}
+.rh p,.dl{color:#555}
+.mc{background:#f8f8f8;border-color:#ddd}
+.ml{color:#555}.mv{color:#1a1a1a}
+.ab{background:#f5f0ff;border-left-color:#7c4dff}
+.disc{color:#888;border-top-color:#ddd}
+.risk-healthy{background:#e8f5e9;border-color:#66bb6a;color:#2e7d32}
+.risk-mild{background:#f3e5f5;border-color:#ab47bc;color:#7b1fa2}
+.risk-moderate{background:#fff8e1;border-color:#ffb300;color:#f57f17}
+.risk-severe{background:#ffebee;border-color:#ef5350;color:#c62828}
+}
+</style>
+</head>
+<body>
+<div class="rc">
+<div class="rh">
+<h1>&#9877;&#65039; SehatSaathi &#8212; Parkinson's Screening Report</h1>
+<p>AI-Powered Neurological Coordination Assessment</p>
+<div class="dl">Generated: ${dateStr} at ${timeStr}</div>
+</div>
+<div class="sb ${bannerCls}">NEUROLOGICAL HEALTH INDEX: ${reportData.overallScore.toFixed(2)}%<span class="sl">Status: ${reportData.status}</span></div>
+<div class="sec"><h2>Detailed Sub-Test Metrics</h2>
+<div class="mg">
+<div class="mc"><h3>Motor Finger Tapping</h3>
+<div class="mr"><span class="ml">Score</span><span class="mv">${reportData.motor.score.toFixed(2)}%</span></div>
+<div class="mr"><span class="ml">Amplitude Decrement</span><span class="mv">${reportData.motor.decrement ? reportData.motor.decrement.toFixed(2) : '0.00'}%</span></div>
+<div class="mr"><span class="ml">Tapping Speed</span><span class="mv">${reportData.motor.speed ? reportData.motor.speed.toFixed(2) : '0.00'} taps/s</span></div>
+</div>
+<div class="mc"><h3>Voice Stability</h3>
+<div class="mr"><span class="ml">Score</span><span class="mv">${reportData.voice.score.toFixed(2)}%</span></div>
+<div class="mr"><span class="ml">Jitter</span><span class="mv">${reportData.voice.jitter ? reportData.voice.jitter.toFixed(3) : '0.000'}%</span></div>
+<div class="mr"><span class="ml">Shimmer</span><span class="mv">${reportData.voice.shimmer ? reportData.voice.shimmer.toFixed(3) : '0.000'}%</span></div>
+<div class="mr"><span class="ml">HNR</span><span class="mv">${reportData.voice.hnr ? reportData.voice.hnr.toFixed(2) : '0.00'} dB</span></div>
+</div>
+<div class="mc"><h3>Spiral Tracing</h3>
+<div class="mr"><span class="ml">Score</span><span class="mv">${reportData.spiral.score.toFixed(2)}%</span></div>
+<div class="mr"><span class="ml">Mean Deviation</span><span class="mv">${reportData.spiral.deviation ? reportData.spiral.deviation.toFixed(2) : '0.00'} px</span></div>
+<div class="mr"><span class="ml">Tremor Index</span><span class="mv">${reportData.spiral.tremor_index ? reportData.spiral.tremor_index.toFixed(3) : '0.000'}</span></div>
+<div class="mr"><span class="ml">Curvature Var</span><span class="mv">${reportData.spiral.curvature_var ? reportData.spiral.curvature_var.toFixed(3) : '0.000'}</span></div>
+</div>
+<div class="mc"><h3>Reaction Latency</h3>
+<div class="mr"><span class="ml">Score</span><span class="mv">${reportData.reaction.score.toFixed(2)}%</span></div>
+<div class="mr"><span class="ml">Mean Latency</span><span class="mv">${reportData.reaction.mean_latency ? reportData.reaction.mean_latency.toFixed(2) : '0.00'} ms</span></div>
+</div>
+</div></div>
+<div class="ab"><strong>&#129302; AI Clinical Interpretation:</strong>${explanation}</div>
+<div class="disc">&#9877;&#65039; IMPORTANT DISCLAIMER: This report is generated by SehatSaathi, an AI-powered screening tool.<br>It is NOT a medical diagnosis. The results are preliminary screening estimates only.<br>Please consult a qualified neurologist for professional clinical evaluation.<br><br><em>Report ID: SS-PK-${Date.now().toString(36).toUpperCase()}</em></div>
+</div>
+</body>
+</html>`;
+
+            const blob = new Blob([reportHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SehatSaathi_Parkinson_Report_${now.toISOString().slice(0,10)}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            tests.forEach(test => localStorage.removeItem(`sehatsaathi_result_${test}`));
+            localStorage.removeItem('sehatsaathi_result_parkinson_overall');
+            window.location.reload();
+        });
+    });
+</script>
+{% endblock %}

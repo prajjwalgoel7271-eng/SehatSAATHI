@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Disclaimer & Setup — SehatSaathi{% endblock %}
+
+{% block content %}
+<div class="disclaimer-card">
+    <div class="disclaimer-icon">⚕️</div>
+    <h1 class="page-title" style="margin-bottom: 1.5rem;" data-trn="disc-title">Medical Disclaimer</h1>
+    
+    <div class="disclaimer-text">
+        <p data-trn="disc-p1"><strong>Sehat Sathi is a screening tool, not a diagnostic device.</strong> It uses computer vision and audio analysis to estimate risk indicators for Parkinson's, Anemia, and Tuberculosis. It does not replace a clinical diagnosis, blood test, or examination by a licensed doctor.</p>
+        <p data-trn="disc-p2">Results shown are probabilistic risk estimates, not medical facts. Ensure good lighting and a quiet environment for best accuracy.</p>
+        <p data-trn="disc-p3">If this tool flags any risk — mild, moderate, or severe — please consult a qualified medical professional for proper testing and diagnosis.</p>
+        <p data-trn="disc-p4">By continuing, you acknowledge this app is for educational/screening purposes only.</p>
+    </div>
+
+    <!-- Device setup section -->
+    <div class="device-select-group">
+        <div class="device-select-title" data-trn="sec-setup-title">
+            <span>📷</span> Device Configuration
+        </div>
+        <div class="select-wrapper">
+            <div class="select-field">
+                <label for="camera-select" data-trn="lbl-camera-device">Camera Device</label>
+                <select id="camera-select">
+                    <option value="" data-trn="opt-scan-cameras">Scan cameras...</option>
+                </select>
+            </div>
+            <div class="select-field" style="margin-top: 0.5rem;">
+                <label for="mic-select" data-trn="lbl-mic-device">Microphone Device</label>
+                <select id="mic-select">
+                    <option value="" data-trn="opt-scan-mics">Scan microphones...</option>
+                </select>
+            </div>
+        </div>
+        <button id="btn-request-perms" class="btn btn-secondary btn-block" style="margin-top: 1rem; font-size: 0.9rem;" data-trn="btn-request-access">
+            Request Camera & Mic Access
+        </button>
+    </div>
+
+    <button id="btn-accept" class="btn btn-success btn-block" style="font-size: 1.1rem; padding: 1rem;" data-trn="btn-accept">
+        I Understand — Continue
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const cameraSelect = document.getElementById('camera-select');
+    const micSelect = document.getElementById('mic-select');
+    const requestPermsBtn = document.getElementById('btn-request-perms');
+    const acceptBtn = document.getElementById('btn-accept');
+
+    // Fetch device permissions and enumerate
+    async function setupDevices() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            // Close stream immediately after getting permissions
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Enumerate
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            
+            // Populate camera select
+            cameraSelect.innerHTML = '';
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            
+            if (videoDevices.length === 0) {
+                let noCamText = 'No cameras found';
+                if (activeLang === 'hi') noCamText = 'कोई कैमरा नहीं मिला';
+                else if (activeLang === 'bn') noCamText = 'কোনো ক্যামেরা পাওয়া যায়নি';
+                else if (activeLang === 'mr') noCamText = 'कोणतेही कॅमेरे सापडले नाहीत';
+                else if (activeLang === 'ta') noCamText = 'கேமராக்கள் எதுவும் கண்டறியப்படவில்லை';
+                else if (activeLang === 'te') noCamText = 'కెమెరాలు కనుగొనబడలేదు';
+                cameraSelect.innerHTML = `<option value="">${noCamText}</option>`;
+            } else {
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    let camLabel = 'Camera';
+                    if (activeLang === 'hi') camLabel = 'कैमरा';
+                    else if (activeLang === 'bn') camLabel = 'ক্যামেরা';
+                    else if (activeLang === 'mr') camLabel = 'कॅमेरा';
+                    else if (activeLang === 'ta') camLabel = 'கேமரா';
+                    else if (activeLang === 'te') camLabel = 'కెమెరా';
+                    option.text = device.label || `${camLabel} ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+            }
+
+            // Populate mic select
+            micSelect.innerHTML = '';
+            const audioDevices = devices.filter(device => device.kind === 'audioinput');
+            if (audioDevices.length === 0) {
+                let noMicText = 'No microphones found';
+                if (activeLang === 'hi') noMicText = 'कोई माइक्रोफ़ोन नहीं मिला';
+                else if (activeLang === 'bn') noMicText = 'কোনো মাইক্রোফোন পাওয়া যায়নি';
+                else if (activeLang === 'mr') noMicText = 'कोणतेही मायक्रोफोन सापडले नाहीत';
+                else if (activeLang === 'ta') noMicText = 'மைக்ரோஃபோன்கள் எதுவும் கண்டறியப்படவில்லை';
+                else if (activeLang === 'te') noMicText = 'మైక్రోఫోన్‌లు కనుగొనబడలేదు';
+                micSelect.innerHTML = `<option value="">${noMicText}</option>`;
+            } else {
+                audioDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    let micLabel = 'Microphone';
+                    if (activeLang === 'hi') micLabel = 'माइक्रोफ़ोन';
+                    else if (activeLang === 'bn') micLabel = 'माइक्रोফোন';
+                    else if (activeLang === 'mr') micLabel = 'मायक्रोफोन';
+                    else if (activeLang === 'ta') micLabel = 'மைக்ரோஃபோன்';
+                    else if (activeLang === 'te') micLabel = 'మైక్రోఫోన్';
+                    option.text = device.label || `${micLabel} ${index + 1}`;
+                    micSelect.appendChild(option);
+                });
+            }
+
+            // Save selected device IDs to localStorage
+            cameraSelect.onchange = () => {
+                localStorage.setItem('sehatsaathi_preferred_camera', cameraSelect.value);
+            };
+            micSelect.onchange = () => {
+                localStorage.setItem('sehatsaathi_preferred_mic', micSelect.value);
+            };
+            
+            // Save initial values
+            if (cameraSelect.value) localStorage.setItem('sehatsaathi_preferred_camera', cameraSelect.value);
+            if (micSelect.value) localStorage.setItem('sehatsaathi_preferred_mic', micSelect.value);
+
+            requestPermsBtn.style.display = 'none';
+        } catch (err) {
+            console.error('Permission denied or error finding devices:', err);
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let deniedText = 'Permission Denied';
+            if (activeLang === 'hi') deniedText = 'अनुमति अस्वीकृत';
+            else if (activeLang === 'bn') deniedText = 'অনুমতি প্রত্যাখ্যান করা হয়েছে';
+            else if (activeLang === 'mr') deniedText = 'परवानगी नाकारली';
+            else if (activeLang === 'ta') deniedText = 'அनुமதி மறுக்கப்பட்டது';
+            else if (activeLang === 'te') deniedText = 'అనుమతి నిరాకరించబడింది';
+            cameraSelect.innerHTML = `<option value="">${deniedText}</option>`;
+            micSelect.innerHTML = `<option value="">${deniedText}</option>`;
+        }
+    }
+
+    requestPermsBtn.addEventListener('click', setupDevices);
+
+    // Auto scan if permission was already granted previously
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+        const hasLabels = devices.some(device => device.label);
+        if (hasLabels) {
+            setupDevices();
+        }
+    });
+
+    acceptBtn.addEventListener('click', async () => {
+        sessionStorage.setItem("disclaimer_accepted", "true");
+        const response = await fetch('/accept-disclaimer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            window.location.href = '/menu';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Test — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="voice-title">[Voice] Voice Stability Test</h1>
+            <p class="page-subtitle" data-trn="voice-subtitle">Record a steady "AAAAA" or any vowel sound for 5 seconds to analyze voice stability metrics.</p>
+            <div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Microphone status and visualizer -->
+                <div class="test-workspace">
+                    <div class="media-container" style="flex-direction: column; justify-content: center; gap: 1rem; padding: 2rem;">
+                        <div id="mic-emoji" style="font-size: 4rem; transition: transform 0.1s ease; transform-origin: center;">🎤</div>
+                        <div id="countdown-overlay" style="font-size: 2rem; font-weight: bold; display: none; color: var(--color-warning);">Ready...</div>
+                        <canvas id="audio-wave-canvas" style="width: 100%; height: 100px; background-color: rgba(255,255,255,0.02); border-radius: 8px;"></canvas>
+                    </div>
+                    <div class="status-indicator status-scanning" id="mic-status" style="margin-top: 1rem; width: 100%;" data-trn="status-init-mic">
+                        ⏳ INITIALIZING MICROPHONE...
+                    </div>
+                </div>
+
+                <!-- Right column: Controls & Progress -->
+                <div class="test-controls">
+                    <div class="instruction-box">
+                        <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary);" data-trn="instructions-title">Instructions:</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="voice-instr-1">1. Ensure you are in a quiet room.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="voice-instr-2">2. Click "Start Recording".</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="voice-instr-3">3. After a 3-second countdown, say a steady, constant, and clear "AAAAA" vowel sound into your microphone.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0;" data-trn="voice-instr-4">4. Maintain the pitch and loudness as steadily as possible for the full 5 seconds.</p>
+                    </div>
+
+                    <div class="progress-container">
+                        <div id="test-progress-bar" class="progress-bar" style="background-color: var(--color-primary); width: 0%;"></div>
+                    </div>
+                    <div id="timer-label" style="font-weight: bold; text-align: center;" data-trn="timer-ready-record">Ready to record</div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="btn-record" class="btn btn-primary btn-block" disabled data-trn="btn-start-recording">
+                            🎤 Start Recording
+                        </button>
+                        <a href="./parkinson_hub.html" class="btn btn-secondary btn-block" data-trn="btn-back-hub">Back to Hub</a>
+                    </div>
+
+                    <div id="results-display" class="results-box" style="display: none;"></div>
+                    <canvas id="voice-plot-canvas" style="display: none; width: 100%; height: 200px; background: #12121A; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 1rem;"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        const micStatus = document.getElementById('mic-status');
+        const recordBtn = document.getElementById('btn-record');
+        const progressBar = document.getElementById('test-progress-bar');
+        const timerLabel = document.getElementById('timer-label');
+        const resultsDisplay = document.getElementById('results-display');
+        const voicePlotCanvas = document.getElementById('voice-plot-canvas');
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const micEmoji = document.getElementById('mic-emoji');
+        
+        const waveCanvas = document.getElementById('audio-wave-canvas');
+        const waveCtx = waveCanvas.getContext('2d');
+
+        let micStream;
+        let audioCtx;
+        let analyser;
+        let visualDataArray;
+        let isVisualizing = false;
+        let testActive = false;
+        let recordingBuffers = [];
+
+        const preferredMicId = localStorage.getItem('sehatsaathi_preferred_mic');
+
+        async function initMic() {
+            try {
+                const constraints = {
+                    audio: preferredMicId ? { deviceId: { exact: preferredMicId } } : true,
+                    video: false
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                micStream = stream;
+                
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(stream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                
+                const bufferLength = analyser.frequencyBinCount;
+                visualDataArray = new Uint8Array(bufferLength);
+
+                recordBtn.removeAttribute('disabled');
+                micStatus.className = 'status-indicator status-detected';
+                micStatus.innerText = '✓ MICROPHONE ACTIVE';
+                
+                isVisualizing = true;
+                drawVisualizer();
+            } catch (err) {
+                console.error('Mic access denied:', err);
+                micStatus.className = 'status-indicator status-scanning';
+                micStatus.innerText = '❌ MIC ERROR: ' + err.message;
+            }
+        }
+
+        function drawVisualizer() {
+            if (!isVisualizing) return;
+            requestAnimationFrame(drawVisualizer);
+            
+            analyser.getByteFrequencyData(visualDataArray);
+            
+            waveCtx.fillStyle = '#0D0D12';
+            waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+            
+            const barWidth = (waveCanvas.width / visualDataArray.length) * 1.5;
+            let x = 0;
+            let avgAmplitude = 0;
+
+            for (let i = 0; i < visualDataArray.length; i++) {
+                const barHeight = (visualDataArray[i] / 255) * waveCanvas.height;
+                avgAmplitude += visualDataArray[i];
+
+                waveCtx.fillStyle = `hsl(${260 + (visualDataArray[i]/255)*60}, 80%, 60%)`;
+                waveCtx.fillRect(x, waveCanvas.height - barHeight, barWidth - 2, barHeight);
+                x += barWidth;
+            }
+
+            avgAmplitude = avgAmplitude / visualDataArray.length;
+            const scaleVal = 1 + (avgAmplitude / 255) * 0.4;
+            micEmoji.style.transform = `scale(${scaleVal})`;
+        }
+
+        initMic();
+
+        recordBtn.addEventListener('click', async () => {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            if (!micStream) {
+                resultsDisplay.style.display = 'block';
+                let initText = 'Initializing microphone, please allow permission...';
+                if (activeLang === 'hi') initText = 'माइक्रोफ़ोन चालू किया जा रहा है, कृपया अनुमति दें...';
+                else if (activeLang === 'bn') initText = 'মাইক্রোফোন চালু করা হচ্ছে, দয়া করে অনুমতি দিন...';
+                else if (activeLang === 'mr') initText = 'मायक्रोफोन सुरू होत आहे, कृपया परवानगी द्या...';
+                else if (activeLang === 'ta') initText = 'மைக்ரோஃபோன் இயக்கப்படுகிறது, அனுமதி வழங்கவும்...';
+                else if (activeLang === 'te') initText = 'మైక్రోఫోన్ ప్రారంభించబడుతోంది, దయచేసి అనుమతించండి...';
+                resultsDisplay.innerHTML = initText;
+                await initMic();
+                if (!micStream) {
+                    let failText = 'Failed to access microphone. Please check permissions and try again.';
+                    if (activeLang === 'hi') failText = 'माइक्रोफ़ोन तक पहुँचने में विफल। कृपया अनुमतियों की जाँच करें और पुन: प्रयास करें।';
+                    else if (activeLang === 'bn') failText = 'মাইক্রোফোন অ্যাক্সেস করতে ব্যর্থ। অনুগ্রহ করে অনুমতি পরীক্ষা করে আবার চেষ্টা করুন।';
+                    else if (activeLang === 'mr') failText = 'मायक्रोफोन ॲक्सेस करण्यात अयशस्वी. कृपया परवानग्या तपासा आणि पुन्हा प्रयत्न करा.';
+                    else if (activeLang === 'ta') failText = 'மைக்ரோஃபோன் அணுகல் தோல்வியடைந்தது. அனுமதிகளைச் சரிபார்த்து மீண்டும் முயலவும்.';
+                    else if (activeLang === 'te') failText = 'మైక్రోఫోన్ యాక్సెస్ విఫలమైంది. అనుమతులు తనిఖీ చేసి మళ్ళీ ప్రయత్నించండి.';
+                    resultsDisplay.innerHTML = failText;
+                    return;
+                }
+            }
+            recordBtn.setAttribute('disabled', 'true');
+            resultsDisplay.style.display = 'none';
+            voicePlotCanvas.style.display = 'none';
+            countdownOverlay.style.display = 'block';
+            
+            let countdown = 3;
+            let countText = `Recording in ${countdown}...`;
+            if (activeLang === 'hi') countText = `रिकॉर्डिंग ${countdown} सेकंड में...`;
+            else if (activeLang === 'bn') countText = `${countdown} সেকেন্ডে রেকর্ডিং...`;
+            else if (activeLang === 'mr') countText = `रेकॉर्डिंग ${countdown} सेकंदात...`;
+            else if (activeLang === 'ta') countText = `${countdown} விநாடிகளில் பதிவு செய்யப்படுகிறது...`;
+            else if (activeLang === 'te') countText = `${countdown} సెకన్లలో రికార్డింగ్...`;
+            countdownOverlay.innerText = countText;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    let countText = `Recording in ${countdown}...`;
+                    if (activeLang === 'hi') countText = `रिकॉर्डिंग ${countdown} सेकंड में...`;
+                    else if (activeLang === 'bn') countText = `${countdown} সেকেন্ডে রেকর্ডিং...`;
+                    else if (activeLang === 'mr') countText = `रेकॉर्डिंग ${countdown} सेकंदात...`;
+                    else if (activeLang === 'ta') countText = `${countdown} விநாடிகளில் பதிவு செய்யப்படுகிறது...`;
+                    else if (activeLang === 'te') countText = `${countdown} సెకన్లలో రికార్డింగ్...`;
+                    countdownOverlay.innerText = countText;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownOverlay.style.display = 'none';
+                    startRecording();
+                }
+            }, 1000);
+        });
+
+        let recAudioCtx;
+        let recSource;
+        let recProcessor;
+
+        function startRecording() {
+            recordingBuffers = [];
+            testActive = true;
+            
+            recAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
+            recSource = recAudioCtx.createMediaStreamSource(micStream);
+            recProcessor = recAudioCtx.createScriptProcessor(4096, 1, 1);
+
+            recSource.connect(recProcessor);
+            recProcessor.connect(recAudioCtx.destination);
+
+            recProcessor.onaudioprocess = (e) => {
+                if (!testActive) return;
+                const channelData = e.inputBuffer.getChannelData(0);
+                recordingBuffers.push(new Float32Array(channelData));
+            };
+
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let recordingText = '🎙️ RECORDING VOWEL...';
+            if (activeLang === 'hi') recordingText = '🎙️ स्वर रिकॉर्ड किया जा रहा है...';
+            else if (activeLang === 'bn') recordingText = '🎙️ স্বর রেকর্ড করা হচ্ছে...';
+            else if (activeLang === 'mr') recordingText = '🎙️ स्वर रेकॉर्ड करत आहे...';
+            else if (activeLang === 'ta') recordingText = '🎙️ குரல் பதிவு செய்யப்படுகிறது...';
+            else if (activeLang === 'te') recordingText = '🎙️ స్వరం రికార్డ్ చేయబడుతోంది...';
+            micStatus.className = 'status-indicator status-scanning';
+            micStatus.innerText = recordingText;
+            
+            let elapsed = 0;
+            const duration = 5.0;
+            
+            const recordInterval = setInterval(() => {
+                elapsed += 0.1;
+                const remaining = Math.max(0, duration - elapsed);
+                progressBar.style.width = `${(elapsed / duration) * 100}%`;
+                
+                let labelText = `Say AAAAA... ${remaining.toFixed(1)}s remaining`;
+                if (activeLang === 'hi') labelText = `आ आ आ (AAAAA) बोलें... ${remaining.toFixed(1)} सेकंड शेष`;
+                else if (activeLang === 'bn') labelText = `"AAAAA" বলুন... ${remaining.toFixed(1)} সেঃ বাকি`;
+                else if (activeLang === 'mr') labelText = `"AAAAA" म्हणा... ${remaining.toFixed(1)} सेकंद उर्वरित`;
+                else if (activeLang === 'ta') labelText = `"AAAAA" என ஒலிக்கவும்... ${remaining.toFixed(1)}வி வினாடிகள் உள்ளன`;
+                else if (activeLang === 'te') labelText = `"AAAAA" అని పలకండి... ${remaining.toFixed(1)}సె సెకన్లు ఉన్నాయి`;
+                timerLabel.innerText = labelText;
+
+                if (elapsed >= duration) {
+                    clearInterval(recordInterval);
+                    stopRecording();
+                }
+            }, 100);
+        }
+
+        function stopRecording() {
+            testActive = false;
+            
+            if (recProcessor) {
+                recProcessor.disconnect();
+                recSource.disconnect();
+                recAudioCtx.close();
+            }
+
+            let totalLength = 0;
+            for (const buf of recordingBuffers) {
+                totalLength += buf.length;
+            }
+            const mergedSamples = new Float32Array(totalLength);
+            let offset = 0;
+            for (const buf of recordingBuffers) {
+                mergedSamples.set(buf, offset);
+                offset += buf.length;
+            }
+
+            analyzeVoiceLocal(mergedSamples, 22050);
+        }
+
+        function analyzeVoiceLocal(samples, sampleRate) {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let analyzingText = '🔬 ANALYZING COUGH/VOICE...';
+            let processingText = 'Processing analysis...';
+            if (activeLang === 'hi') {
+                analyzingText = '🔬 स्वर का विश्लेषण किया जा रहा है...';
+                processingText = 'विश्लेषण किया जा रहा है...';
+            } else if (activeLang === 'bn') {
+                analyzingText = '🔬 স্বর বিশ্লেষণ করা হচ্ছে...';
+                processingText = 'বিশ্লেষণ চলছে...';
+            } else if (activeLang === 'mr') {
+                analyzingText = '🔬 स्वराचे विश्लेषण करत आहे...';
+                processingText = 'विश्लेषण सुरू आहे...';
+            } else if (activeLang === 'ta') {
+                analyzingText = '🔬 குரல் பகுப்பாய்வு செய்யப்படுகிறது...';
+                processingText = 'பகுப்பாய்வு செய்யப்படுகிறது...';
+            } else if (activeLang === 'te') {
+                analyzingText = '🔬 స్వరం విశ్లేషించబడుతోంది...';
+                processingText = 'విశ్లేషణ ప్రక్రియ జరుగుతోంది...';
+            }
+            micStatus.innerText = analyzingText;
+            timerLabel.innerText = processingText;
+
+            const minPeriod = Math.floor(sampleRate / 500); 
+            const maxPeriod = Math.floor(sampleRate / 75);  
+            
+            const frameSize = 1024;
+            const hopSize = 512;
+            
+            const periods = [];
+            const amplitudes = [];
+            const hnrs = [];
+            const frequencies = [];
+            
+            let maxAmp = 1e-8;
+            for (let i = 0; i < samples.length; i++) {
+                if (Math.abs(samples[i]) > maxAmp) maxAmp = Math.abs(samples[i]);
+            }
+            const norm = new Float32Array(samples.length);
+            for (let i = 0; i < samples.length; i++) norm[i] = samples[i] / maxAmp;
+            
+            for (let offset = 0; offset < norm.length - frameSize; offset += hopSize) {
+                const frame = norm.subarray(offset, offset + frameSize);
+                
+                let sumSq = 0;
+                for (let i = 0; i < frameSize; i++) sumSq += frame[i] * frame[i];
+                let rms = Math.sqrt(sumSq / frameSize);
+                if (rms < 0.05) continue; 
+                
+                // Autocorrelation
+                let r = new Float32Array(maxPeriod + 1);
+                for (let lag = minPeriod; lag <= maxPeriod; lag++) {
+                    let sum = 0;
+                    let sumL = 0;
+                    let sumR = 0;
+                    for (let i = 0; i < frameSize - lag; i++) {
+                        sum += frame[i] * frame[i + lag];
+                        sumL += frame[i] * frame[i];
+                        sumR += frame[i + lag] * frame[i + lag];
+                    }
+                    let denom = Math.sqrt(sumL * sumR) + 1e-8;
+                    r[lag] = sum / denom;
+                }
+                
+                let bestLag = -1;
+                let maxR = -1;
+                for (let lag = minPeriod; lag <= maxPeriod; lag++) {
+                    if (r[lag] > r[lag - 1] && r[lag] > r[lag + 1]) {
+                        if (r[lag] > maxR) {
+                            maxR = r[lag];
+                            bestLag = lag;
+                        }
+                    }
+                }
+                
+                if (bestLag !== -1 && maxR > 0.5) {
+                    periods.push(bestLag);
+                    frequencies.push(sampleRate / bestLag);
+                    
+                    let frameMax = 0;
+                    for (let i = 0; i < frameSize; i++) {
+                        if (Math.abs(frame[i]) > frameMax) frameMax = Math.abs(frame[i]);
+                    }
+                    amplitudes.push(frameMax);
+                    
+                    let hnrVal = 10 * Math.log10(maxR / (1 - maxR + 1e-8));
+                    hnrs.push(hnrVal);
+                }
+            }
+            
+            if (periods.length < 10) {
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                micStatus.className = 'status-indicator status-scanning';
+                let errText = '❌ ANALYSIS FAILED';
+                let errDesc = "Could not track a steady vocal sound. Please ensure you say a steady 'AAAAA' in a quiet room.";
+                if (activeLang === 'hi') {
+                    errText = '❌ विश्लेषण विफल';
+                    errDesc = "स्थिर स्वर ध्वनि को ट्रैक नहीं किया जा सका। कृपया सुनिश्चित करें कि आप शांत कमरे में एक स्थिर 'आ आ आ (AAAAA)' बोलते हैं।";
+                } else if (activeLang === 'bn') {
+                    errText = '❌ বিশ্লেষণ ব্যর্থ হয়েছে';
+                    errDesc = "একটি স্থির স্বর সনাক্ত করা যায়নি। অনুগ্রহ করে শান্ত ঘরে বসে স্পষ্ট ও একটানা 'AAAAA' বলুন।";
+                } else if (activeLang === 'mr') {
+                    errText = '❌ विश्लेषण अयशस्वी';
+                    errDesc = "स्थिर स्वर ट्रॅक करता आला नाही. कृपया आपण शांत खोलीत स्थिर 'AAAAA' उच्चारल्याची खात्री करा.";
+                } else if (activeLang === 'ta') {
+                    errText = '❌ பகுப்பாய்வு தோல்வியடைந்தது';
+                    errDesc = "சீரான குரல் ஒலியைக் கண்டறிய முடியவில்லை. தயவுசெய்து அமைதியான அறையில் 'AAAAA' என ஒலிக்கவும்.";
+                } else if (activeLang === 'te') {
+                    errText = '❌ విశ్లేషణ విఫలమైంది';
+                    errDesc = "స్థిరమైన స్వర శబ్దాన్ని గుర్తించలేకపోయాము. నిశ్శబ్ద గదిలో 'AAAAA' శబ్దాన్ని పలకండి.";
+                }
+                micStatus.innerText = errText;
+                resultsDisplay.style.display = 'block';
+                resultsDisplay.innerHTML = errDesc;
+                recordBtn.removeAttribute('disabled');
+                return;
+            }
+            
+            // Calculate Jitter
+            let periodDiffSum = 0;
+            for (let i = 1; i < periods.length; i++) {
+                periodDiffSum += Math.abs(periods[i] - periods[i-1]);
+            }
+            const meanPeriod = periods.reduce((a,b)=>a+b,0) / periods.length;
+            const jitter = (periodDiffSum / (periods.length - 1)) / meanPeriod * 100;
+            
+            // Calculate Shimmer
+            let ampDiffSum = 0;
+            for (let i = 1; i < amplitudes.length; i++) {
+                ampDiffSum += Math.abs(amplitudes[i] - amplitudes[i-1]);
+            }
+            const meanAmp = amplitudes.reduce((a,b)=>a+b,0) / amplitudes.length;
+            const shimmer = (ampDiffSum / (amplitudes.length - 1)) / meanAmp * 100;
+            
+            // HNR
+            const hnr = hnrs.reduce((a,b)=>a+b,0) / hnrs.length;
+
+            // Scoring
+            let score = 100.0;
+            if (jitter > 1.04) {
+                score -= Math.min(30, (jitter - 1.04) * 15);
+            }
+            if (shimmer > 3.81) {
+                score -= Math.min(30, (shimmer - 3.81) * 8);
+            }
+            if (hnr < 20.0) {
+                score -= Math.min(30, (20.0 - hnr) * 3);
+            }
+            score = Math.max(0.0, Math.min(100.0, score));
+
+            // Save results to local storage
+            localStorage.setItem('sehatsaathi_result_voice', JSON.stringify({
+                score: score,
+                jitter: jitter,
+                shimmer: shimmer,
+                hnr: hnr
+            }));
+
+            // Dynamically translate final report text
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let successStatusText = '✓ SCREENING COMPLETE';
+            let finishedText = 'Voice test finished';
+            let titleText = "Voice Stability Score";
+            let jitterText = "Jitter (local)";
+            let shimmerText = "Shimmer (local)";
+            let hnrText = "Harmonics-to-Noise Ratio";
+
+            if (activeLang === 'hi') {
+                successStatusText = '✓ स्क्रीनिंग पूरी हुई';
+                finishedText = 'वॉयस टेस्ट समाप्त';
+                titleText = "वॉयस स्थिरता स्कोर";
+                jitterText = "जिटर (स्थानीय)";
+                shimmerText = "शिमर (स्थानीय)";
+                hnrText = "हार्मोनिक्स-टू-नॉइज़ अनुपात";
+            } else if (activeLang === 'bn') {
+                successStatusText = '✓ স্ক্রিনিং সম্পূর্ণ';
+                finishedText = 'ভয়েस টেস্ট সম্পন্ন';
+                titleText = "ভয়েস স্থায়িত্ব স্কোর";
+                jitterText = "জিটার (স্থানীয়)";
+                shimmerText = "শিমার (স্থানীয়)";
+                hnrText = "হারমোনিক্স-টু-নয়েজ অনুপাত";
+            } else if (activeLang === 'mr') {
+                successStatusText = '✓ चाचणी पूर्ण झाली';
+                finishedText = 'आवाज चाचणी पूर्ण झाली';
+                titleText = "आवाज स्थिरता स्कोर";
+                jitterText = "जिटर (स्थानिक)";
+                shimmerText = "शिमर (स्थानिक)";
+                hnrText = "हार्मोनिक्स-टू-आवाज प्रमाण";
+            } else if (activeLang === 'ta') {
+                successStatusText = '✓ பரிசோதனை முடிந்தது';
+                finishedText = 'குரல் சோதனை முடிந்தது';
+                titleText = "குரல் நிலைத்தன்மை மதிப்பெண்";
+                jitterText = "ஜிட்டர் (உள்ளூர்)";
+                shimmerText = "ஷிம்மர் (உள்ளூர்)";
+                hnrText = "ஒலி-இரைச்சல் விகிதம்";
+            } else if (activeLang === 'te') {
+                successStatusText = '✓ స్క్రీనింగ్ పూర్తయింది';
+                finishedText = 'వాయిస్ పరీక్ష పూర్తయింది';
+                titleText = "వాయిస్ స్థిరత్వం స్కోరు";
+                jitterText = "జిట్టర్ (స్థానిక)";
+                shimmerText = "షిమ్మర్ (స్థానిక)";
+                hnrText = "హార్మోనిక్స్-టు-నాయిస్ నిష్పత్తి";
+            }
+
+            micStatus.className = 'status-indicator status-detected';
+            micStatus.innerText = successStatusText;
+            timerLabel.innerText = finishedText;
+            
+            resultsDisplay.style.display = 'block';
+            resultsDisplay.innerHTML = `${titleText}: ${score.toFixed(2)}%\n` +
+                                        `${jitterText}: ${jitter.toFixed(3)}%\n` +
+                                        `${shimmerText}: ${shimmer.toFixed(3)}%\n` +
+                                        `${hnrText}: ${hnr.toFixed(2)} dB`;
+
+            drawVoiceChart(frequencies);
+            recordBtn.removeAttribute('disabled');
+        }
+
+        // Draw pitch contour chart
+        function drawVoiceChart(freqs) {
+            voicePlotCanvas.style.display = 'block';
+            const width = voicePlotCanvas.clientWidth;
+            const height = voicePlotCanvas.clientHeight;
+            voicePlotCanvas.width = width * 2;
+            voicePlotCanvas.height = height * 2;
+            voicePlotCanvas.style.width = `${width}px`;
+            voicePlotCanvas.style.height = `${height}px`;
+
+            const pCtx = voicePlotCanvas.getContext('2d');
+            pCtx.scale(2, 2);
+            pCtx.clearRect(0, 0, width, height);
+
+            const minF = Math.min(...freqs, 50);
+            const maxF = Math.max(...freqs, 300);
+
+            const getX = idx => 40 + (idx / freqs.length) * (width - 60);
+            const getY = f => height - 30 - ((f - minF) / (maxF - minF + 1e-8)) * (height - 50);
+
+            // Draw Grid
+            pCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+            pCtx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                let fVal = minF + (maxF - minF) * i / 4;
+                let y = getY(fVal);
+                pCtx.beginPath();
+                pCtx.moveTo(40, y);
+                pCtx.lineTo(width - 20, y);
+                pCtx.stroke();
+
+                pCtx.fillStyle = '#6E6E80';
+                pCtx.font = '9px Outfit';
+                pCtx.textAlign = 'right';
+                pCtx.textBaseline = 'middle';
+                pCtx.fillText(`${Math.round(fVal)}Hz`, 34, y);
+            }
+
+            // Draw line
+            pCtx.beginPath();
+            pCtx.strokeStyle = 'lime';
+            pCtx.lineWidth = 2.5;
+            for (let i = 0; i < freqs.length; i++) {
+                let x = getX(i);
+                let y = getY(freqs[i]);
+                if (i === 0) pCtx.moveTo(x, y);
+                else pCtx.lineTo(x, y);
+            }
+            pCtx.stroke();
+        }
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

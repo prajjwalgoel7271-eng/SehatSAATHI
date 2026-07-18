@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}About SehatSaathi — Edge AI Healthcare{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        .hero-title .char {
+            display: inline-block;
+        }
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.75rem;
+            margin-bottom: 3.5rem;
+        }
+        @media (max-width: 900px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .challenge-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 20px;
+            padding: 2.25rem 2rem;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.2);
+        }
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--color-danger);
+        }
+        .challenge-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(239, 68, 68, 0.45);
+            box-shadow: var(--shadow-glow-red);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .tech-badge {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.25rem;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .tech-badge:hover {
+            border-color: rgba(6, 182, 212, 0.45);
+            box-shadow: var(--shadow-glow-cyan);
+            color: white;
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .mission-vision-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3.5rem;
+        }
+        @media (max-width: 768px) {
+            .mission-vision-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+        .floating-icon {
+            position: absolute;
+            font-size: 2.2rem;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.15;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.08));
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Floating backdrop medical elements -->
+    <div class="floating-icon" style="top: 15%; left: 10%;" data-depth="0.3">🩺</div>
+    <div class="floating-icon" style="top: 25%; right: 12%;" data-depth="0.5">🧠</div>
+    <div class="floating-icon" style="bottom: 35%; left: 15%;" data-depth="0.4">🩸</div>
+    <div class="floating-icon" style="bottom: 38%; right: 10%;" data-depth="0.6">🧬</div>
+    <div class="floating-icon" style="top: 60%; left: 6%;" data-depth="0.25">🛡️</div>
+    <div class="floating-icon" style="bottom: 60%; right: 6%;" data-depth="0.45">⚕️</div>
+    
+    <div class="container" style="max-width: 1100px; padding-top: 2rem;">
+        <h1 class="page-title hero-title" id="split-about-title" data-trn="about-title" style="margin-bottom: 0.5rem; color: var(--text-primary);">About SehatSaathi</h1>
+        <p class="page-subtitle" data-trn="about-subtitle" style="margin-bottom: 2rem;">Deploying Edge AI diagnostics to address disparities in remote communities.</p>
+        <div class="title-separator" style="background-color: var(--color-primary); margin-bottom: 3.5rem;"></div>
+
+        <!-- Mission & Vision Section -->
+        <div class="mission-vision-wrapper">
+            <div class="card parkinson-card" style="text-align: left; align-items: flex-start; padding: 2.5rem;">
+                <span style="font-size: 2.8rem; margin-bottom: 1.25rem; filter: drop-shadow(0 4px 10px rgba(168,85,247,0.35));">🎯</span>
+                <h2 data-trn="about-mission-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.85rem; color: var(--color-primary); letter-spacing: -0.2px;">Our Mission</h2>
+                <p data-trn="about-mission-desc" style="color: var(--text-secondary); line-height: 1.65; font-size: 0.95rem; margin-bottom: 0;">
+                    To empower patients and medical volunteers in underserved rural clinics with immediate, client-side, zero-cost disease screening. By using basic web browsers, we remove technological boundaries to early healthcare access.
+                </p>
+            </div>
+            <div class="card tb-card" style="text-align: left; align-items: flex-start; padding: 2.5rem;">
+                <span style="font-size: 2.8rem; margin-bottom: 1.25rem; filter: drop-shadow(0 4px 10px rgba(6,182,212,0.35));">👁️</span>
+                <h2 data-trn="about-vision-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.85rem; color: var(--color-info); letter-spacing: -0.2px;">Our Vision</h2>
+                <p data-trn="about-vision-desc" style="color: var(--text-secondary); line-height: 1.65; font-size: 0.95rem; margin-bottom: 0;">
+                    To convert any entry-level smartphone or computer into a clinical pre-screening diagnostic console. We envision a future where geographical distance and financial constraints no longer determine a patient's survival rate.
+                </p>
+            </div>
+        </div>
+
+        <!-- Healthcare Challenges Section -->
+        <section style="margin-bottom: 4.5rem;">
+            <h2 data-trn="about-challenges-title" style="font-size: 1.85rem; font-weight: 800; text-align: center; margin-bottom: 0.85rem; color: var(--color-danger); letter-spacing: -0.3px;">🇮🇳 Healthcare Challenges in Rural India</h2>
+            <p data-trn="about-challenges-subtitle" style="color: var(--text-secondary); text-align: center; max-width: 720px; margin: 0 auto 3rem auto; line-height: 1.65; font-size: 1rem;">
+                Primary medical infrastructure in remote Indian districts remains critically overburdened, leaving millions of individuals without prompt diagnostic access.
+            </p>
+            <div class="about-grid">
+                <div class="challenge-card">
+                    <span style="font-size: 1.8rem; display: block; margin-bottom: 1rem;">🏥</span>
+                    <h3 data-trn="about-ch1-title" style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 0.75rem;">Critical Physician Shortage</h3>
+                    <p data-trn="about-ch1-desc" style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6;">
+                        Rural communities face a severe shortage of clinicians. Waiting periods are long, and patients must travel great distances for standard screening checks.
+                    </p>
+                </div>
+                <div class="challenge-card">
+                    <span style="font-size: 1.8rem; display: block; margin-bottom: 1rem;">🪙</span>
+                    <h3 data-trn="about-ch2-title" style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 0.75rem;">Wage & Travel Burdens</h3>
+                    <p data-trn="about-ch2-desc" style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6;">
+                        Commuting to urban diagnostics centers requires days of travel. High transportation fees combined with lost daily income deter screening.
+                    </p>
+                </div>
+                <div class="challenge-card">
+                    <span style="font-size: 1.8rem; display: block; margin-bottom: 1rem;">⌛</span>
+                    <h3 data-trn="about-ch3-title" style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 0.75rem;">Late-Stage Presentation</h3>
+                    <p data-trn="about-ch3-desc" style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6;">
+                        Over 60% of rural patients seek medical evaluations only when their diseases have reached irreversible, critical stages. Prompt screening saves lives.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Importance of AI Section -->
+        <section style="margin-bottom: 4.5rem;">
+            <div class="card health-score-card" style="text-align: left; align-items: flex-start; padding: 3rem; position: relative;">
+                <div style="position: absolute; right: 3rem; top: 3rem; font-size: 5rem; opacity: 0.08;">🤖</div>
+                <h2 data-trn="about-ai-title" style="font-size: 1.85rem; font-weight: 800; margin-bottom: 1.15rem; color: var(--color-success); letter-spacing: -0.3px;">💡 The Importance of AI in Screening</h2>
+                <p data-trn="about-ai-desc" style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.75rem; font-size: 1rem;">
+                    Artificial intelligence changes the dynamics of public screening by making complex assessments completely automated. Instead of sending media feeds (audio cough files or camera finger tapping feeds) to distant servers, SehatSaathi runs algorithms <strong>locally on the browser</strong>.
+                </p>
+                <ul style="color: var(--text-secondary); line-height: 1.9; font-size: 0.95rem; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <li data-trn="about-ai-li1"><strong>Complete Privacy</strong>: Zero patient records, audio signals, or video parameters leave the local device, complying with strict patient privacy guidelines.</li>
+                    <li data-trn="about-ai-li2"><strong>Edge Computational Efficiency</strong>: Instant results with no bandwidth bottlenecks or expensive hosting server infrastructure requirements.</li>
+                    <li data-trn="about-ai-li3"><strong>Immediate Guidance</strong>: Translates complicated math scores into actionable advice to encourage clinical follow-up.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Technology Stack Section -->
+        <section style="margin-bottom: 2rem;">
+            <h2 data-trn="about-tech-title" style="font-size: 1.85rem; font-weight: 800; text-align: center; margin-bottom: 0.85rem; color: var(--color-info); letter-spacing: -0.3px;">💻 Technology Stack</h2>
+            <p data-trn="about-tech-subtitle" style="color: var(--text-secondary); text-align: center; max-width: 600px; margin: 0 auto 3rem auto; line-height: 1.65; font-size: 1rem;">
+                Built entirely on lightweight, high-performance edge web technologies optimized for speed and compatibility.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+                <div class="tech-badge">HTML5 Semantics</div>
+                <div class="tech-badge">Vanilla CSS Tokens</div>
+                <div class="tech-badge">ES6 Javascript</div>
+                <div class="tech-badge">GreenSock (GSAP)</div>
+                <div class="tech-badge">MediaDevices API</div>
+                <div class="tech-badge">Canvas Rendering</div>
+                <div class="tech-badge">Flask Microservices</div>
+                <div class="tech-badge">Local Cache Storage</div>
+            </div>
+        </section>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Vanilla SplitText character reveal setup
+            const aboutTitle = document.getElementById('split-about-title');
+            if (aboutTitle) {
+                const text = aboutTitle.textContent;
+                aboutTitle.innerHTML = "";
+                text.split(" ").forEach(word => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.style.whiteSpace = 'nowrap';
+                    wordSpan.style.display = 'inline-block';
+                    word.split("").forEach(char => {
+                        const charSpan = document.createElement('span');
+                        charSpan.className = 'char';
+                        charSpan.textContent = char;
+                        wordSpan.appendChild(charSpan);
+                    });
+                    aboutTitle.appendChild(wordSpan);
+                    // Space
+                    const spaceSpan = document.createElement('span');
+                    spaceSpan.innerHTML = "&nbsp;";
+                    aboutTitle.appendChild(spaceSpan);
+                });
+            }
+
+            // Set initial state dynamically in JS to prevent static layout hiding
+            try {
+                gsap.set(".hero-title .char", { y: "110%", opacity: 0 });
+
+                // Entrance Timeline
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        // Smoothly clear inline values and enable CSS hover transitions
+                        gsap.set(".card, .challenge-card, .tech-badge", { clearProps: "transform,opacity" });
+                        document.querySelectorAll('.card, .challenge-card, .tech-badge').forEach(el => {
+                            el.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)";
+                        });
+                    }
+                });
+
+                tl.to(".hero-title .char", {
+                    y: "0%",
+                    opacity: 1,
+                    duration: 1.0,
+                    stagger: 0.04,
+                    ease: "power4.out"
+                })
+                .from(".page-subtitle", { duration: 1.0, y: 25, opacity: 0, ease: "power3.out" }, "-=0.6")
+                .from(".title-separator", { duration: 0.8, scaleX: 0, ease: "power3.out" }, "-=0.8")
+                .from(".card", {
+                    duration: 0.8,
+                    scale: 0.88,
+                    opacity: 0,
+                    y: 35,
+                    stagger: 0.15,
+                    ease: "back.out(1.4)"
+                }, "-=0.5")
+                .from(".challenge-card", {
+                    duration: 0.8,
+                    scale: 0.88,
+                    opacity: 0,
+                    y: 35,
+                    stagger: 0.15,
+                    ease: "back.out(1.4)"
+                }, "-=0.6")
+                .from(".tech-badge", {
+                    duration: 0.6,
+                    scale: 0.9,
+                    opacity: 0,
+                    y: 20,
+                    stagger: 0.06,
+                    ease: "power2.out"
+                }, "-=0.5");
+
+                // Floating background medical symbols loop
+                document.querySelectorAll('.floating-icon').forEach((icon, index) => {
+                    gsap.to(icon, {
+                        y: "random(-18, 18)",
+                        x: "random(-12, 12)",
+                        rotation: "random(-20, 20)",
+                        duration: "random(4.5, 7.5)",
+                        repeat: -1,
+                        yoyo: true,
+                        ease: "sine.inOut",
+                        delay: index * 0.15
+                    });
+                });
+
+                // Mouse move Parallax depth translation
+                window.addEventListener('mousemove', (e) => {
+                    const mouseX = (e.clientX / window.innerWidth) - 0.5;
+                    const mouseY = (e.clientY / window.innerHeight) - 0.5;
+                    
+                    document.querySelectorAll('.floating-icon').forEach(icon => {
+                        const depth = parseFloat(icon.getAttribute('data-depth')) || 0.4;
+                        gsap.to(icon, {
+                            x: mouseX * depth * 90,
+                            y: mouseY * depth * 90,
+                            duration: 1.3,
+                            overwrite: "auto",
+                            ease: "power2.out"
+                        });
+                    });
+                });
+            } catch (err) {
+                console.warn("GSAP animations skipped in about view.");
+            }
+        });
+    </script>
+{% endblock %}

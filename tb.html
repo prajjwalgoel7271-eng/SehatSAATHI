@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TB Screening — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="tb-title">🫁 Tuberculosis Cough Analyzer</h1>
+            <p class="page-subtitle" data-trn="tb-subtitle">Advanced early screening of TB characteristics through cough audio pattern analysis.</p>
+            <div class="title-separator" style="background-color: var(--color-info);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Microphone visualizer -->
+                <div class="test-workspace" style="border-color: var(--color-info);">
+                    <div class="media-container" style="flex-direction: column; justify-content: center; gap: 1rem; padding: 2rem;">
+                        <div id="mic-emoji" style="font-size: 4rem; transition: transform 0.1s ease; transform-origin: center;">🎤</div>
+                        <div id="countdown-overlay" style="font-size: 2.2rem; font-weight: bold; display: none; color: var(--color-warning);">Ready...</div>
+                        <canvas id="audio-wave-canvas" style="width: 100%; height: 100px; background-color: rgba(255,255,255,0.02); border-radius: 8px;"></canvas>
+                    </div>
+                    <div class="status-indicator status-scanning" id="mic-status" style="margin-top: 1rem; width: 100%;">
+                        ⏳ INITIALIZING MICROPHONE...
+                    </div>
+                </div>
+
+                <!-- Right column: Controls & Results -->
+                <div class="test-controls">
+                    <div class="instruction-box tb-step">
+                        <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-info);" data-trn="instructions-title">Instructions:</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="tb-instr-1">1. Ensure you are in a quiet room with minimal background noise.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="tb-instr-2">2. Click "Start Recording".</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="tb-instr-3">3. After a 3-second countdown, cough naturally and clearly near your microphone.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0;" data-trn="tb-instr-4">4. The recording will capture audio for a 5-second window.</p>
+                    </div>
+
+                    <div class="progress-container">
+                        <div id="test-progress-bar" class="progress-bar" style="background-color: var(--color-info); width: 0%;"></div>
+                    </div>
+                    <div id="timer-label" style="font-weight: bold; text-align: center;" data-trn="status-ready-record">Ready to record</div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="btn-record" class="btn btn-primary btn-block" data-trn="btn-start-rec">
+                            🎤 Start Recording
+                        </button>
+                        <a href="./menu.html" class="btn btn-secondary btn-block" data-trn="btn-back-menu">Back to Menu</a>
+                    </div>
+
+                    <div id="results-display" class="results-box" data-trn="tb-results-initial">
+                        No cough recording analyzed yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        const micStatus = document.getElementById('mic-status');
+        const recordBtn = document.getElementById('btn-record');
+        const progressBar = document.getElementById('test-progress-bar');
+        const timerLabel = document.getElementById('timer-label');
+        const resultsDisplay = document.getElementById('results-display');
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const micEmoji = document.getElementById('mic-emoji');
+        
+        // Wave visualizer
+        const waveCanvas = document.getElementById('audio-wave-canvas');
+        const waveCtx = waveCanvas.getContext('2d');
+
+        let micStream;
+        let audioCtx;
+        let analyser;
+        let visualDataArray;
+        let isVisualizing = false;
+        let testActive = false;
+        let recordingBuffers = [];
+
+        // Load preferred mic
+        const preferredMicId = localStorage.getItem('sehatsaathi_preferred_mic');
+
+        // Enumerate & initialize mic
+        async function initMic() {
+            try {
+                const constraints = {
+                    audio: preferredMicId ? { deviceId: { exact: preferredMicId } } : true,
+                    video: false
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                micStream = stream;
+                
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(stream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                
+                const bufferLength = analyser.frequencyBinCount;
+                visualDataArray = new Uint8Array(bufferLength);
+
+                recordBtn.removeAttribute('disabled');
+                micStatus.className = 'status-indicator status-detected';
+                
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                let activeText = '✓ MICROPHONE ACTIVE';
+                if (activeLang === 'hi') activeText = '✓ माइक्रोफोन सक्रिय है';
+                else if (activeLang === 'bn') activeText = '✓ মাইক্রোফোন সক্রিয়';
+                else if (activeLang === 'mr') activeText = '✓ मायक्रोफोन सक्रिय आहे';
+                else if (activeLang === 'ta') activeText = '✓ மைக்ரோஃபோன் செயல்படுகிறது';
+                else if (activeLang === 'te') activeText = '✓ మైక్రోఫోన్ పనిచేస్తోంది';
+                micStatus.innerText = activeText;
+                
+                isVisualizing = true;
+                drawVisualizer();
+            } catch (err) {
+                console.error('Mic access denied:', err);
+                micStatus.className = 'status-indicator status-scanning';
+                
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                let errText = '❌ MIC ERROR: ' + err.message;
+                if (activeLang === 'hi') errText = '❌ माइक्रोफ़ोन त्रुटि: ' + err.message;
+                else if (activeLang === 'bn') errText = '❌ মাইক্রোফোন ত্রুটি: ' + err.message;
+                else if (activeLang === 'mr') errText = '❌ मायक्रोफोन त्रुटी: ' + err.message;
+                else if (activeLang === 'ta') errText = '❌ மைக்ரோஃபோன் பிழை: ' + err.message;
+                else if (activeLang === 'te') errText = '❌ మైక్రోఫోన్ లోపం: ' + err.message;
+                micStatus.innerText = errText;
+            }
+        }
+
+        function drawVisualizer() {
+            if (!isVisualizing) return;
+            requestAnimationFrame(drawVisualizer);
+            
+            analyser.getByteFrequencyData(visualDataArray);
+            
+            waveCtx.fillStyle = '#0D0D12';
+            waveCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+            
+            const barWidth = (waveCanvas.width / visualDataArray.length) * 1.5;
+            let x = 0;
+            let avgAmplitude = 0;
+
+            for (let i = 0; i < visualDataArray.length; i++) {
+                const barHeight = (visualDataArray[i] / 255) * waveCanvas.height;
+                avgAmplitude += visualDataArray[i];
+
+                waveCtx.fillStyle = `hsl(${180 + (visualDataArray[i]/255)*60}, 80%, 50%)`;
+                waveCtx.fillRect(x, waveCanvas.height - barHeight, barWidth - 2, barHeight);
+                x += barWidth;
+            }
+
+            avgAmplitude = avgAmplitude / visualDataArray.length;
+            const scaleVal = 1 + (avgAmplitude / 255) * 0.4;
+            micEmoji.style.transform = `scale(${scaleVal})`;
+        }
+
+        initMic();
+
+        recordBtn.addEventListener('click', async () => {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            if (!micStream) {
+                let initPrompt = 'Initializing microphone, please allow permission...';
+                if (activeLang === 'hi') initPrompt = 'माइक्रोफोन प्रारंभ किया जा रहा है, कृपया अनुमति दें...';
+                else if (activeLang === 'bn') initPrompt = 'মাইক্রোফোন চালু করা হচ্ছে, অনুগ্রহ করে পারমিশন দিন...';
+                else if (activeLang === 'mr') initPrompt = 'मायक्रोफोन सुरू करत आहे, कृपया परवानगी द्या...';
+                else if (activeLang === 'ta') initPrompt = 'மைக்ரோஃபோன் செயல்படுத்தப்படுகிறது, தயவுசெய்து அனுமதி வழங்கவும்...';
+                else if (activeLang === 'te') initPrompt = 'మైక్రోఫోన్‌ను సిద్ధం చేస్తున్నాము, దయచేసి అనుమతినివ్వండి...';
+                
+                resultsDisplay.innerHTML = initPrompt;
+                await initMic();
+                if (!micStream) {
+                    let failPrompt = 'Failed to access microphone. Please check permissions and try again.';
+                    if (activeLang === 'hi') failPrompt = 'माइक्रोफोन तक पहुँचने में विफल। कृपया अनुमतियों की जांच करें और पुनः प्रयास करें।';
+                    else if (activeLang === 'bn') failPrompt = 'মাইক্রোফোন অ্যাক্সেস করতে ব্যর্থ হয়েছে। অনুগ্রহ করে পারমিশন চেক করে আবার চেষ্টা করুন।';
+                    else if (activeLang === 'mr') failPrompt = 'मायक्रोफोन ॲक्सेस करण्यात अयशस्वी. कृपया परवानगी तपासा आणि पुन्हा प्रयत्न करा.';
+                    else if (activeLang === 'ta') failPrompt = 'மைக்ரோஃபோனை அணுக முடியவில்லை. தயவுசெய்து அனுமதிகளைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.';
+                    else if (activeLang === 'te') failPrompt = 'మైక్రోఫోన్ ఉపయోగించడానికి వీలుపడలేదు. దయచేసి అనుమతులను సరిచూసి మళ్ళీ ప్రయత్నించండి।';
+                    
+                    resultsDisplay.innerHTML = failPrompt;
+                    return;
+                }
+            }
+            recordBtn.setAttribute('disabled', 'true');
+            
+            let setupText = 'Recording setup...';
+            if (activeLang === 'hi') setupText = 'रिकॉर्डिंग सेटअप किया जा रहा है...';
+            else if (activeLang === 'bn') setupText = 'রেকর্ডিং সেটআপ করা হচ্ছে...';
+            else if (activeLang === 'mr') setupText = 'रेकॉर्डिंग सेटअप करत आहे...';
+            else if (activeLang === 'ta') setupText = 'பதிவு செய்ய தயாராகிறது...';
+            else if (activeLang === 'te') setupText = 'రికార్డింగ్ సిద్ధం చేస్తున్నాము...';
+            resultsDisplay.innerHTML = setupText;
+            
+            countdownOverlay.style.display = 'block';
+            
+            let countdown = 3;
+            let countPrompt = `Cough in ${countdown}...`;
+            if (activeLang === 'hi') countPrompt = `${countdown} सेकंड में खांसें...`;
+            else if (activeLang === 'bn') countPrompt = `${countdown} সেকেন্ডে কাশুন...`;
+            else if (activeLang === 'mr') countPrompt = `${countdown} सेकंदात खोकला...`;
+            else if (activeLang === 'ta') countPrompt = `${countdown} விநாடிகளில் இருமவும்...`;
+            else if (activeLang === 'te') countPrompt = `${countdown} సెకన్లలో దగ్గండి...`;
+            countdownOverlay.innerText = countPrompt;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    let countPromptVal = `Cough in ${countdown}...`;
+                    if (activeLang === 'hi') countPromptVal = `${countdown} सेकंड में खांसें...`;
+                    else if (activeLang === 'bn') countPromptVal = `${countdown} সেকেন্ডে কাশুন...`;
+                    else if (activeLang === 'mr') countPromptVal = `${countdown} सेकंदात खोकला...`;
+                    else if (activeLang === 'ta') countPromptVal = `${countdown} விநாடிகளில் இருமவும்...`;
+                    else if (activeLang === 'te') countPromptVal = `${countdown} సెకన్లలో దగ్గండి...`;
+                    countdownOverlay.innerText = countPromptVal;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownOverlay.style.display = 'none';
+                    startRecording();
+                }
+            }, 1000);
+        });
+
+        let recAudioCtx;
+        let recSource;
+        let recProcessor;
+
+        function startRecording() {
+            recordingBuffers = [];
+            testActive = true;
+            
+            recAudioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
+            recSource = recAudioCtx.createMediaStreamSource(micStream);
+            recProcessor = recAudioCtx.createScriptProcessor(4096, 1, 1);
+
+            recSource.connect(recProcessor);
+            recProcessor.connect(recAudioCtx.destination);
+
+            recProcessor.onaudioprocess = (e) => {
+                if (!testActive) return;
+                const channelData = e.inputBuffer.getChannelData(0);
+                recordingBuffers.push(new Float32Array(channelData));
+            };
+
+            micStatus.className = 'status-indicator status-scanning';
+            micStatus.innerText = '🎙️ RECORDING COUGH...';
+            
+            let elapsed = 0;
+            const duration = 5.0;
+            
+            const recordInterval = setInterval(() => {
+                elapsed += 0.1;
+                const remaining = Math.max(0, duration - elapsed);
+                progressBar.style.width = `${(elapsed / duration) * 100}%`;
+                timerLabel.innerText = `Cough now! ${remaining.toFixed(1)}s remaining`;
+
+                if (elapsed >= duration) {
+                    clearInterval(recordInterval);
+                    stopRecording();
+                }
+            }, 100);
+        }
+
+        function stopRecording() {
+            testActive = false;
+            
+            if (recProcessor) {
+                recProcessor.disconnect();
+                recSource.disconnect();
+                recAudioCtx.close();
+            }
+
+            // Compile buffers
+            let totalLength = 0;
+            for (const buf of recordingBuffers) {
+                totalLength += buf.length;
+            }
+            const mergedSamples = new Float32Array(totalLength);
+            let offset = 0;
+            for (const buf of recordingBuffers) {
+                mergedSamples.set(buf, offset);
+                offset += buf.length;
+            }
+
+            // Run client-side analysis
+            analyzeCoughLocal(mergedSamples, 22050);
+        }
+
+        // FFT Implementation
+        function fft(re, im) {
+            const n = re.length;
+            if (n <= 1) return;
+            const reEven = new Float32Array(n / 2);
+            const imEven = new Float32Array(n / 2);
+            const reOdd = new Float32Array(n / 2);
+            const imOdd = new Float32Array(n / 2);
+            for (let i = 0; i < n / 2; i++) {
+                reEven[i] = re[2 * i];
+                imEven[i] = im[2 * i];
+                reOdd[i] = re[2 * i + 1];
+                imOdd[i] = im[2 * i + 1];
+            }
+            fft(reEven, imEven);
+            fft(reOdd, imOdd);
+            for (let k = 0; k < n / 2; k++) {
+                const theta = -2 * Math.PI * k / n;
+                const wkRe = Math.cos(theta);
+                const wkIm = Math.sin(theta);
+                const tRe = wkRe * reOdd[k] - wkIm * imOdd[k];
+                const tIm = wkRe * imOdd[k] + wkIm * reOdd[k];
+                re[k] = reEven[k] + tRe;
+                im[k] = imEven[k] + tIm;
+                re[k + n / 2] = reEven[k] - tRe;
+                im[k + n / 2] = imEven[k] - tIm;
+            }
+        }
+
+        function analyzeSegment(segment, sampleRate) {
+            let n = 1;
+            while (n < segment.length) n <<= 1;
+            if (n > 2048) n = 2048; // Limit size for speed
+
+            const re = new Float32Array(n);
+            const im = new Float32Array(n);
+            for (let i = 0; i < Math.min(segment.length, n); i++) {
+                // Hamming window
+                let w = 0.54 - 0.46 * Math.cos((2 * Math.PI * i) / (segment.length - 1));
+                re[i] = segment[i] * w;
+            }
+            
+            fft(re, im);
+
+            // Dominant frequency and spectral centroid
+            let maxMag = -1;
+            let dominantFreqIdx = 0;
+            let centroidSumNum = 0;
+            let centroidSumDen = 0;
+
+            for (let i = 2; i < n / 2; i++) {
+                let mag = Math.sqrt(re[i]*re[i] + im[i]*im[i]);
+                let freq = (i * sampleRate) / n;
+                
+                if (mag > maxMag) {
+                    maxMag = mag;
+                    dominantFreqIdx = i;
+                }
+                centroidSumNum += freq * mag;
+                centroidSumDen += mag;
+            }
+
+            let dominantFreq = (dominantFreqIdx * sampleRate) / n;
+            let spectralCentroid = centroidSumDen > 0 ? centroidSumNum / centroidSumDen : 0;
+
+            return { dominantFreq, spectralCentroid };
+        }
+
+        function analyzeCoughLocal(samples, sampleRate) {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            
+            let analyzingAcousticText = '🔬 ANALYZING COUGH ACOUSTICS...';
+            let analyzingFreqText = 'Analyzing audio frequencies...';
+            if (activeLang === 'hi') {
+                analyzingAcousticText = '🔬 खांसी की ध्वनिकी का विश्लेषण किया जा रहा है...';
+                analyzingFreqText = 'ऑडियो आवृत्तियों का विश्लेषण किया जा रहा है...';
+            } else if (activeLang === 'bn') {
+                analyzingAcousticText = '🔬 কাশির শব্দ তরঙ্গের বিশ্লেষণ করা হচ্ছে...';
+                analyzingFreqText = 'অডিও ফ্রিকোয়েন্সি বিশ্লেষণ করা হচ্ছে...';
+            } else if (activeLang === 'mr') {
+                analyzingAcousticText = '🔬 खोकल्याच्या ध्वनीचे विश्लेषण करत आहे...';
+                analyzingFreqText = 'ऑडिओ वारंवारता विश्लेषण करत आहे...';
+            } else if (activeLang === 'ta') {
+                analyzingAcousticText = '🔬 இருமலின் ஒலி அலைகள் பகுப்பாய்வு செய்யப்படுகின்றன...';
+                analyzingFreqText = 'ஒலி அலைவரிசைகள் பகுப்பாய்வு செய்யப்படுகின்றன...';
+            } else if (activeLang === 'te') {
+                analyzingAcousticText = '🔬 దగ్గు శబ్దాలను విశ్లేషిస్తున్నాము...';
+                analyzingFreqText = 'ఆడియో ఫ్రీక్వెన్సీలను విశ్లేషిస్తున్నాము...';
+            }
+            
+            micStatus.innerText = analyzingAcousticText;
+            timerLabel.innerText = analyzingFreqText;
+
+            // Find absolute max amplitude
+            let maxVal = 1e-8;
+            for (let i = 0; i < samples.length; i++) {
+                if (Math.abs(samples[i]) > maxVal) maxVal = Math.abs(samples[i]);
+            }
+
+            // Normalize
+            const normSamples = new Float32Array(samples.length);
+            for (let i = 0; i < samples.length; i++) {
+                normSamples[i] = samples[i] / maxVal;
+            }
+
+            const chunk = 1024;
+            const step = 512; // chunk // 2
+            const rms = [];
+
+            for (let i = 0; i < normSamples.length - chunk; i += step) {
+                let sumSq = 0;
+                for (let j = 0; j < chunk; j++) {
+                    sumSq += normSamples[i + j] * normSamples[i + j];
+                }
+                rms.push(Math.sqrt(sumSq / chunk));
+            }
+
+            const coughThreshold = 0.1;
+            const coughIndices = [];
+            for (let i = 0; i < rms.length; i++) {
+                if (rms[i] > coughThreshold) {
+                    coughIndices.push(i);
+                }
+            }
+
+            let screeningCompleteText = '✓ SCREENING COMPLETE';
+            if (activeLang === 'hi') screeningCompleteText = '✓ स्क्रीनिंग पूरी हुई';
+            else if (activeLang === 'bn') screeningCompleteText = '✓ স্ক্রিনিং সম্পূর্ণ';
+            else if (activeLang === 'mr') screeningCompleteText = '✓ चाचणी पूर्ण झाली';
+            else if (activeLang === 'ta') screeningCompleteText = '✓ பரிசோதனை முடிந்தது';
+            else if (activeLang === 'te') screeningCompleteText = '✓ స్క్రీనింగ్ పూర్తయింది';
+
+            if (coughIndices.length === 0) {
+                micStatus.className = 'status-indicator status-detected';
+                micStatus.innerText = screeningCompleteText;
+                
+                let noCoughText = `❌ No cough detected\n\nPlease try again and cough clearly into the microphone.`;
+                if (activeLang === 'hi') noCoughText = `❌ कोई खांसी नहीं पाई गई\n\nकृपया पुनः प्रयास करें और माइक्रोफ़ोन में स्पष्ट रूप से खांसें।`;
+                else if (activeLang === 'bn') noCoughText = `❌ কোনো কাশি সনাক্ত হয়নি\n\nঅনুগ্রহ করে আবার চেষ্টা করুন এবং মাইক্রোফোনে স্পষ্ট করে কাশুন।`;
+                else if (activeLang === 'mr') noCoughText = `❌ कोणताही खोकला आढळला नाही\n\nकृपया पुन्हा प्रयत्न करा आणि मायक्रोफोनमध्ये स्पष्ट खोकला.`;
+                else if (activeLang === 'ta') noCoughText = `❌ இருமல் எதுவும் கண்டறியப்படவில்லை\n\nதயவுசெய்து மீண்டும் முயற்சி செய்து மைக்ரோஃபோனில் தெளிவாக இருமவும்.`;
+                else if (activeLang === 'te') noCoughText = `❌ దగ్గు ఏదీ గుర్తించబడలేదు\n\nదయచేసి మళ్ళీ ప్రయత్నించి మైక్రోఫోన్‌లో స్పష్టంగా దగ్గండి.`;
+                
+                resultsDisplay.innerHTML = noCoughText;
+                recordBtn.removeAttribute('disabled');
+                return;
+            }
+
+            const coughEvents = [];
+            let currentEvent = [coughIndices[0]];
+            for (let i = 1; i < coughIndices.length; i++) {
+                if (coughIndices[i] - coughIndices[i-1] <= 5) {
+                    currentEvent.push(coughIndices[i]);
+                } else {
+                    if (currentEvent.length >= 3) {
+                        coughEvents.push(currentEvent);
+                    }
+                    currentEvent = [coughIndices[i]];
+                }
+            }
+            if (currentEvent.length >= 3) {
+                coughEvents.push(currentEvent);
+            }
+
+            let durations = [];
+            let frequencies = [];
+            let centroids = [];
+
+            coughEvents.forEach(event => {
+                let durationFrames = event.length;
+                let durationSeconds = (durationFrames * step) / sampleRate;
+                durations.push(durationSeconds);
+
+                let startSample = event[0] * step;
+                let endSample = Math.min(event[event.length - 1] * step + chunk, normSamples.length);
+                let segment = normSamples.subarray(startSample, endSample);
+                
+                if (segment.length > 100) {
+                    let feat = analyzeSegment(segment, sampleRate);
+                    frequencies.push(feat.dominantFreq);
+                    centroids.push(feat.spectralCentroid);
+                }
+            });
+
+            let avgDuration = durations.length > 0 ? durations.reduce((a,b)=>a+b, 0) / durations.length : 0;
+            let avgFrequency = frequencies.length > 0 ? frequencies.reduce((a,b)=>a+b, 0) / frequencies.length : 0;
+            let avgCentroid = centroids.length > 0 ? centroids.reduce((a,b)=>a+b, 0) / centroids.length : 0;
+            let coughCount = coughEvents.length;
+
+            micStatus.className = 'status-indicator status-detected';
+            micStatus.innerText = screeningCompleteText;
+            
+            let finishedText = 'Cough test finished';
+            if (activeLang === 'hi') finishedText = 'खांसी का परीक्षण समाप्त';
+            else if (activeLang === 'bn') finishedText = 'কাশি পরীক্ষা সম্পন্ন হয়েছে';
+            else if (activeLang === 'mr') finishedText = 'खोकला चाचणी समाप्त झाली';
+            else if (activeLang === 'ta') finishedText = 'இருமல் சோதனை முடிந்தது';
+            else if (activeLang === 'te') finishedText = 'దగ్గు పరీక్ష పూర్తయింది';
+            timerLabel.innerText = finishedText;
+
+            if (coughCount === 0) {
+                let noCoughText = `❌ No cough detected\n\nPlease try again and cough clearly into the microphone.`;
+                if (activeLang === 'hi') noCoughText = `❌ कोई खांसी नहीं पाई गई\n\nकृपया पुनः प्रयास करें और माइक्रोफ़ोन में स्पष्ट रूप से खांसें।`;
+                else if (activeLang === 'bn') noCoughText = `❌ কোনো কাশি সনাক্ত হয়নি\n\nঅনুগ্রহ করে আবার চেষ্টা করুন এবং মাইক্রোফোনে স্পষ্ট করে কাশুন।`;
+                else if (activeLang === 'mr') noCoughText = `❌ कोणताही खोकला आढळला नाही\n\nकृपया पुन्हा प्रयत्न करा आणि मायक्रोफोनमध्ये स्पष्ट खोकला.`;
+                else if (activeLang === 'ta') noCoughText = `❌ இருமல் எதுவும் கண்டறியப்படவில்லை\n\nதயவுசெய்து மீண்டும் முயற்சி செய்து மைக்ரோஃபோனில் தெளிவாக இருமவும்.`;
+                else if (activeLang === 'te') noCoughText = `❌ దగ్గు ఏదీ గుర్తించబడలేదు\n\nదయచేసి మళ్ళీ ప్రయత్నించి మైక్రోఫోన్‌లో స్పష్టంగా దగ్గండి.`;
+                
+                resultsDisplay.innerHTML = noCoughText;
+                recordBtn.removeAttribute('disabled');
+                return;
+            }
+
+            // Risk calculation matches python formulas
+            let durationRisk = Math.min(1.0, Math.max(0, (avgDuration - 0.3) / 0.4));
+            let freqRisk = avgFrequency > 0 ? Math.min(1.0, Math.max(0, (1500 - avgFrequency) / 1500)) : 0.3;
+            let countRisk = Math.min(1.0, coughCount / 5.0);
+            let centroidRisk = Math.min(1.0, Math.max(0, (3000 - avgCentroid) / 3000));
+
+            let confidence = (durationRisk * 0.25 + freqRisk * 0.25 + countRisk * 0.15 + centroidRisk * 0.35) * 100;
+            confidence = Math.max(0, Math.min(100, confidence));
+
+            let riskLevel = "LOW RISK";
+            let bannerClass = 'risk-healthy';
+            if (confidence > 60) {
+                riskLevel = "HIGH RISK";
+                bannerClass = 'risk-severe';
+            } else if (confidence > 30) {
+                riskLevel = "MODERATE RISK";
+                bannerClass = 'risk-moderate';
+            }
+
+            // Save results to local storage for AI Health Score module
+            localStorage.setItem('sehatsaathi_result_tb', JSON.stringify({
+                score: confidence,
+                risk_level: riskLevel,
+                timestamp: Date.now()
+            }));
+
+            // Explanations dictionary
+            const tbExplanations = {
+                en: {
+                    "LOW RISK": "The AI detected a low possibility of Tuberculosis. Cough acoustic characteristics appear normal. This is a screening estimate, but if your cough persists longer than 2 weeks, please consult a doctor.",
+                    "MODERATE RISK": "The AI detected a moderate possibility of Tuberculosis. Some atypical cough spectral signatures were identified. This does not confirm the disease, but it is recommended to schedule a check-up and monitor your symptoms closely.",
+                    "HIGH RISK": "The AI detected a high risk of Tuberculosis. Cough patterns indicate significant acoustic markers (such as prolonged duration and low frequency) typical of respiratory conditions. Consult a medical professional immediately and seek diagnostic testing (sputum test / chest X-ray)."
+                },
+                hi: {
+                    "LOW RISK": "एआई ने तपेदिक (टीबी) की कम संभावना का पता लगाया है। खांसी के ध्वनिक लक्षण सामान्य दिखाई देते हैं। यह एक स्क्रीन अनुमान है, लेकिन यदि आपकी खांसी 2 सप्ताह से अधिक समय तक बनी रहती है, तो कृपया डॉक्टर से परामर्श लें।",
+                    "MODERATE RISK": "एआई ने तपेदिक की मध्यम संभावना का पता लगाया है। कुछ असामान्य खांसी के ध्वनिक हस्ताक्षरों की पहचान की गई है। यह बीमारी की पुष्टि नहीं करता है, लेकिन डॉक्टर से परामर्श करने और अपने लक्षणों की निगरानी करने की सलाह दी जाती है।",
+                    "HIGH RISK": "एआई ने तपेदिक का उच्च जोखिम पाया है। खांसी के पैटर्न में नैदानिक श्वसन स्थितियों के विशिष्ट ध्वनिक संकेतक (जैसे लंबी अवधि और कम आवृत्ति) दिखाई देते हैं। तुरंत डॉक्टर से संपर्क करें और नैदानिक परीक्षण (बलगम परीक्षण/छाती का एक्स-रे) कराएं।"
+                },
+                bn: {
+                    "LOW RISK": "এআই যক্ষ্মা (টিবি)-র কম সম্ভাবনা সনাক্ত করেছে। কাশির শব্দগত বৈশিষ্ট্যগুলি স্বাভাবিক বলে মনে হচ্ছে। এটি একটি স্ক্রিনিং অনুমান মাত্র, তবে কাশি ২ সপ্তাহের বেশি স্থায়ী হলে দয়া করে ডাক্তারের পরামর্শ নিন।",
+                    "MODERATE RISK": "এআই যক্ষ্মার মাঝারি সম্ভাবনা সনাক্ত করেছে। কাশির কিছু অস্বাভাবিক শব্দ তরঙ্গ সনাক্ত হয়েছে। এটি রোগ নিশ্চিত করে না, তবে আপনার চিকিৎসকের অ্যাপয়েন্টমেন্ট নেওয়া এবং লক্ষণগুলি সতর্কতার সাথে পর্যবেক্ষণ করার পরামর্শ দেওয়া হচ্ছে।",
+                    "HIGH RISK": "এআই যক্ষ্মার উচ্চ ঝুঁকি সনাক্ত করেছে। কাশির ধরণে লক্ষণীয় অস্বাভাবিকতা রয়েছে (যেমন দীর্ঘস্থায়ী কাশি এবং কম কম্পাঙ্ক) যা শ্বাসকষ্টজনিত অসুস্থতার ইঙ্গিত দেয়। অবিলম্বে একজন চিকিৎসকের সাথে পরামর্শ করুন এবং পরীক্ষা (কফ পরীক্ষা / বুকের এক্স-রে) করান।"
+                },
+                mr: {
+                    "LOW RISK": "एआयने क्षयरोगाची (टीबी) कमी शक्यता ओळखली आहे. खोकल्याचे ध्वनी वैशिष्ट्य सामान्य दिसते आहे. हा केवळ एक प्राथमिक अंदाज आहे, पण जर खोकला २ आठवड्यांपेक्षा जास्त काळ राहिल्यास कृपया डॉक्टरांचा सल्ला घ्या.",
+                    "MODERATE RISK": "एआयने क्षयरोगाची मध्यम शक्यता ओळखली आहे. खोकल्यामध्ये काही असामान्य ध्वनी संकेत आढळले आहेत. यामुळे आजाराची खात्री होत नाही, परंतु डॉक्टरांकडून तपासणी करून घेणे आणि लक्षणांवर बारीक लक्ष ठेवणे शिफारसीय आहे.",
+                    "HIGH RISK": "एआयने क्षयरोगाचा उच्च धोका ओळखला आहे. खोकल्याचा पॅटर्न श्वसन विकारांचे गंभीर ध्वनी संकेत (जसे की दीर्घ कालावधी आणि कमी वारंवारता) दर्शवतो. तातडीने वैद्यकीय तज्ञांचा सल्ला घ्या आणि निदान चाचणी (थुंकी चाचणी / छातीचा एक्स-रे) करून घ्या।"
+                },
+                ta: {
+                    "LOW RISK": "செயற்கை நுண்ணறிவு (AI) மூலம் காசநோய் (TB) இருப்பதற்கான வாய்ப்பு குறைவாகவே கண்டறியப்பட்டுள்ளது. இருமலின் ஒலி பண்புகள் இயல்பாகவே உள்ளன. இது ஒரு ஆரம்பநிலை மதிப்பீடு மட்டுமே, இருமல் 2 வாரங்களுக்கு மேல் நீடித்தால் மருத்துவரை அணுகவும்.",
+                    "MODERATE RISK": "செயற்கை நுண்ணறிவு (AI) மூலம் காசநோய் இருப்பதற்கான வாய்ப்பு நடுத்தரமாகக் கண்டறியப்பட்டுள்ளது. இருமலின் ஒலி அலைகளில் சில அசாதாரண மாற்றங்கள் கண்டறியப்பட்டுள்ளன. இது நோயை உறுதிப்படுத்தவில்லை, எனினும் மருத்துவரை அணுகி உடலைத் தீவிரமாகக் கண்காணிப்பது நல்லது.",
+                    "HIGH RISK": "செயற்கை நுண்ணறிவு (AI) மூலம் காசநோய் இருப்பதற்கான வாய்ப்பு அதிகமாகக் கண்டறியப்பட்டுள்ளது. இருமலில் கடுமையான சுவாசக் கோளாறுகளுக்கான அறிகுறிகள் கண்டறியப்பட்டுள்ளன. உடனடியாக மருத்துவரை அணுகி, பரிசோதனைகளை (சளிப் பரிசோதனை / நெஞ்சு எக்ஸ்-ரே) மேற்கொள்ளவும்."
+                },
+                te: {
+                    "LOW RISK": "క్షయవ్యాధి (టీబీ) వచ్చే అవకాశం చాలా తక్కువగా ఉందని AI గుర్తించింది. దగ్గు యొక్క శబ్ద లక్షణాలు సాధారణంగా ఉన్నాయి. ఇది కేవలం ప్రాథమిక అంచనా మాత్రమే, దగ్గు 2 వారాల కంటే ఎక్కువ కాలం ఉంటే దయచేసి వైద్యుడిని సంప్రదించండి.",
+                    "MODERATE RISK": "క్షయవ్యాధి వచ్చే అవకాశం మధ్యస్థంగా ఉందని AI గుర్తించింది. దగ్గులో కొన్ని అసాధారణ మార్పులు కనుగొనబడ్డాయి. ఇది వ్యాధిని ధృవీకరించదు, కానీ వైద్యుడిని సంప్రదించడం మరియు మీ లక్షణాలను నిశితంగా గమనించడం మంచిది.",
+                    "HIGH RISK": "క్షయవ్యాధి వచ్చే ప్రమాదం ఎక్కువగా ఉందని AI గుర్తించింది. దగ్గు శబ్దాలు తీవ్రమైన శ్వాసకోశ రుగ్మతను సూచిస్తున్నాయి. వెంటనే వైద్యుడిని సంప్రదించండి మరియు రోగనిర్ధారణ పరీక్షలు (కఫం పరీక్ష / ఛాతీ ఎక్స్-రే) చేయించుకోండి."
+                }
+            };
+
+            function getSummaryHtml(lang) {
+                const explanation = tbExplanations[lang][riskLevel];
+                
+                let riskLabelText = riskLevel;
+                let titlePrompt = "This is a screening estimate, not a diagnosis. Please consult a doctor for confirmation.";
+                let confidenceLabel = "Risk Confidence";
+                let metricsLabel = "DETAILED COUGH METRICS";
+                let countLabel = "Coughs detected";
+                let durationLabel = "Average duration";
+                let freqLabel = "Average frequency";
+                let analysisLabel = "TB CHARACTERISTIC ANALYSIS";
+                
+                let prolongDetected = '  ❌ Prolonged cough duration (>400ms) -> TB characteristic detected\n';
+                let prolongNormal = '  ✓ Normal cough duration\n';
+                let lowFreqDetected = '  ❌ Low frequency cough (<1000 Hz) -> TB characteristic detected\n';
+                let lowFreqNormal = '  ✓ Normal cough frequency\n';
+                let multipleDetected = '  ❌ Multiple persistent coughs -> TB characteristic detected\n';
+                let multipleNormal = '  ✓ Normal cough count\n';
+                
+                let recLabel = "RECOMMENDATIONS";
+                let recsList = '';
+
+                if (lang === 'hi') {
+                    riskLabelText = riskLevel === "LOW RISK" ? "कम जोखिम" : riskLevel === "MODERATE RISK" ? "मध्यम जोखिम" : "उच्च जोखिम";
+                    titlePrompt = "यह एक स्क्रीनिंग अनुमान है, निदान नहीं। पुष्टि के लिए कृपया डॉक्टर से परामर्श लें।";
+                    confidenceLabel = "जोखिम आत्मविश्वास";
+                    metricsLabel = "खांसी के विस्तृत मीट्रिक";
+                    countLabel = "खांसी पाई गई";
+                    durationLabel = "औसत अवधि";
+                    freqLabel = "औसत आवृत्ति";
+                    analysisLabel = "टीबी विशेषता विश्लेषण";
+                    
+                    prolongDetected = '  ❌ लंबी खांसी की अवधि (>400ms) -> टीबी विशेषता पाई गई\n';
+                    prolongNormal = '  ✓ सामान्य खांसी की अवधि\n';
+                    lowFreqDetected = '  ❌ कम आवृत्ति वाली खांसी (<1000 हर्ट्ज) -> टीबी विशेषता पाई गई\n';
+                    lowFreqNormal = '  ✓ सामान्य खांसी की आवृत्ति\n';
+                    multipleDetected = '  ❌ बार-बार खांसी आना -> टीबी विशेषता पाई गई\n';
+                    multipleNormal = '  ✓ सामान्य खांसी की संख्या\n';
+                    
+                    recLabel = "सिफारिशें";
+                    recsList = riskLevel === 'HIGH RISK' ? '  • तुरंत डॉक्टर से संपर्क करें\n  • उचित टीबी परीक्षण (बलगम परीक्षण, एक्स-रे) कराएं\n  • दूसरों के साथ निकट संपर्क से बचें' :
+                               riskLevel === 'MODERATE RISK' ? '  • 1 सप्ताह के भीतर डॉक्टर से परामर्श का समय लें\n  • अपने लक्षणों पर बारीकी से नज़र रखें\n  • लक्षण बिगड़ने पर दोबारा जांच कराएं' :
+                               '  • सामान्य निगरानी जारी रखें\n  • यदि खांसी 2 सप्ताह से अधिक समय तक बनी रहती है तो डॉक्टर को दिखाएं';
+                } else if (lang === 'bn') {
+                    riskLabelText = riskLevel === "LOW RISK" ? "কম ঝুঁকি" : riskLevel === "MODERATE RISK" ? "মাঝারি ঝুঁকি" : "উচ্চ ঝুঁকি";
+                    titlePrompt = "এটি একটি স্ক্রিনিং অনুমান, কোনো রোগ নির্ণয় নয়। নিশ্চিতকরণের জন্য চিকিৎসকের পরামর্শ নিন।";
+                    confidenceLabel = "ঝুঁকির নির্ভরযোগ্যতা";
+                    metricsLabel = "কাশির বিস্তারিত মেট্রিক্স";
+                    countLabel = "শনাক্তকৃত কাশির সংখ্যা";
+                    durationLabel = "গড় স্থায়িত্ব";
+                    freqLabel = "গড় কম্পাঙ্ক";
+                    analysisLabel = "যক্ষ্মা (टीबी) বৈশিষ্ট্য বিশ্লেষণ";
+                    
+                    prolongDetected = '  ❌ কাশির স্থায়িত্ব বেশি (>৪০০ms) -> যক্ষ্মার লক্ষণ পাওয়া গেছে\n';
+                    prolongNormal = '  ✓ কাশির স্বাভাবিক স্থায়িত্ব\n';
+                    lowFreqDetected = '  ❌ কম কম্পাঙ্কের কাশি (<১০০০ Hz) -> যক্ষ্মার লক্ষণ পাওয়া গেছে\n';
+                    lowFreqNormal = '  ✓ কাশির স্বাভাবিক কম্পাঙ্ক\n';
+                    multipleDetected = '  ❌ একাধিক বার কাশি -> যক্ষ্মার লক্ষণ পাওয়া গেছে\n';
+                    multipleNormal = '  ✓ স্বাভাবিক কাশির সংখ্যা\n';
+                    
+                    recLabel = "সুপারিশসমূহ";
+                    recsList = riskLevel === 'HIGH RISK' ? '  • অবিলম্বে চিকিৎসকের পরামর্শ নিন\n  • বুকের এক্স-রে এবং কফ পরীক্ষা করান\n  • অন্যদের সাথে সরাসরি মেলামেশা এড়িয়ে চলুন' :
+                               riskLevel === 'MODERATE RISK' ? '  • ১ সপ্তাহের মধ্যে চিকিৎসকের সাথে অ্যাপয়েন্টমেন্ট নিন\n  • লক্ষণগুলি সতর্কতার সাথে পর্যবেক্ষণ করুন\n  • অবস্থার অবনতি ঘটলে পুনরায় পরীক্ষা করান' :
+                               '  • স্বাভাবিক পর্যবেক্ষণ বজায় রাখুন\n  • ২ সপ্তাহের বেশি কাশি স্থায়ী হলে চিকিৎসকের পরামর্শ নিন';
+                } else if (lang === 'mr') {
+                    riskLabelText = riskLevel === "LOW RISK" ? "कमी जोखीम" : riskLevel === "MODERATE RISK" ? "मध्यम जोखीम" : "उच्च जोखीम";
+                    titlePrompt = "हा प्राथमिक अंदाज आहे, निदान नाही. पुष्टीकरणासाठी कृपया डॉक्टरांचा सल्ला घ्या.";
+                    confidenceLabel = "जोखीम आत्मविश्वास";
+                    metricsLabel = "खोकल्याचे तपशीलवार मेट्रिक्स";
+                    countLabel = "खोकला आढळला";
+                    durationLabel = "सरासरी कालावधी";
+                    freqLabel = "सरासरी वारंवारता";
+                    analysisLabel = "टीबी वैशिष्ट्य विश्लेषण";
+                    
+                    prolongDetected = '  ❌ खोकल्याचा दीर्घ कालावधी (>४००ms) -> टीबी वैशिष्ट्य आढळले\n';
+                    prolongNormal = '  ✓ सामान्य खोकल्याचा कालावधी\n';
+                    lowFreqDetected = '  ❌ कमी वारंवारतेचा खोकला (<१००० Hz) -> टीबी वैशिष्ट्य आढळले\n';
+                    lowFreqNormal = '  ✓ सामान्य खोकल्याची वारंवारता\n';
+                    multipleDetected = '  ❌ अनेकवेळा खोकणे -> टीबी वैशिष्ट्य आढळले\n';
+                    multipleNormal = '  ✓ खोकल्याचे सामान्य प्रमाण\n';
+                    
+                    recLabel = "शिफारसी";
+                    recsList = riskLevel === 'HIGH RISK' ? '  • तातडीने डॉक्टरांचा सल्ला घ्या\n  • टीबीची योग्य चाचणी (थुंकी चाचणी, एक्स-रे) करा\n  • इतरांशी जवळचा संपर्क टाळा' :
+                               riskLevel === 'MODERATE RISK' ? '  • १ आठवड्यात वैद्यकीय तपासणी करून घ्या\n  • लक्षणांवर बारीक लक्ष ठेवा\n  • त्रास वाढल्यास पुन्हा चाचणी करा' :
+                               '  • नेहमीप्रमाणे लक्ष ठेवा\n  • खोकला २ आठवड्यांपेक्षा जास्त काळ राहिल्यास डॉक्टरांना दाखवा';
+                } else if (lang === 'ta') {
+                    riskLabelText = riskLevel === "LOW RISK" ? "குறைந்த ஆபத்து" : riskLevel === "MODERATE RISK" ? "மிதமான ஆபத்து" : "அதிக ஆபத்து";
+                    titlePrompt = "இது ஒரு ஆரம்ப பரிசோதனை மட்டுமே, உத்தியோகபூர்வ நோய் கண்டறிதல் அல்ல. உறுதிப்படுத்த மருத்துவரை அணுகவும்.";
+                    confidenceLabel = "ஆபத்து துல்லியம்";
+                    metricsLabel = "இருமல் பற்றிய விரிவான புள்ளிவிவரங்கள்";
+                    countLabel = "கண்டறியப்பட்ட இருமல் எண்ணிக்கை";
+                    durationLabel = "சராசரி கால அளவு";
+                    freqLabel = "சராசரி அலைவரிசை";
+                    analysisLabel = "காசநோய் (TB) பண்புகள் பகுப்பாய்வு";
+                    
+                    prolongDetected = '  ❌ நீண்ட இருமல் காலம் (>400ms) -> காசநோய் பண்பு கண்டறியப்பட்டது\n';
+                    prolongNormal = '  ✓ சாதாரண இருமல் காலம்\n';
+                    lowFreqDetected = '  ❌ குறைந்த அதிர்வெண் இருமல் (<1000 Hz) -> காசநோய் பண்பு கண்டறியப்பட்டது\n';
+                    lowFreqNormal = '  ✓ சாதாரண இருமல் அதிர்வெண்\n';
+                    multipleDetected = '  ❌ தொடர் இருமல் -> காசநோய் பண்பு கண்டறியப்பட்டது\n';
+                    multipleNormal = '  ✓ சாதாரண இருமல் எண்ணிக்கை\n';
+                    
+                    recLabel = "பரிந்துரைகள்";
+                    recsList = riskLevel === 'HIGH RISK' ? '  • உடனடியாக மருத்துவரை அணுகவும்\n  • உரிய பரிசோதனை (சளி சோதனை, எக்ஸ்-ரே) மேற்கொள்ளவும்\n  • மற்றவர்களுடன் நெருங்கிய தொடர்பைத் தவிர்க்கவும்' :
+                               riskLevel === 'MODERATE RISK' ? '  • 1 வாரத்திற்குள் மருத்துவ பரிசோதனைக்கு திட்டமிடவும்\n  • அறிகுறிகளைத் தீவிரமாகக் கண்காணிக்கவும்\n  • அறிகுறிகள் மோசமடைந்தால் மீண்டும் சோதிக்கவும்' :
+                               '  • தொடர்ந்து கண்காணிக்கவும்\n  • இருமல் 2 வாரங்களுக்கு மேல் நீடித்தால் மருத்துவரை அணுகவும்';
+                } else if (lang === 'te') {
+                    riskLabelText = riskLevel === "LOW RISK" ? "తక్కువ ప్రమాదం" : riskLevel === "MODERATE RISK" ? "మధ్యస్థ ప్రమాదం" : "అధిక ప్రమాదం";
+                    titlePrompt = "ఇది ప్రాథమిక అంచనా మాత్రమే, నివారణ కాదు. నిర్ధారణ కోసం వైద్యుడిని సంప్రదించండి.";
+                    confidenceLabel = "ప్రమాద నిశ్చయత";
+                    metricsLabel = "దగ్గు వివరాలు";
+                    countLabel = "దగ్గుల సంఖ్య";
+                    durationLabel = "సగటు వ్యవధి";
+                    freqLabel = "సగటు ఫ్రీక్వెన్సీ";
+                    analysisLabel = "టీబీ శబ్ద లక్షణాల విశ్లేషణ";
+                    
+                    prolongDetected = '  ❌ ఎక్కువ సమయం దగ్గడం (>400ms) -> టీబీ లక్షణం కనుగొనబడింది\n';
+                    prolongNormal = '  ✓ సాధారణ దగ్గు వ్యవధి\n';
+                    lowFreqDetected = '  ❌ తక్కువ ఫ్రీక్వెన్సీ దగ్గు (<1000 Hz) -> టీబీ లక్షణం కనుగొనబడింది\n';
+                    lowFreqNormal = '  ✓ సాధారణ దగ్గు ఫ్రీక్వెన్సీ\n';
+                    multipleDetected = '  ❌ పలుమార్లు దగ్గడం -> టీబీ లక్షణం కనుగొనబడింది\n';
+                    multipleNormal = '  ✓ సాధారణ దగ్గుల సంఖ్య\n';
+                    
+                    recLabel = "సిఫార్సులు";
+                    recsList = riskLevel === 'HIGH RISK' ? '  • వెంటనే వైద్యుడిని సంప్రదించండి\n  • కఫ పరీక్ష మరియు ఛాతీ ఎక్స్-రే చేయించుకోండి\n  • ఇతరులకు దూరంగా ఉండండి' :
+                               riskLevel === 'MODERATE RISK' ? '  • 1 వారంలో వైద్యుడిని సంప్రదించండి\n  • మీ లక్షణాలను నిశితంగా గమనించండి\n  • లక్షణాలు పెరిగితే మళ్ళీ పరీక్షించుకోండి' :
+                               '  • సాధారణ పర్యవేక్షణ కొనసాగించండి\n  • దగ్గు 2 వారాల కంటే ఎక్కువ ఉంటే వైద్యుడిని సంప్రదించండి';
+                }
+
+                if (recsList === '') {
+                    recsList = riskLevel === 'HIGH RISK' ? '  • Consult a doctor immediately\n  • Get proper TB testing (Sputum test, X-ray)\n  • Avoid close contact with others' : riskLevel === 'MODERATE RISK' ? '  • Schedule a medical check-up within 1 week\n  • Monitor symptoms closely\n  • Return for re-evaluation if symptoms worsen' : '  • Continue normal monitoring\n  • See doctor if cough persists >2 weeks';
+                }
+
+                return `
+${titlePrompt}
+
+<div class="risk-banner ${bannerClass}" style="margin-top: 1rem;">
+    TB COUGH RISK: ${riskLabelText}<br>
+    <span style="font-size: 1rem; font-weight: 500;">${confidenceLabel}: ${confidence.toFixed(1)}%</span>
+</div>
+
+<div class="lang-selector-container" style="margin: 1rem 0; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
+    <span style="font-size: 0.85rem; color: var(--text-secondary);">🌐 AI Explanation Language / भाषा:</span>
+    <select id="lang-select" style="background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: Outfit; font-size: 0.85rem;">
+        <option value="en" ${lang === 'en' ? 'selected' : ''}>🇬🇧 English</option>
+        <option value="hi" ${lang === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी (Hindi)</option>
+        <option value="bn" ${lang === 'bn' ? 'selected' : ''}>🇧🇩 বাংলা (Bengali)</option>
+        <option value="mr" ${lang === 'mr' ? 'selected' : ''}>🇮🇳 मराठी (Marathi)</option>
+        <option value="ta" ${lang === 'ta' ? 'selected' : ''}>🇮🇳 தமிழ் (Tamil)</option>
+        <option value="te" ${lang === 'te' ? 'selected' : ''}>🇮🇳 తెలుగు (Telugu)</option>
+    </select>
+</div>
+
+<div class="ai-explanation-box" style="background: rgba(255,255,255,0.03); border-left: 4px solid var(--color-info); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); margin-bottom: 1rem;">
+    <strong>🤖 AI Report Explanation:</strong><br>
+    <span>${explanation}</span>
+</div>
+
+📈 ${metricsLabel}:
+  • ${countLabel}: ${coughCount}
+  • ${durationLabel}: ${avgDuration.toFixed(3)} seconds
+  • ${freqLabel}: ${avgFrequency.toFixed(1)} Hz
+
+🔍 ${analysisLabel}:
+${avgDuration > 0.4 ? prolongDetected : prolongNormal}${avgFrequency < 1000 && avgFrequency > 0 ? lowFreqDetected : lowFreqNormal}${coughCount >= 3 ? multipleDetected : multipleNormal}
+📋 ${recLabel}:
+${recsList}
+`;
+            }
+
+            // Render summary in active language initially
+            resultsDisplay.innerHTML = getSummaryHtml(activeLang);
+
+            // Add change listener
+            resultsDisplay.addEventListener('change', (e) => {
+                if (e.target && e.target.id === 'lang-select') {
+                    resultsDisplay.innerHTML = getSummaryHtml(e.target.value);
+                }
+            });
+
+            recordBtn.removeAttribute('disabled');
+        }
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

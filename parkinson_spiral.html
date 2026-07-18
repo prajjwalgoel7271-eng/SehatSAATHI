@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiral Drawing Test — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="spiral-title">[Spiral] Spiral Drawing Test</h1>
+            <p class="page-subtitle" data-trn="spiral-subtitle">Trace over the guide spiral from the center outward as accurately as possible.</p>
+            <div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Drawing canvas -->
+                <div class="test-workspace">
+                    <canvas id="drawing-canvas" class="drawing-canvas" width="460" height="420"></canvas>
+                    
+                    <div style="display: flex; gap: 1rem; width: 100%; max-width: 480px; margin-top: 1rem;">
+                        <button id="btn-clear" class="btn btn-secondary btn-block" data-trn="btn-clear-canvas">Clear Canvas</button>
+                        <button id="btn-submit" class="btn btn-primary btn-block" disabled data-trn="btn-submit-drawing">Submit Drawing</button>
+                    </div>
+                </div>
+
+                <!-- Right column: Instructions & Status -->
+                <div class="test-controls">
+                    <div class="instruction-box">
+                        <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary);" data-trn="instructions-title">Instructions:</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="spiral-instr-1">1. Use your mouse, trackpad, or touchscreen (on mobile/tablet).</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="spiral-instr-2">2. Press down and draw over the light gray guide spiral.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="spiral-instr-3">3. Start from the center and draw outward in one continuous motion.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0;" data-trn="spiral-instr-4">4. Maintain a steady hand. Once finished, click "Submit Drawing".</p>
+                    </div>
+
+                    <div class="status-indicator status-scanning" id="drawing-status" data-trn="status-loading-spiral">
+                        ⏳ LOADING SPIRAL TRAINING DATA...
+                    </div>
+
+                    <div id="results-display" class="results-box" style="display: none;"></div>
+                    
+                    <a href="./parkinson_hub.html" class="btn btn-secondary btn-block" data-trn="btn-back-hub">Back to Hub</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('drawing-canvas');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('btn-clear');
+        const submitBtn = document.getElementById('btn-submit');
+        const drawingStatus = document.getElementById('drawing-status');
+        const resultsDisplay = document.getElementById('results-display');
+
+        let isDrawing = false;
+        let drawnPoints = [];
+        let lastX = 0;
+        let lastY = 0;
+        let spiralTrainingData = null;
+
+        // Generate guide spiral coordinates locally
+        function generateReferenceSpiral(cx=230, cy=210, num_turns=4, max_r=180) {
+            const points = [];
+            const theta_max = num_turns * 2 * Math.PI;
+            const b = max_r / theta_max;
+            const steps = 400;
+            for (let i = 0; i < steps; i++) {
+                let theta = (i / (steps - 1)) * theta_max;
+                let r = b * theta;
+                let x = cx + r * Math.cos(theta);
+                let y = cy + r * Math.sin(theta);
+                points.push([parseFloat(x.toFixed(2)), parseFloat(y.toFixed(2))]);
+            }
+            return points;
+        }
+
+        const refSpiral = generateReferenceSpiral(230, 210, 4, 180);
+
+        // Load pre-extracted training features from JSON
+        async function loadTrainingData() {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            try {
+                const response = await fetch('static/spiral_features.json');
+                spiralTrainingData = await response.json();
+                drawingStatus.className = 'status-indicator status-detected';
+                
+                let readyText = '✓ READY — START DRAWING FROM CENTER';
+                if (activeLang === 'hi') readyText = '✓ तैयार — केंद्र से रेखा खींचना शुरू करें';
+                else if (activeLang === 'bn') readyText = '✓ প্রস্তুত — কেন্দ্র থেকে আঁকা শুরু করুন';
+                else if (activeLang === 'mr') readyText = '✓ तयार — केंद्रापासून काढण्यास सुरुवात करा';
+                else if (activeLang === 'ta') readyText = '✓ தயார் — மையத்திலிருந்து வரையத் தொடங்கவும்';
+                else if (activeLang === 'te') readyText = '✓ సిద్ధం — కేంద్రం నుండి గీయడం ప్రారంభించండి';
+                drawingStatus.innerText = readyText;
+                submitBtn.removeAttribute('disabled');
+            } catch (err) {
+                console.error("Could not load training data:", err);
+                drawingStatus.className = 'status-indicator status-scanning';
+                
+                let errText = '⚠️ TRAINING DATA ERROR — CAN ONLY RUN SIMULATION';
+                if (activeLang === 'hi') errText = '⚠️ प्रशिक्षण डेटा त्रुटि — केवल सिमुलेशन चला सकते हैं';
+                else if (activeLang === 'bn') errText = '⚠️ ট্রেনিং ডেটা ত্রুটি — কেবল সিমুলেশন চালানো সম্ভব';
+                else if (activeLang === 'mr') errText = '⚠️ प्रशिक्षण डेटा त्रुटी — फक्त सिम्युलेशन चालवता येईल';
+                else if (activeLang === 'ta') errText = '⚠️ பயிற்சித் தரவுப் பிழை — உருவகப்படுத்துதலை மட்டுமே இயக்க முடியும்';
+                else if (activeLang === 'te') errText = '⚠️ శిక్షణ డేటా లోపం — కేవలం సిమ్యులేషన్ మాత్రమే రన్ చేయగలము';
+                drawingStatus.innerText = errText;
+                submitBtn.removeAttribute('disabled');
+            }
+        }
+
+        loadTrainingData();
+
+        function drawReferenceSpiral() {
+            ctx.strokeStyle = '#444455';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            if (refSpiral.length > 0) {
+                ctx.moveTo(refSpiral[0][0], refSpiral[0][1]);
+                for (let i = 1; i < refSpiral.length; i++) {
+                    ctx.lineTo(refSpiral[i][0], refSpiral[i][1]);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawReferenceSpiral();
+            drawnPoints = [];
+            drawingStatus.className = 'status-indicator status-scanning';
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let readyText = '✓ READY — START DRAWING FROM CENTER';
+            if (activeLang === 'hi') readyText = '✓ तैयार — केंद्र से रेखा खींचना शुरू करें';
+            else if (activeLang === 'bn') readyText = '✓ প্রস্তুত — কেন্দ্র থেকে আঁকা শুরু করুন';
+            else if (activeLang === 'mr') readyText = '✓ तयार — केंद्रापासून काढण्यास सुरुवात करा';
+            else if (activeLang === 'ta') readyText = '✓ தயார் — மையத்திலிருந்து வரையத் தொடங்கவும்';
+            else if (activeLang === 'te') readyText = '✓ సిద్ధం — కేంద్రం నుండి గీయడం ప్రారంభించండి';
+            drawingStatus.innerText = readyText;
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            return { x, y };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const coords = getCanvasCoordinates(e);
+            lastX = coords.x;
+            lastY = coords.y;
+            
+            if (drawnPoints.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawReferenceSpiral();
+            }
+            
+            drawnPoints.push([coords.x, coords.y, Date.now() / 1000]);
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let traceText = '🖊️ TRACING SPIRAL...';
+            if (activeLang === 'hi') traceText = '🖊️ सर्पिल का रेखांकन किया जा रहा है...';
+            else if (activeLang === 'bn') traceText = '🖊️ স্পাইরাল আঁকা হচ্ছে...';
+            else if (activeLang === 'mr') traceText = '🖊️ सर्पिल रेखत आहे...';
+            else if (activeLang === 'ta') traceText = '🖊️ சுருள் வரையப்படுகிறது...';
+            else if (activeLang === 'te') traceText = '🖊️ స్పైరల్ గీస్తున్నారు...';
+            drawingStatus.innerText = traceText;
+            drawingStatus.className = 'status-indicator status-scanning';
+            e.preventDefault();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCanvasCoordinates(e);
+            
+            ctx.strokeStyle = '#BB86FC';
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+
+            lastX = coords.x;
+            lastY = coords.y;
+
+            drawnPoints.push([coords.x, coords.y, Date.now() / 1000]);
+            e.preventDefault();
+        }
+
+        function stopDrawing(e) {
+            if (isDrawing) {
+                isDrawing = false;
+                drawingStatus.className = 'status-indicator status-detected';
+                
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                let completedText = '✓ DRAWING COMPLETED';
+                if (activeLang === 'hi') completedText = '✓ रेखांकन पूर्ण हुआ';
+                else if (activeLang === 'bn') completedText = '✓ আঁকা সম্পন্ন হয়েছে';
+                else if (activeLang === 'mr') completedText = '✓ रेखांकन पूर्ण झाले';
+                else if (activeLang === 'ta') completedText = '✓ வரைதல் முடிந்தது';
+                else if (activeLang === 'te') completedText = '✓ గీయడం పూర్తయింది';
+                drawingStatus.innerText = completedText;
+            }
+            if (e) e.preventDefault();
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDrawing);
+
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        window.addEventListener('touchend', stopDrawing);
+
+        clearBtn.addEventListener('click', clearCanvas);
+
+        // Radix-2 FFT
+        function fft(re, im) {
+            const n = re.length;
+            if (n <= 1) return;
+            const reEven = new Float32Array(n / 2);
+            const imEven = new Float32Array(n / 2);
+            const reOdd = new Float32Array(n / 2);
+            const imOdd = new Float32Array(n / 2);
+            for (let i = 0; i < n / 2; i++) {
+                reEven[i] = re[2 * i];
+                imEven[i] = im[2 * i];
+                reOdd[i] = re[2 * i + 1];
+                imOdd[i] = im[2 * i + 1];
+            }
+            fft(reEven, imEven);
+            fft(reOdd, imOdd);
+            for (let k = 0; k < n / 2; k++) {
+                const theta = -2 * Math.PI * k / n;
+                const wkRe = Math.cos(theta);
+                const wkIm = Math.sin(theta);
+                const tRe = wkRe * reOdd[k] - wkIm * imOdd[k];
+                const tIm = wkRe * imOdd[k] + wkIm * reOdd[k];
+                re[k] = reEven[k] + tRe;
+                im[k] = imEven[k] + tIm;
+                re[k + n / 2] = reEven[k] - tRe;
+                im[k + n / 2] = imEven[k] - tIm;
+            }
+        }
+
+        // Resample Points
+        function resamplePoints(points, numPoints = 100) {
+            if (points.length < 2) return Array(numPoints).fill([0, 0]);
+            let totalDists = [0];
+            let d = 0;
+            for (let i = 1; i < points.length; i++) {
+                let dx = points[i][0] - points[i-1][0];
+                let dy = points[i][1] - points[i-1][1];
+                d += Math.sqrt(dx*dx + dy*dy);
+                totalDists.push(d);
+            }
+            
+            let resampled = [];
+            let step = d / (numPoints - 1);
+            for (let i = 0; i < numPoints; i++) {
+                let target = i * step;
+                let idx = 0;
+                while (idx < totalDists.length - 1 && totalDists[idx+1] < target) {
+                    idx++;
+                }
+                if (idx === totalDists.length - 1) {
+                    resampled.push([points[idx][0], points[idx][1]]);
+                } else {
+                    let ratio = (target - totalDists[idx]) / (totalDists[idx+1] - totalDists[idx] + 1e-8);
+                    let rx = points[idx][0] + ratio * (points[idx+1][0] - points[idx][0]);
+                    let ry = points[idx][1] + ratio * (points[idx+1][1] - points[idx][1]);
+                    resampled.push([rx, ry]);
+                }
+            }
+            return resampled;
+        }
+
+        // Feature extraction
+        function extractSpiralFeatures(points, mean_dev, std_dev) {
+            const pts = resamplePoints(points, 100);
+            let sumX = 0, sumY = 0;
+            pts.forEach(p => { sumX += p[0]; sumY += p[1]; });
+            const cx = sumX / 100;
+            const cy = sumY / 100;
+            
+            const ptsCentered = pts.map(p => [p[0] - cx, p[1] - cy]);
+            const radii = ptsCentered.map(p => Math.sqrt(p[0]*p[0] + p[1]*p[1]));
+            const maxR = Math.max(...radii);
+            if (maxR < 5.0) return null;
+            
+            const radiiNorm = radii.map(r => r / maxR);
+            let idealNorm = [];
+            for (let i = 0; i < 100; i++) {
+                idealNorm.push(radiiNorm[0] + (i / 99) * (radiiNorm[99] - radiiNorm[0]));
+            }
+            
+            const deviationNorm = [];
+            let devNormSum = 0;
+            for (let i = 0; i < 100; i++) {
+                let dev = radiiNorm[i] - idealNorm[i];
+                deviationNorm.push(dev);
+                devNormSum += dev;
+            }
+            let devNormMean = devNormSum / 100;
+            
+            const re = new Float32Array(128);
+            const im = new Float32Array(128);
+            for (let i = 0; i < 100; i++) {
+                re[i] = deviationNorm[i] - devNormMean;
+            }
+            fft(re, im);
+            
+            let totalPower = 0;
+            let tremorPowerSum = 0;
+            const mags = [];
+            for (let i = 0; i < 64; i++) {
+                let m = Math.sqrt(re[i]*re[i] + im[i]*im[i]);
+                mags.push(m);
+                totalPower += m;
+            }
+            for (let i = 13; i < 21; i++) {
+                tremorPowerSum += mags[i];
+            }
+            const tremorPower = tremorPowerSum / (totalPower + 1e-8);
+            
+            let dx = [];
+            let dy = [];
+            for (let i = 1; i < 100; i++) {
+                dx.push(ptsCentered[i][0]/maxR - ptsCentered[i-1][0]/maxR);
+                dy.push(ptsCentered[i][1]/maxR - ptsCentered[i-1][1]/maxR);
+            }
+            
+            let curvatureVar = 0.0;
+            if (dx.length > 2) {
+                let angles = [];
+                for (let i = 0; i < dx.length; i++) {
+                    angles.push(Math.atan2(dy[i], dx[i]));
+                }
+                let unwrapped = [angles[0]];
+                for (let i = 1; i < angles.length; i++) {
+                    let diff = angles[i] - angles[i-1];
+                    while (diff < -Math.PI) diff += 2 * Math.PI;
+                    while (diff > Math.PI) diff -= 2 * Math.PI;
+                    unwrapped.push(unwrapped[i-1] + diff);
+                }
+                let curvature = [];
+                let cSum = 0;
+                for (let i = 1; i < unwrapped.length; i++) {
+                    let c = unwrapped[i] - unwrapped[i-1];
+                    curvature.push(c);
+                    cSum += c;
+                }
+                let cMean = cSum / curvature.length;
+                let cVarSum = curvature.reduce((a,b)=>a+Math.pow(b-cMean, 2), 0) / curvature.length;
+                curvatureVar = cVarSum;
+            }
+            
+            let totalLength = 0;
+            for (let i = 1; i < 100; i++) {
+                totalLength += Math.sqrt(Math.pow(ptsCentered[i][0]/maxR - ptsCentered[i-1][0]/maxR, 2) + Math.pow(ptsCentered[i][1]/maxR - ptsCentered[i-1][1]/maxR, 2));
+            }
+            
+            return [mean_dev, std_dev, tremorPower, curvatureVar, totalLength];
+        }
+
+        // Tremor power index and curvature var
+        function computeTremorIndex(points) {
+            let pts = points.map(p => [p[0], p[1]]);
+            let sumX = 0, sumY = 0;
+            pts.forEach(p => { sumX += p[0]; sumY += p[1]; });
+            const cx = sumX / pts.length;
+            const cy = sumY / pts.length;
+            
+            let ptsCentered = pts.map(p => [p[0] - cx, p[1] - cy]);
+            let radii = ptsCentered.map(p => Math.sqrt(p[0]*p[0] + p[1]*p[1]));
+            let angles = ptsCentered.map(p => Math.atan2(p[1], p[0]));
+            
+            let unwrapped = [angles[0]];
+            for (let i = 1; i < angles.length; i++) {
+                let diff = angles[i] - angles[i-1];
+                while (diff < -Math.PI) diff += 2 * Math.PI;
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                unwrapped.push(unwrapped[i-1] + diff);
+            }
+            
+            let sortedIndices = Array.from(Array(pts.length).keys()).sort((a, b) => unwrapped[a] - unwrapped[b]);
+            let sortedRadii = sortedIndices.map(idx => radii[idx]);
+            
+            const windowSize = 15;
+            if (sortedRadii.length < windowSize * 2) {
+                return [0.0, 0.0];
+            }
+            
+            let padded = [];
+            let padValLeft = sortedRadii[0];
+            let padValRight = sortedRadii[sortedRadii.length - 1];
+            let halfWindow = Math.floor(windowSize / 2);
+            for (let i = 0; i < halfWindow; i++) padded.push(padValLeft);
+            padded.push(...sortedRadii);
+            for (let i = 0; i < halfWindow; i++) padded.push(padValRight);
+            
+            let smoothRadii = [];
+            for (let i = 0; i < sortedRadii.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < windowSize; j++) {
+                    sum += padded[i + j];
+                }
+                smoothRadii.push(sum / windowSize);
+            }
+            
+            let residual = [];
+            for (let i = 0; i < sortedRadii.length; i++) {
+                residual.push(sortedRadii[i] - smoothRadii[i]);
+            }
+            let resMean = residual.reduce((a,b)=>a+b, 0) / residual.length;
+            let resVarSum = residual.reduce((a,b)=>a+Math.pow(b-resMean, 2), 0) / residual.length;
+            let resStd = Math.sqrt(resVarSum);
+            
+            let maxR = Math.max(...radii);
+            let tremorPower = (resStd / (maxR + 1e-8)) * 100;
+            
+            let cleanPts = [pts[0]];
+            for (let i = 1; i < pts.length; i++) {
+                let dx = pts[i][0] - pts[i-1][0];
+                let dy = pts[i][1] - pts[i-1][1];
+                if (Math.sqrt(dx*dx + dy*dy) > 1.0) {
+                    cleanPts.push(pts[i]);
+                }
+            }
+            
+            let rawCurvVar = 0.0;
+            if (cleanPts.length > 5) {
+                let dx = [];
+                let dy = [];
+                for (let i = 1; i < cleanPts.length; i++) {
+                    dx.push(cleanPts[i][0] - cleanPts[i-1][0]);
+                    dy.push(cleanPts[i][1] - cleanPts[i-1][1]);
+                }
+                let rawAngles = [];
+                for (let i = 0; i < dx.length; i++) {
+                    rawAngles.push(Math.atan2(dy[i], dx[i]));
+                }
+                let unwrappedRaw = [rawAngles[0]];
+                for (let i = 1; i < rawAngles.length; i++) {
+                    let diff = rawAngles[i] - rawAngles[i-1];
+                    while (diff < -Math.PI) diff += 2 * Math.PI;
+                    while (diff > Math.PI) diff -= 2 * Math.PI;
+                    unwrappedRaw.push(unwrappedRaw[i-1] + diff);
+                }
+                let rawCurv = [];
+                let cSum = 0;
+                for (let i = 1; i < unwrappedRaw.length; i++) {
+                    let c = unwrappedRaw[i] - unwrappedRaw[i-1];
+                    rawCurv.push(c);
+                    cSum += c;
+                }
+                let cMean = cSum / rawCurv.length;
+                let cVarSum = rawCurv.reduce((a,b)=>a+Math.pow(b-cMean, 2), 0) / rawCurv.length;
+                rawCurvVar = cVarSum;
+            }
+            
+            return [tremorPower, rawCurvVar];
+        }
+
+        // KNN Classifier
+        function runKNN(features, trainData, k = 5) {
+            const distances = [];
+            trainData.forEach(sample => {
+                let dist = 0;
+                for (let i = 0; i < features.length; i++) {
+                    dist += Math.pow(features[i] - sample.features[i], 2);
+                }
+                distances.push({ dist: Math.sqrt(dist), label: sample.label });
+            });
+            distances.sort((a, b) => a.dist - b.dist);
+            
+            let healthyCount = 0;
+            const neighbors = distances.slice(0, Math.min(k, distances.length));
+            neighbors.forEach(n => {
+                if (n.label === 0) healthyCount++;
+            });
+            return healthyCount / neighbors.length;
+        }
+
+        submitBtn.addEventListener('click', () => {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            if (drawnPoints.length < 20) {
+                let alertText = 'Please draw a longer spiral.';
+                if (activeLang === 'hi') alertText = 'कृपया एक लंबी सर्पिल रेखा खींचें।';
+                else if (activeLang === 'bn') alertText = 'অনুগ্রহ করে আরও কিছুক্ষণ স্পাইরাল আঁকুন।';
+                else if (activeLang === 'mr') alertText = 'कृपया थोडे मोठे सर्पिल रेखाटून घ्या.';
+                else if (activeLang === 'ta') alertText = 'தயவுசெய்து இன்னும் நீண்ட சுருள் வரையவும்.';
+                else if (activeLang === 'te') alertText = 'దయచేసి మరింత పొడవైన స్పైరల్ గీయండి.';
+                alert(alertText);
+                return;
+            }
+
+            let classifyingText = '🔬 CLASSIFYING...';
+            if (activeLang === 'hi') classifyingText = '🔬 वर्गीकरण किया जा रहा है...';
+            else if (activeLang === 'bn') classifyingText = '🔬 শ্রেণীবিভাগ করা হচ্ছে...';
+            else if (activeLang === 'mr') classifyingText = '🔬 वर्गीकरण करत आहे...';
+            else if (activeLang === 'ta') classifyingText = '🔬 வகைப்படுத்தப்படுகிறது...';
+            else if (activeLang === 'te') classifyingText = '🔬 వర్గీకరిస్తున్నారు...';
+            drawingStatus.innerText = classifyingText;
+
+            const userArr = drawnPoints.map(p => [p[0], p[1]]);
+            const refArr = refSpiral;
+
+            // Calculate deviations
+            const deviations = [];
+            userArr.forEach(up => {
+                let minDist = 1e9;
+                refArr.forEach(rp => {
+                    let d = Math.sqrt(Math.pow(rp[0]-up[0],2) + Math.pow(rp[1]-up[1],2));
+                    if (d < minDist) minDist = d;
+                });
+                deviations.push(minDist);
+            });
+
+            const meanDev = deviations.reduce((a,b)=>a+b, 0) / deviations.length;
+            
+            // Standard deviation
+            const devVarSum = deviations.reduce((a,b)=>a+Math.pow(b-meanDev, 2), 0) / deviations.length;
+            const stdDev = Math.sqrt(devVarSum);
+
+            const feat = extractSpiralFeatures(drawnPoints, meanDev, stdDev);
+            let score = 100.0;
+
+            const devScore = Math.max(0.0, Math.min(100.0, 100.0 - (meanDev / 45.0) * 50.0));
+
+            if (feat && spiralTrainingData && spiralTrainingData.length > 0) {
+                const healthyProb = runKNN(feat, spiralTrainingData, 5);
+                score = 0.5 * (healthyProb * 100.0) + 0.5 * devScore;
+            } else {
+                // Fallback math
+                if (feat) {
+                    let tremor = feat[2];
+                    if (tremor > 0.15) score -= 30.0;
+                    if (meanDev > 45.0) score -= Math.min(50.0, (meanDev - 45.0) * 2.0);
+                } else {
+                    score = devScore;
+                }
+            }
+
+            // Tremor index and Curvature var
+            const [tremorIndex, rawCurvVar] = computeTremorIndex(drawnPoints);
+            
+            // Tremor penalties
+            let tremorPenalty = 0.0;
+            if (tremorIndex > 0.8) {
+                tremorPenalty += Math.min(45.0, (tremorIndex - 0.8) * 45.0);
+            }
+            if (rawCurvVar > 0.4) {
+                tremorPenalty += Math.min(45.0, (rawCurvVar - 0.4) * 35.0);
+            }
+
+            score = Math.max(0.0, Math.min(100.0, score - tremorPenalty));
+
+            let smoothnessStatus = "Smooth / Stable";
+            if (tremorPenalty > 35.0) {
+                smoothnessStatus = "Severely Jagged / Tremor";
+            } else if (tremorPenalty > 0.0) {
+                smoothnessStatus = "Mild Jitter / Tremor";
+            }
+
+            // Save results to local storage
+            localStorage.setItem('sehatsaathi_result_spiral', JSON.stringify({
+                score: score,
+                deviation: meanDev,
+                tremor_index: tremorIndex,
+                curvature_var: rawCurvVar,
+                smoothness_status: smoothnessStatus
+            }));
+
+            let completeText = '✓ ANALYSIS COMPLETE';
+            if (activeLang === 'hi') completeText = '✓ विश्लेषण पूर्ण हुआ';
+            else if (activeLang === 'bn') completeText = '✓ বিশ্লেষণ সম্পন্ন';
+            else if (activeLang === 'mr') completeText = '✓ विश्लेषण पूर्ण झाले';
+            else if (activeLang === 'ta') completeText = '✓ பகுப்பாய்வு முடிந்தது';
+            else if (activeLang === 'te') completeText = '✓ విశ్లేషణ పూర్తయింది';
+            drawingStatus.className = 'status-indicator status-detected';
+            drawingStatus.innerText = completeText;
+
+            // Dynamically translate reports
+            let titleText = "Spiral Tracing Score";
+            let devText = "Mean Path Deviation";
+            let indexText = "Tremor Power Index";
+            let smoothText = "Drawing Smoothness";
+
+            if (activeLang === 'hi') {
+                titleText = "सर्पिल ट्रेसिंग स्कोर";
+                devText = "औसत पथ विचलन";
+                indexText = "कंपन शक्ति सूचकांक";
+                smoothText = "ड्राइंग की सुगमता";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "सुगम / स्थिर" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "हल्का कंपन" : "गंभीर कंपन";
+            } else if (activeLang === 'bn') {
+                titleText = "স্পাইরাল ট্রেসিং স্কোর";
+                devText = "গড় পথ বিচ্যুতি";
+                indexText = "কম্পন শক্তি সূচক";
+                smoothText = "অঙ্কন মসৃণতা";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "মসৃণ / স্থিতিশীল" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "হালকা কম্পন" : "মারাত্মক কম্পন";
+            } else if (activeLang === 'mr') {
+                titleText = "सर्पिल रेखांकन स्कोर";
+                devText = "सरासरी पथ विचलन";
+                indexText = "कंपन शक्ती निर्देशांक";
+                smoothText = "रेखांकन सुलभता";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "सुलभ / स्थिर" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "किंचित कंपन" : "गंभीर कंपन";
+            } else if (activeLang === 'ta') {
+                titleText = "சுருள் வரைதல் மதிப்பெண்";
+                devText = "சராசரி பாதை விலகல்";
+                indexText = "நடுக்க குறியீடு";
+                smoothText = "வரைதல் சீரான தன்மை";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "சீராக உள்ளது / நிலையானது" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "மிதமான நடுக்கம்" : "கடுமையான நடுக்கம்";
+            } else if (activeLang === 'te') {
+                titleText = "స్పైరల్ డ్రాయింగ్ స్కోరు";
+                devText = "సగటు రేఖ విచలనం";
+                indexText = "వణుకు తీవ్రత సూచిక";
+                smoothText = "డ్రాయింగ్ సున్నితత్వం";
+                smoothnessStatus = smoothnessStatus === "Smooth / Stable" ? "సున్నితంగా / స్థిరంగా" :
+                                   smoothnessStatus === "Mild Jitter / Tremor" ? "స్వల్ప వణుకు" : "తీవ్రమైన వణుకు";
+            }
+
+            resultsDisplay.style.display = 'block';
+            resultsDisplay.innerHTML = `${titleText}: ${score.toFixed(2)}%\n` +
+                                        `${devText}: ${meanDev.toFixed(2)} px\n` +
+                                        `${indexText}: ${tremorIndex.toFixed(3)}%\n` +
+                                        `${smoothText}: ${smoothnessStatus}`;
+        });
+
+        // Initialize spiral
+        drawReferenceSpiral();
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

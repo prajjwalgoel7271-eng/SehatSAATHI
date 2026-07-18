@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finger Tapping Test — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="motor-title">[Motor] Finger Tapping Test</h1>
+            <p class="page-subtitle" data-trn="motor-subtitle">Rhythmically tap your thumb and index finger together and apart in front of the camera.</p>
+            <div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Live camera feed with canvas overlays -->
+                <div class="test-workspace">
+                    <div class="media-container">
+                        <video id="video-feed" class="video-feed" autoplay playsinline muted style="transform: scaleX(-1);"></video>
+                        <canvas id="canvas-overlay" class="canvas-overlay" style="transform: scaleX(-1);"></canvas>
+                        <div id="countdown-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: bold; display: none; color: var(--color-warning); text-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 10; text-align: center; line-height: 1.2;">Ready...</div>
+                    </div>
+                    <div class="status-indicator status-scanning" id="camera-status" style="margin-top: 1rem; width: 100%;" data-trn="status-init-camera">
+                        ⏳ INITIALIZING CAMERA...
+                    </div>
+                </div>
+
+                <!-- Right column: Controls & Progress -->
+                <div class="test-controls">
+                    <div class="instruction-box">
+                        <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary);" data-trn="instructions-title">Instructions:</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="motor-instr-1">1. Allow camera permissions.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="motor-instr-2">2. Position your hand so it is fully visible in the frame.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="motor-instr-3">3. Once ready, click "Start Test". You will have 20 seconds to perform the tapping gesture.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="motor-instr-4">4. Tap your thumb and index finger together and open them wide repeatedly.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0;" data-trn="motor-instr-5">5. Keep your hand as steady as possible.</p>
+                    </div>
+
+                    <div class="progress-container">
+                        <div id="test-progress-bar" class="progress-bar" style="background-color: var(--color-primary); width: 0%;"></div>
+                    </div>
+                    <div id="timer-label" style="font-weight: bold; text-align: center;" data-trn="timer-remaining-default">20.0s remaining</div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="btn-start" class="btn btn-primary btn-block" disabled data-trn="btn-start-test">
+                            Start Test
+                        </button>
+                        <a href="./parkinson_hub.html" class="btn btn-secondary btn-block" data-trn="btn-back-hub">Back to Hub</a>
+                    </div>
+
+                    <div id="results-display" class="results-box" style="display: none;"></div>
+                    <canvas id="motor-plot-canvas" style="display: none; width: 100%; height: 200px; background: #12121A; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 1rem;"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        const video = document.getElementById('video-feed');
+        const canvas = document.getElementById('canvas-overlay');
+        const ctx = canvas.getContext('2d');
+        const cameraStatus = document.getElementById('camera-status');
+        const startBtn = document.getElementById('btn-start');
+        const progressBar = document.getElementById('test-progress-bar');
+        const timerLabel = document.getElementById('timer-label');
+        const resultsDisplay = document.getElementById('results-display');
+        const motorPlotCanvas = document.getElementById('motor-plot-canvas');
+
+        let handDetector;
+        let cameraHelper;
+        let distances = [];
+        let timestamps = [];
+        let testActive = false;
+        let startTime = 0;
+        const duration = 20.0;
+        let animationFrameId;
+
+        function resizeCanvas() {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+        }
+
+        let processActive = false;
+        async function detectHandsFrame() {
+            if (!processActive) return;
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                try {
+                    await handDetector.send({ image: video });
+                } catch (e) {
+                    console.error("Error sending hand frames:", e);
+                }
+            }
+            requestAnimationFrame(detectHandsFrame);
+        }
+
+        video.onloadedmetadata = () => {
+            resizeCanvas();
+            startBtn.removeAttribute('disabled');
+            cameraStatus.className = 'status-indicator status-detected';
+            cameraStatus.innerText = '✓ CAMERA READY — CLICK START';
+            processActive = true;
+            detectHandsFrame();
+        };
+
+        const preferredCameraId = localStorage.getItem('sehatsaathi_preferred_camera');
+
+        // Setup MediaPipe
+        handDetector = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        handDetector.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.5
+        });
+
+        handDetector.onResults((results) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                cameraStatus.className = 'status-indicator status-detected';
+                cameraStatus.innerText = '✓ HAND DETECTED';
+
+                const landmarks = results.multiHandLandmarks[0];
+                const thumb = landmarks[4];
+                const index = landmarks[8];
+
+                const w = canvas.width;
+                const h = canvas.height;
+
+                const x1 = thumb.x * w;
+                const y1 = thumb.y * h;
+                const x2 = index.x * w;
+                const y2 = index.y * h;
+
+                // Draw connector line
+                ctx.beginPath();
+                ctx.arc(x1, y1, 10, 0, 2 * Math.PI);
+                ctx.fillStyle = '#FF5252';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(x2, y2, 10, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2ECC71';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#FFFF00';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                const dist = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+
+                ctx.save();
+                ctx.translate(w, 0);
+                ctx.scale(-1, 1);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '14px Outfit';
+                ctx.fillText("Thumb", w - x1 - 15, y1 + 5);
+                ctx.fillText("Index", w - x2 - 15, y2 + 5);
+
+                if (testActive) {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    distances.push(dist);
+                    timestamps.push(elapsed);
+
+                    ctx.font = '20px Outfit';
+                    ctx.fillText(`Distance: ${Math.round(dist)}px`, w - 20, 40);
+                }
+                ctx.restore();
+            } else {
+                cameraStatus.className = 'status-indicator status-scanning';
+                cameraStatus.innerText = '⏳ ALIGN HAND IN FRAME';
+            }
+        });
+
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: preferredCameraId ? { deviceId: { exact: preferredCameraId } } : true,
+                    audio: false
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                
+                video.play().catch(err => {
+                    console.warn("Video play deferred:", err);
+                });
+            } catch (err) {
+                console.error('Error starting video stream:', err);
+                cameraStatus.className = 'status-indicator status-scanning';
+                cameraStatus.innerText = '❌ CAMERA ERROR: ' + err.message;
+            }
+        }
+
+        startCamera();
+
+        const countdownOverlay = document.getElementById('countdown-overlay');
+
+        startBtn.addEventListener('click', () => {
+            if (testActive) return;
+            
+            startBtn.setAttribute('disabled', 'true');
+            resultsDisplay.style.display = 'none';
+            motorPlotCanvas.style.display = 'none';
+            countdownOverlay.style.display = 'block';
+            
+            let countdown = 3;
+            countdownOverlay.innerText = `Align Hand...\n${countdown}`;
+            timerLabel.innerText = `Get ready... ${countdown}s`;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownOverlay.innerText = `Align Hand...\n${countdown}`;
+                    timerLabel.innerText = `Get ready... ${countdown}s`;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownOverlay.style.display = 'none';
+                    startTappingTest();
+                }
+            }, 1000);
+        });
+
+        function startTappingTest() {
+            distances = [];
+            timestamps = [];
+            testActive = true;
+            startTime = Date.now();
+
+            function updateProgress() {
+                if (!testActive) return;
+                const elapsed = (Date.now() - startTime) / 1000;
+                const remaining = Math.max(0, duration - elapsed);
+                progressBar.style.width = `${(elapsed / duration) * 100}%`;
+                
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                let labelText = `${remaining.toFixed(1)}s remaining`;
+                if (activeLang === 'hi') labelText = `${remaining.toFixed(1)} सेकंड शेष`;
+                else if (activeLang === 'bn') labelText = `${remaining.toFixed(1)} সেঃ बाकी`;
+                else if (activeLang === 'mr') labelText = `${remaining.toFixed(1)} सेकंद उर्वरित`;
+                else if (activeLang === 'ta') labelText = `${remaining.toFixed(1)}வி வினாடிகள் உள்ளன`;
+                else if (activeLang === 'te') labelText = `${remaining.toFixed(1)}సె సెకన్లు ఉన్నాయి`;
+                timerLabel.innerText = labelText;
+
+                if (elapsed >= duration) {
+                    endTest();
+                } else {
+                    animationFrameId = requestAnimationFrame(updateProgress);
+                }
+            }
+            animationFrameId = requestAnimationFrame(updateProgress);
+        }
+
+        // JS Peak detection matching Python logic
+        function findPeaksLocal(arr, minDistance = 8, minProminence = 15) {
+            const peaks = [];
+            for (let i = 1; i < arr.length - 1; i++) {
+                if (arr[i] > arr[i - 1] && arr[i] > arr[i + 1]) {
+                    let leftValley = arr[i];
+                    for (let l = i - 1; l >= 0; l--) {
+                        if (arr[l] < leftValley) leftValley = arr[l];
+                        if (arr[l] > arr[i]) break;
+                    }
+                    let rightValley = arr[i];
+                    for (let r = i + 1; r < arr.length; r++) {
+                        if (arr[r] < rightValley) rightValley = arr[r];
+                        if (arr[r] > arr[i]) break;
+                    }
+                    let prom = Math.min(arr[i] - leftValley, arr[i] - rightValley);
+                    if (prom >= minProminence) {
+                        peaks.push(i);
+                    }
+                }
+            }
+
+            const filteredPeaks = [];
+            for (let i = 0; i < peaks.length; i++) {
+                if (filteredPeaks.length === 0 || peaks[i] - filteredPeaks[filteredPeaks.length - 1] >= minDistance) {
+                    filteredPeaks.push(peaks[i]);
+                } else {
+                    let prevIdx = filteredPeaks[filteredPeaks.length - 1];
+                    if (arr[peaks[i]] > arr[prevIdx]) {
+                        filteredPeaks[filteredPeaks.length - 1] = peaks[i];
+                    }
+                }
+            }
+            return filteredPeaks;
+        }
+
+        // Draw line chart of results
+        function drawResultsChart(ts, dists, peaks) {
+            motorPlotCanvas.style.display = 'block';
+            
+            // Adjust resolution for Retina screens
+            const width = motorPlotCanvas.clientWidth;
+            const height = motorPlotCanvas.clientHeight;
+            motorPlotCanvas.width = width * 2;
+            motorPlotCanvas.height = height * 2;
+            motorPlotCanvas.style.width = `${width}px`;
+            motorPlotCanvas.style.height = `${height}px`;
+
+            const pCtx = motorPlotCanvas.getContext('2d');
+            pCtx.scale(2, 2);
+            pCtx.clearRect(0, 0, width, height);
+
+            // Find scale bounds
+            const minT = 0, maxT = duration;
+            const maxD = Math.max(...dists, 100);
+            
+            // Drawing functions
+            const getX = t => 40 + (t / maxT) * (width - 60);
+            const getY = d => height - 30 - (d / maxD) * (height - 50);
+
+            // Draw axis & grid
+            pCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+            pCtx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                let yVal = getY((maxD / 5) * i);
+                pCtx.beginPath();
+                pCtx.moveTo(40, yVal);
+                pCtx.lineTo(width - 20, yVal);
+                pCtx.stroke();
+            }
+
+            // Draw labels
+            pCtx.fillStyle = '#6E6E80';
+            pCtx.font = '10px Outfit';
+            pCtx.textAlign = 'right';
+            pCtx.textBaseline = 'middle';
+            for (let i = 0; i <= 5; i++) {
+                let dVal = (maxD / 5) * i;
+                pCtx.fillText(Math.round(dVal), 32, getY(dVal));
+            }
+            pCtx.textAlign = 'center';
+            pCtx.textBaseline = 'top';
+            for (let i = 0; i <= 4; i++) {
+                let tVal = (duration / 4) * i;
+                pCtx.fillText(`${tVal}s`, getX(tVal), height - 25);
+            }
+
+            // Draw line
+            pCtx.beginPath();
+            pCtx.strokeStyle = 'cyan';
+            pCtx.lineWidth = 2;
+            for (let i = 0; i < dists.length; i++) {
+                const px = getX(ts[i]);
+                const py = getY(dists[i]);
+                if (i === 0) pCtx.moveTo(px, py);
+                else pCtx.lineTo(px, py);
+            }
+            pCtx.stroke();
+
+            // Draw peaks
+            pCtx.fillStyle = 'red';
+            peaks.forEach(idx => {
+                const px = getX(ts[idx]);
+                const py = getY(dists[idx]);
+                pCtx.beginPath();
+                pCtx.moveTo(px, py + 6);
+                pCtx.lineTo(px - 5, py - 4);
+                pCtx.lineTo(px + 5, py - 4);
+                pCtx.closePath();
+                pCtx.fill();
+            });
+        }
+
+        function calculateStandardDeviation(values) {
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+            return Math.sqrt(variance);
+        }
+
+        async function endTest() {
+            testActive = false;
+            cancelAnimationFrame(animationFrameId);
+            progressBar.style.width = '100%';
+
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let zeroLabel = '0.0s remaining';
+            if (activeLang === 'hi') zeroLabel = '0.0 सेकंड शेष';
+            else if (activeLang === 'bn') zeroLabel = '০.০ সেঃ বাকি';
+            else if (activeLang === 'mr') zeroLabel = '०.० सेकंद उर्वरित';
+            else if (activeLang === 'ta') zeroLabel = '0.0வி வினாடிகள் உள்ளன';
+            else if (activeLang === 'te') zeroLabel = '0.0సె సెకన్లు ఉన్నాయి';
+            timerLabel.innerText = zeroLabel;
+
+            let scanningText = '🔬 ANALYZING RESULTS...';
+            if (activeLang === 'hi') scanningText = '🔬 परिणामों का विश्लेषण किया जा रहा है...';
+            else if (activeLang === 'bn') scanningText = '🔬 ফলাফল বিশ্লেষণ করা হচ্ছে...';
+            else if (activeLang === 'mr') scanningText = '🔬 निकालांचे विश्लेषण करत आहे...';
+            else if (activeLang === 'ta') scanningText = '🔬 முடிவுகள் பகுப்பாய்வு செய்யப்படுகின்றன...';
+            else if (activeLang === 'te') scanningText = '🔬 ఫలితాలు విశ్లేషించబడుతున్నాయి...';
+            cameraStatus.innerText = scanningText;
+
+            if (distances.length < 20) {
+                cameraStatus.className = 'status-indicator status-scanning';
+                let errText = '❌ INSUFFICIENT DATA';
+                let errDesc = 'Error: Not enough data points. Try keeping your hand fully in front of the camera.';
+                if (activeLang === 'hi') {
+                    errText = '❌ अपर्याप्त डेटा';
+                    errDesc = 'त्रुटि: पर्याप्त डेटा बिंदु नहीं हैं। अपने हाथ को कैमरे के सामने पूरी तरह से रखने का प्रयास करें।';
+                } else if (activeLang === 'bn') {
+                    errText = '❌ অপর্যাপ্ত ডেটা';
+                    errDesc = 'ত্রুটি: যথেষ্ট ডেটা পয়েন্ট পাওয়া যায়নি। ক্যামেরা ফ্রেমের সামনে আপনার হাতটি সোজা রাখুন।';
+                } else if (activeLang === 'mr') {
+                    errText = '❌ अपुरा डेटा';
+                    errDesc = 'त्रुटी: पुरेसे डेटा पॉईंट्स नाहीत. आपला हात कॅमेऱ्यासमोर पूर्णपणे ठेवण्याचा प्रयत्न करा.';
+                } else if (activeLang === 'ta') {
+                    errText = '❌ போதிய தரவு இல்லை';
+                    errDesc = 'பிழை: போதுமான தரவு புள்ளிகள் இல்லை. கேமராவின் முன்னால் கையை முழுமையாக வைக்கவும்.';
+                } else if (activeLang === 'te') {
+                    errText = '❌ సరిపోని సమాచారం';
+                    errDesc = 'లోపం: సరిపడా సమాచారం లేదు. మీ చేయి కెమెరా ముందు పూర్తిగా ఉంచండి.';
+                }
+                cameraStatus.innerText = errText;
+                resultsDisplay.style.display = 'block';
+                resultsDisplay.innerHTML = errDesc;
+                startBtn.removeAttribute('disabled');
+                return;
+            }
+
+            // Local analysis equivalent to python code
+            const peaks = findPeaksLocal(distances, 8, 15);
+            let score = 0;
+            let decrement = 0;
+            let tappingSpeed = 0;
+            let rhythmStatus = 'N/A';
+            let rhythmWarning = null;
+
+            if (peaks.length >= 6) {
+                const first5 = peaks.slice(0, 5).reduce((acc, idx) => acc + distances[idx], 0) / 5;
+                const last5 = peaks.slice(-5).reduce((acc, idx) => acc + distances[idx], 0) / 5;
+                decrement = ((first5 - last5) / first5) * 100;
+                
+                // Calculate tapping speed & CV
+                const peakIntervals = [];
+                for (let i = 1; i < peaks.length; i++) {
+                    peakIntervals.push(timestamps[peaks[i]] - timestamps[peaks[i-1]]);
+                }
+                const meanInterval = peakIntervals.reduce((a,b)=>a+b, 0) / peakIntervals.length;
+                tappingSpeed = meanInterval > 0 ? 1.0 / meanInterval : 0;
+
+                const stdInterval = calculateStandardDeviation(peakIntervals);
+                const regularityCv = meanInterval > 0 ? stdInterval / meanInterval : 1.0;
+
+                const decrementPenalty = Math.min(40, Math.max(0, decrement - 10) * 1.3);
+                const regularityPenalty = Math.min(40, regularityCv * 80);
+                score = Math.max(0.0, Math.min(100.0, 100.0 - decrementPenalty - regularityPenalty));
+
+                rhythmStatus = "Stable / Regular";
+                if (regularityCv > 0.35) {
+                    rhythmStatus = "Irregular / Arrhythmic";
+                    rhythmWarning = "Irregular tapping rhythm detected. This may indicate coordination difficulty or motor instability.";
+                }
+            } else {
+                const deviation = calculateStandardDeviation(distances);
+                score = Math.max(0.0, 100.0 - deviation / 5.0);
+                rhythmStatus = "Insufficient peaks to assess";
+                rhythmWarning = "Please ensure your hand is fully visible and you tap clearly.";
+            }
+
+            // Save results to local storage
+            localStorage.setItem('sehatsaathi_result_motor', JSON.stringify({
+                score: score,
+                decrement: decrement,
+                speed: tappingSpeed,
+                rhythm_status: rhythmStatus,
+                rhythm_warning: rhythmWarning
+            }));
+
+            // Translate results display dynamically
+            let titleText = "Motor Test Score";
+            let decText = "Finger Decrement";
+            let speedText = "Tapping Speed";
+            let rhythmText = "Rhythm Stability";
+            let warningText = "WARNING";
+            let successStatusText = '✓ SCREENING COMPLETE';
+            
+            if (activeLang === 'hi') {
+                titleText = "मोटर टेस्ट स्कोर";
+                decText = "फिंगर डिक्रीमेंट (कमी)";
+                speedText = "टैपिंग की गति";
+                rhythmText = "लय स्थिरता";
+                warningText = "चेतावनी";
+                successStatusText = '✓ स्क्रीनिंग पूरी हुई';
+                rhythmStatus = rhythmStatus === "Stable / Regular" ? "स्थिर / नियमित" : 
+                               rhythmStatus === "Irregular / Arrhythmic" ? "अस्थिर / अनियमित" : "आकलन करने के लिए अपर्याप्त";
+                if (rhythmWarning) {
+                    rhythmWarning = rhythmWarning.includes("Irregular tapping") ? 
+                        "अनियमित टैपिंग लय पाई गई। यह समन्वय कठिनाई या मोटर अस्थिरता का संकेत हो सकता है।" : 
+                        "कृपया सुनिश्चित करें कि आपका हाथ पूरी तरह दिखाई दे और आप स्पष्ट रूप से टैप करें।";
+                }
+            } else if (activeLang === 'bn') {
+                titleText = "মোটর টেস্ট স্কোর";
+                decText = "আঙুলের ট্যাপিং হ্রাস";
+                speedText = "ট্যাপিং গতি";
+                rhythmText = "ছন্দ স্থায়িত্ব";
+                warningText = "সতর্কতা";
+                successStatusText = '✓ স্ক্রিনিং সম্পূর্ণ';
+                rhythmStatus = rhythmStatus === "Stable / Regular" ? "স্থিতিশীল / নিয়মিত" : 
+                               rhythmStatus === "Irregular / Arrhythmic" ? "অস্থিতিশীল / অনিয়মিত" : "মূল্যায়নের জন্য অপর্যাপ্ত";
+                if (rhythmWarning) {
+                    rhythmWarning = rhythmWarning.includes("Irregular tapping") ? 
+                        "অনিয়মিত ট্যাপিং ছন্দ লক্ষ্য করা গেছে। এটি সমন্বয়হীনতা বা মোটর অস্থিরতার ইঙ্গিত হতে পারে।" : 
+                        "দয়া করে নিশ্চিত করুন যে আপনার হাতটি সম্পূর্ণ দৃশ্যমান এবং আপনি স্পষ্টভাবে ট্যাপ করছেন।";
+                }
+            } else if (activeLang === 'mr') {
+                titleText = "मोटार चाचणी स्कोर";
+                decText = "बोटांमधील हालचालींची घट";
+                speedText = "टॅपिंग गती";
+                rhythmText = "लय स्थिरता";
+                warningText = "इशारा";
+                successStatusText = '✓ चाचणी पूर्ण झाली';
+                rhythmStatus = rhythmStatus === "Stable / Regular" ? "स्थिर / नियमित" : 
+                               rhythmStatus === "Irregular / Arrhythmic" ? "अस्थिर / अनियमित" : "तपासणीसाठी अपुरे पीक";
+                if (rhythmWarning) {
+                    rhythmWarning = rhythmWarning.includes("Irregular tapping") ? 
+                        "अस्थिर टॅपिंग लय आढळली. हे हालचालींमधील समन्वय किंवा अस्थिरता दर्शवू शकते." : 
+                        "कृपया आपला हात पूर्णपणे दिसत असल्याची आणि स्पष्टपणे टॅपिंग करत असल्याची खात्री करा.";
+                }
+            } else if (activeLang === 'ta') {
+                titleText = "மோட்டார் சோதனை மதிப்பெண்";
+                decText = "விரல் தட்டுதல் குறைபாடு";
+                speedText = "தட்டுதல் வேகம்";
+                rhythmText = "தாள நிலைத்தன்மை";
+                warningText = "எச்சரிக்கை";
+                successStatusText = '✓ பரிசோதனை முடிந்தது';
+                rhythmStatus = rhythmStatus === "Stable / Regular" ? "நிலையானது / சீரானது" : 
+                               rhythmStatus === "Irregular / Arrhythmic" ? "சீரற்றது / தாளமற்றது" : "மதிப்பிட போதுமான தரவு இல்லை";
+                if (rhythmWarning) {
+                    rhythmWarning = rhythmWarning.includes("Irregular tapping") ? 
+                        "சீரற்ற விரல் தட்டுதல் தாளம் கண்டறியப்பட்டது. இது அசைவு ஒருங்கிணைப்பு குறைபாட்டைக் குறிக்கலாம்." : 
+                        "உங்கள் கை முழுமையாகத் தெரிவதையும் தெளிவாகத் தட்டுவதையும் உறுதிசெய்யவும்.";
+                }
+            } else if (activeLang === 'te') {
+                titleText = "మోటర్ పరీక్ష స్కోరు";
+                decText = "వేలితో ట్యాపింగ్ తగ్గుదల";
+                speedText = "ట్యాపింగ్ వేగం";
+                rhythmText = "లయ స్థిరత్వం";
+                warningText = "హెచ్చరిక";
+                successStatusText = '✓ స్క్రీనింగ్ పూర్తయింది';
+                rhythmStatus = rhythmStatus === "Stable / Regular" ? "స్థిరంగా / క్రమబద్ధంగా" : 
+                               rhythmStatus === "Irregular / Arrhythmic" ? "అస్థిరంగా / క్రమరహితంగా" : "విశ్లేషించడానికి తగినంత సమాచారం లేదు";
+                if (rhythmWarning) {
+                    rhythmWarning = rhythmWarning.includes("Irregular tapping") ? 
+                        "క్రమరహిత ట్యాపింగ్ లయ కనుగొనబడింది. ఇది కదలికల సమన్వయ లోపం కావచ్చు." : 
+                        "మీ చేయి పూర్తిగా కనిపించేలా చూసుకోండి మరియు స్పష్టంగా ట్యాప్ చేయండి.";
+                }
+            }
+
+            cameraStatus.className = 'status-indicator status-detected';
+            cameraStatus.innerText = successStatusText;
+            
+            resultsDisplay.style.display = 'block';
+            resultsDisplay.innerHTML = `${titleText}: ${score.toFixed(2)}%\n` +
+                                        `${decText}: ${decrement.toFixed(2)}%\n` +
+                                        `${speedText}: ${tappingSpeed.toFixed(2)} taps/sec\n` +
+                                        `${rhythmText}: ${rhythmStatus}\n` +
+                                        (rhythmWarning ? `⚠️ ${warningText}: ${rhythmWarning}\n` : '');
+
+            drawResultsChart(timestamps, distances, peaks);
+            startBtn.removeAttribute('disabled');
+        }
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

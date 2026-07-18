@@ -1,0 +1,1015 @@
+{% extends "base.html" %}
+
+{% block title %}AI Health Risk Score — SehatSaathi{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        .lifestyle-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            text-align: left;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .form-group select, .form-group input {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: Outfit, sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--color-warning);
+            background: rgba(255,255,255,0.05);
+        }
+        .gauge-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 1.5rem auto;
+        }
+        .gauge-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            width: 100%;
+        }
+        .recommendation-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+        .recommendation-card:hover {
+            transform: translateY(-2px);
+        }
+        .recommendation-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .recommendation-list li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.25rem;
+        }
+        .recommendation-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--color-warning);
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title" data-trn="health-score-title">📊 AI Health Risk Score Card</h1>
+<p class="page-subtitle" data-trn="health-score-subtitle">Composite analysis of lifestyle habits and disease screening indicators.</p>
+<div class="title-separator" style="background-color: var(--color-warning);"></div>
+
+<div class="test-layout">
+    <!-- Left Column: Inputs and Screenings list -->
+    <div class="test-controls" style="justify-content: flex-start; gap: 1.5rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; text-align: left; color: var(--color-warning);" data-trn="title-profile">1. User Profile</h2>
+        
+        <div class="lifestyle-form" style="margin-bottom: 0.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="profile-gender" data-trn="lbl-gender">Gender / लिंग</label>
+                    <select id="profile-gender">
+                        <option value="male" data-trn="opt-gender-male">Male / पुरुष</option>
+                        <option value="female" data-trn="opt-gender-female">Female / महिला</option>
+                        <option value="other" data-trn="opt-gender-other">Other / अन्य</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="profile-age" data-trn="lbl-age">Age (years) / आयु (वर्ष)</label>
+                    <input type="number" id="profile-age" min="1" max="120" value="35" style="width: 100%; box-sizing: border-box;">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                <div class="form-group">
+                    <label for="profile-height" data-trn="lbl-height">Height (cm) / ऊंचाई (सेमी)</label>
+                    <input type="number" id="profile-height" min="50" max="250" value="170" style="width: 100%; box-sizing: border-box;">
+                </div>
+                <div class="form-group">
+                    <label for="profile-weight" data-trn="lbl-weight">Weight (kg) / वजन (किग्रा)</label>
+                    <input type="number" id="profile-weight" min="10" max="300" value="70" style="width: 100%; box-sizing: border-box;">
+                </div>
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; text-align: left; color: var(--color-warning);" data-trn="title-lifestyle">2. Lifestyle & Habits</h2>
+        
+        <div class="lifestyle-form">
+            <div class="form-group">
+                <label for="smoking-input" data-trn="lbl-smoke">Do you smoke? / क्या आप धूम्रपान करते हैं?</label>
+                <select id="smoking-input">
+                    <option value="no" selected data-trn="opt-smoke-no">No / नहीं</option>
+                    <option value="yes" data-trn="opt-smoke-yes">Yes / हाँ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="activity-input" data-trn="lbl-activity">Daily Physical Activity / दैनिक शारीरिक गतिविधि</label>
+                <select id="activity-input">
+                    <option value="active" selected data-trn="opt-act-active">Active / सक्रिय (Exercise / walks daily)</option>
+                    <option value="light" data-trn="opt-act-light">Light / सामान्य (Occasional walks)</option>
+                    <option value="none" data-trn="opt-act-none">Sedentary / शून्य (Mostly sitting / inactive)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sleep-input" data-trn="lbl-sleep">Sleep Quality / नींद की गुणवत्ता</label>
+                <select id="sleep-input">
+                    <option value="good" selected data-trn="opt-sleep-good">Good / अच्छी (Deep, uninterrupted sleep)</option>
+                    <option value="average" data-trn="opt-sleep-average">Average / सामान्य (Intermittent sleep)</option>
+                    <option value="poor" data-trn="opt-sleep-poor">Poor / खराब (Insomnia / restless sleep)</option>
+                </select>
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; text-align: left; color: var(--color-warning);" data-trn="title-screenings">3. Completed Screenings</h2>
+        <ul class="checklist" style="margin-top: 0; width: 100%;">
+            <li id="check-anemia" class="checklist-item">○ Anemia Screening</li>
+            <li id="check-tb" class="checklist-item">○ TB Cough Analysis</li>
+            <li id="check-parkinson" class="checklist-item">○ Parkinson's Coordination</li>
+        </ul>
+    </div>
+
+    <!-- Right Column: Visual Gauge & Overall assessment -->
+    <div class="test-workspace" style="border-color: var(--color-warning); flex-direction: column; justify-content: flex-start; padding: 2rem; min-height: 480px;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem;" data-trn="health-risk-status">Overall Health Risk Status</h2>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;" data-trn="health-risk-desc">Based on your inputs and completed AI screening models.</p>
+
+        <div class="gauge-wrapper">
+            <svg width="220" height="220" viewBox="0 0 220 220" style="transform: rotate(-90deg);">
+                <circle cx="110" cy="110" r="90" stroke="#1D1D2C" stroke-width="12" fill="none"></circle>
+                <circle id="gauge-progress" cx="110" cy="110" r="90" stroke="url(#gradient-green)" stroke-width="12" fill="none"
+                        stroke-dasharray="565.48" stroke-dashoffset="565.48" stroke-linecap="round" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></circle>
+                <defs>
+                    <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2ECC71" />
+                        <stop offset="100%" stop-color="#00BCD4" />
+                    </linearGradient>
+                    <linearGradient id="gradient-yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FFB300" />
+                        <stop offset="100%" stop-color="#FF8A00" />
+                    </linearGradient>
+                    <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FF5252" />
+                        <stop offset="100%" stop-color="#9C27B0" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="gauge-center-text">
+                <span id="health-score-val" style="font-size: 3.2rem; font-weight: 800; color: white;">--</span>
+                <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500; margin-top: -0.25rem;" data-trn="gauge-score-label">Score</span>
+            </div>
+        </div>
+
+        <div id="risk-badge" class="status-indicator" style="width: 100%; max-width: 320px; margin: 1rem auto; padding: 0.75rem; font-size: 1.1rem; font-weight: bold; text-align: center;" data-trn="lifestyle-req-label">
+            LIFESTYLE DATA REQUIRED
+        </div>
+
+        <div id="warning-box" class="ai-explanation-box" style="display: none; width: 100%; border-left-color: var(--color-warning); text-align: left; font-size: 0.85rem; margin-top: 1rem;">
+            <!-- Warning flags go here -->
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Area: Detailed personalized recommendations -->
+<div id="recommendations-container" class="recommendation-grid" style="display: none;">
+    <!-- Lifestyle suggestions -->
+    <div class="recommendation-card" style="border-top: 4px solid var(--color-info);">
+        <div class="recommendation-title" style="color: var(--color-info);" id="guideline-card-title">🏃‍♂️ Lifestyle Guidelines</div>
+        <ul id="lifestyle-rec-list" class="recommendation-list"></ul>
+    </div>
+
+    <!-- Nutrition Advice -->
+    <div class="recommendation-card" style="border-top: 4px solid var(--color-success);">
+        <div class="recommendation-title" style="color: var(--color-success);" id="nutrition-card-title">🥗 Nutrition Advice</div>
+        <ul id="nutrition-rec-list" class="recommendation-list"></ul>
+    </div>
+
+    <!-- Follow-up clinical advice -->
+    <div class="recommendation-card" style="border-top: 4px solid var(--color-warning);">
+        <div class="recommendation-title" style="color: var(--color-warning);" id="followup-card-title">📋 Follow-Up Plan</div>
+        <ul id="followup-rec-list" class="recommendation-list"></ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const genderSelect = document.getElementById('profile-gender');
+    const ageInput = document.getElementById('profile-age');
+    const heightInput = document.getElementById('profile-height');
+    const weightInput = document.getElementById('profile-weight');
+    const smokingSelect = document.getElementById('smoking-input');
+    const activitySelect = document.getElementById('activity-input');
+    const sleepSelect = document.getElementById('sleep-input');
+
+    function loadUserProfile() {
+        const savedProfile = localStorage.getItem('sehatsaathi_user_profile');
+        if (savedProfile) {
+            try {
+                const data = JSON.parse(savedProfile);
+                if (data.gender) genderSelect.value = data.gender;
+                if (data.age) ageInput.value = data.age;
+                if (data.height) heightInput.value = data.height;
+                if (data.weight) weightInput.value = data.weight;
+                if (data.smoking) smokingSelect.value = data.smoking;
+                if (data.activity) activitySelect.value = data.activity;
+                if (data.sleep) sleepSelect.value = data.sleep;
+            } catch (e) {
+                console.error("Error loading user profile:", e);
+            }
+        }
+    }
+    
+    const checkAnemia = document.getElementById('check-anemia');
+    const checkTb = document.getElementById('check-tb');
+    const checkParkinson = document.getElementById('check-parkinson');
+    
+    const progressCircle = document.getElementById('gauge-progress');
+    const scoreLabel = document.getElementById('health-score-val');
+    const riskBadge = document.getElementById('risk-badge');
+    const warningBox = document.getElementById('warning-box');
+    
+    const recsContainer = document.getElementById('recommendations-container');
+    const lifestyleList = document.getElementById('lifestyle-rec-list');
+    const nutritionList = document.getElementById('nutrition-rec-list');
+    const followupList = document.getElementById('followup-rec-list');
+
+    const circumference = 2 * Math.PI * 90; // 565.48
+
+    // Load screening scores from localStorage
+    function loadScreeningResults() {
+        const results = {};
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        
+        const anemia = localStorage.getItem('sehatsaathi_result_anemia');
+        if (anemia) {
+            results.anemia = JSON.parse(anemia);
+            checkAnemia.className = 'checklist-item checked';
+            
+            let anemiaLabel = `✓ Anemia Screening: ${results.anemia.risk_level}`;
+            let levelText = results.anemia.risk_level;
+            if (activeLang === 'hi') {
+                let hiLevel = levelText === "HEALTHY" ? "स्वस्थ" : levelText === "MILD" ? "हल्का" : levelText === "MODERATE" ? "मध्यम" : "गंभीर";
+                anemiaLabel = `✓ एनीमिया स्क्रीनिंग: ${hiLevel}`;
+            } else if (activeLang === 'bn') {
+                let bnLevel = levelText === "HEALTHY" ? "স্বাভাবিক" : levelText === "MILD" ? "মৃদু" : levelText === "MODERATE" ? "মাঝারি" : "গুরুতর";
+                anemiaLabel = `✓ অ্যানিমিয়া স্ক্রিনিং: ${bnLevel}`;
+            } else if (activeLang === 'mr') {
+                let mrLevel = levelText === "HEALTHY" ? "निरोगी" : levelText === "MILD" ? "सौम्य" : levelText === "MODERATE" ? "मध्यम" : "गंभीर";
+                anemiaLabel = `✓ ॲनिमिया स्क्रीनिंग: ${mrLevel}`;
+            } else if (activeLang === 'ta') {
+                let taLevel = levelText === "HEALTHY" ? "ஆரோக்கியமானது" : levelText === "MILD" ? "லேசானது" : levelText === "MODERATE" ? "மிதமானது" : "தீவிரமானது";
+                anemiaLabel = `✓ இரத்த சோகை பரிசோதனை: ${taLevel}`;
+            } else if (activeLang === 'te') {
+                let teLevel = levelText === "HEALTHY" ? "ఆరోగ్యంగా" : levelText === "MILD" ? "స్వల్పం" : levelText === "MODERATE" ? "మధ్యస్థం" : "తీవ్రం";
+                anemiaLabel = `✓ రక్తహీనత స్క్రీనింగ్: ${teLevel}`;
+            }
+            checkAnemia.innerText = anemiaLabel;
+        } else {
+            let initialAnemia = '○ Anemia Screening';
+            if (activeLang === 'hi') initialAnemia = '○ एनीमिया स्क्रीनिंग';
+            else if (activeLang === 'bn') initialAnemia = '○ অ্যানিমিয়া স্ক্রিনিং';
+            else if (activeLang === 'mr') initialAnemia = '○ ॲनिमिया स्क्रीनिंग';
+            else if (activeLang === 'ta') initialAnemia = '○ இரத்த சோகை பரிசோதனை';
+            else if (activeLang === 'te') initialAnemia = '○రక్తహీనత స్క్రీనింగ్';
+            checkAnemia.innerText = initialAnemia;
+        }
+
+        const tb = localStorage.getItem('sehatsaathi_result_tb');
+        if (tb) {
+            results.tb = JSON.parse(tb);
+            checkTb.className = 'checklist-item checked';
+            
+            let tbLabel = `✓ TB Cough Analysis: ${results.tb.risk_level}`;
+            let levelText = results.tb.risk_level;
+            if (activeLang === 'hi') {
+                let hiLevel = levelText === "LOW RISK" ? "कम जोखिम" : levelText === "MODERATE RISK" ? "मध्यम जोखिम" : "उच्च जोखिम";
+                tbLabel = `✓ टीबी खांसी विश्लेषण: ${hiLevel}`;
+            } else if (activeLang === 'bn') {
+                let bnLevel = levelText === "LOW RISK" ? "কম ঝুঁকি" : levelText === "MODERATE RISK" ? "মাঝারি ঝুঁকি" : "উচ্চ ঝুঁকি";
+                tbLabel = `✓ যক্ষ্মা কাশি विश्लेषण: ${bnLevel}`;
+            } else if (activeLang === 'mr') {
+                let mrLevel = levelText === "LOW RISK" ? "कमी जोखीम" : levelText === "MODERATE RISK" ? "मध्यम जोखीम" : "उच्च जोखीम";
+                tbLabel = `✓ टीबी खोकला विश्लेषण: ${mrLevel}`;
+            } else if (activeLang === 'ta') {
+                let taLevel = levelText === "LOW RISK" ? "குறைந்த ஆபத்து" : levelText === "MODERATE RISK" ? "மிதமான ஆபத்து" : "அதிக ஆபத்து";
+                tbLabel = `✓ காசநோய் இருமல் பகுப்பாய்வு: ${taLevel}`;
+            } else if (activeLang === 'te') {
+                let teLevel = levelText === "LOW RISK" ? "తక్కువ ప్రమాదం" : levelText === "MODERATE RISK" ? "మధ్యస్థ ప్రమాదం" : "అధిక ప్రమాదం";
+                tbLabel = `✓ క్షయ దగ్గు విశ్లేషణ: ${teLevel}`;
+            }
+            checkTb.innerText = tbLabel;
+        } else {
+            let initialTb = '○ TB Cough Analysis';
+            if (activeLang === 'hi') initialTb = '○ टीबी खांसी विश्लेषण';
+            else if (activeLang === 'bn') initialTb = '○ যক্ষ্মা কাশি विश्लेषण';
+            else if (activeLang === 'mr') initialTb = '○ टीबी खोकला विश्लेषण';
+            else if (activeLang === 'ta') initialTb = '○ காசநோய் இருமல் பகுப்பாய்வு';
+            else if (activeLang === 'te') initialTb = '○ క్షయ దగ్గు విశ్లేషణ';
+            checkTb.innerText = initialTb;
+        }
+
+        const parkinson = localStorage.getItem('sehatsaathi_result_parkinson_overall');
+        if (parkinson) {
+            results.parkinson = JSON.parse(parkinson);
+            checkParkinson.className = 'checklist-item checked';
+            
+            let pkLabel = `✓ Parkinson's Index: ${results.parkinson.score.toFixed(1)}%`;
+            if (activeLang === 'hi') pkLabel = `✓ पार्किंसंस सूचकांक: ${results.parkinson.score.toFixed(1)}%`;
+            else if (activeLang === 'bn') pkLabel = `✓ পার্কিনসন্স সূচক: ${results.parkinson.score.toFixed(1)}%`;
+            else if (activeLang === 'mr') pkLabel = `✓ पार्किन्सन निर्देशांक: ${results.parkinson.score.toFixed(1)}%`;
+            else if (activeLang === 'ta') pkLabel = `✓ பார்கின்சன் குறியீடு: ${results.parkinson.score.toFixed(1)}%`;
+            else if (activeLang === 'te') pkLabel = `✓ పార్కిన్సన్స్ సూచిక: ${results.parkinson.score.toFixed(1)}%`;
+            checkParkinson.innerText = pkLabel;
+        } else {
+            let initialPk = "○ Parkinson's Coordination";
+            if (activeLang === 'hi') initialPk = '○ पार्किंसंस समन्वय';
+            else if (activeLang === 'bn') initialPk = '○ পার্কিনসন্স সমন্বয়';
+            else if (activeLang === 'mr') initialPk = '○ पार्किन्सन समन्वय';
+            else if (activeLang === 'ta') initialPk = '○ பார்கின்சன் ஒருங்கிணைப்பு';
+            else if (activeLang === 'te') initialPk = '○ పార్కిన్సన్స్ సమన్వయం';
+            checkParkinson.innerText = initialPk;
+        }
+
+        return results;
+    }
+
+    function calculateHealthScore() {
+        const screenings = loadScreeningResults();
+
+        // 1. Calculate Lifestyle Score (0 - 100)
+        const ageVal = parseInt(ageInput.value) || 35;
+        let agePts = 95;
+        if (ageVal < 30) agePts = 100;
+        else if (ageVal > 60) agePts = 85;
+
+        let smokingPts = smokingSelect.value === 'no' ? 100 : 50;
+        
+        let activityPts = 100;
+        if (activitySelect.value === 'light') activityPts = 75;
+        else if (activitySelect.value === 'none') activityPts = 40;
+
+        let sleepPts = 100;
+        if (sleepSelect.value === 'average') sleepPts = 70;
+        else if (sleepSelect.value === 'poor') sleepPts = 35;
+
+        // BMI calculation
+        const heightCm = parseFloat(heightInput.value) || 170;
+        const weightKg = parseFloat(weightInput.value) || 70;
+        const heightM = heightCm / 100;
+        let bmi = 22.0;
+        if (heightM > 0) {
+            bmi = weightKg / (heightM * heightM);
+        }
+
+        let bmiPts = 100;
+        if (bmi < 18.5) {
+            bmiPts = 70;
+        } else if (bmi >= 18.5 && bmi < 25) {
+            bmiPts = 100;
+        } else if (bmi >= 25 && bmi < 30) {
+            bmiPts = 75;
+        } else {
+            bmiPts = 50;
+        }
+
+        const lifestyleScore = agePts * 0.10 + smokingPts * 0.25 + activityPts * 0.25 + sleepPts * 0.20 + bmiPts * 0.20;
+
+        // 2. Calculate Completed Screening Scores
+        let screeningScoreSum = 0;
+        let completedCount = 0;
+
+        if (screenings.anemia) {
+            let anemiaHealth = (1.0 - (screenings.anemia.score / 5.0)) * 100;
+            screeningScoreSum += anemiaHealth;
+            completedCount++;
+        }
+        if (screenings.tb) {
+            let tbHealth = 100 - screenings.tb.score;
+            screeningScoreSum += tbHealth;
+            completedCount++;
+        }
+        if (screenings.parkinson) {
+            let parkinsonHealth = screenings.parkinson.score;
+            screeningScoreSum += parkinsonHealth;
+            completedCount++;
+        }
+
+        // 3. Composite Calculation
+        let finalScore = 0;
+        if (completedCount > 0) {
+            const avgScreeningScore = screeningScoreSum / completedCount;
+            finalScore = (lifestyleScore * 0.4) + (avgScreeningScore * 0.6);
+        } else {
+            finalScore = lifestyleScore;
+        }
+
+        updateUI(Math.round(finalScore), screenings, completedCount, bmi);
+    }
+
+    function getBmiAdvice(lang, val) {
+        if (lang === 'hi') {
+            if (val < 18.5) return `<li><strong>कम वजन (बीएमआई ${val.toFixed(1)}):</strong> स्वस्थ शरीर के वजन को बढ़ाने के लिए पोषक तत्वों से भरपूर, कैलोरी युक्त खाद्य पदार्थों (सूखे मेवे, डेयरी, बीज, साबुत अनाज) पर ध्यान केंद्रित करें।</li>`;
+            if (val >= 25) return `<li><strong>बढ़ा हुआ बीएमआई (${val.toFixed(1)}):</strong> स्वस्थ वजन प्रबंधन के लिए प्रसंस्कृत कार्बोहाइड्रेट कम करें, भोजन के हिस्से के आकार को नियंत्रित करें, और फाइबर युक्त सब्जियों और लीन प्रोटीन पर जोर दें।</li>`;
+            return `<li><strong>स्वस्थ बीएमआई (${val.toFixed(1)}):</strong> विभिन्न प्रकार के ताजे फलों, हरी पत्तेदार सब्जियों और लीन प्रोटीन के साथ अपने वर्तमान कैलोरी संतुलन को बनाए रखें।</li>`;
+        }
+        if (lang === 'bn') {
+            if (val < 18.5) return `<li><strong>স্বল্প ওজন (বিএমআই ${val.toFixed(1)}):</strong> স্বাস্থ্যকর ওজন বাড়াতে পুষ্টিকর ও ক্যালরিযুক্ত খাবার (বাদাম, দুগ্ধজাত খাবার, বীজ, গোটা শস্য) খাওয়ার উপর জোর দিন।</li>`;
+            if (val >= 25) return `<li><strong>অতিরিক্ত বিএমআই (${val.toFixed(1)}):</strong> প্রক্রিয়াজাত কার্বোহাইড্রেট পরিহার করুন, খাবারের পরিমাণ নিয়ন্ত্রণ করুন এবং ফাইবার সমৃদ্ধ শাকসবজি ও প্রোটিন বেশি খান।</li>`;
+            return `<li><strong>স্বভাবিক বিএমআই (${val.toFixed(1)}):</strong> টাটকা ফলমূল, সবুজ শাকসবজি এবং প্রোটিন গ্রহণের মাধ্যমে আপনার বর্তমান ওজনের ভারসাম্য বজায় রাখুন।</li>`;
+        }
+        if (lang === 'mr') {
+            if (val < 18.5) return `<li><strong>कमी वजन (बीएमआय ${val.toFixed(1)}):</strong> निरोगी वजन वाढवण्यासाठी पोषक आणि कॅलरीयुक्त अन्नपदार्थ (सुकामेवा, दुग्धजन्य पदार्थ, बिया, तृणधान्ये) आहारात समाविष्ट करा.</li>`;
+            if (val >= 25) return `<li><strong>वाढलेला बीएमआय (${val.toFixed(1)}):</strong> निरोगी वजन व्यवस्थापनासाठी प्रक्रिया केलेले कर्बोदके कमी करा, आहाराचे प्रमाण नियंत्रित ठेवा आणि फायबरयुक्त भाज्या व प्रथिनांचे सेवन वाढवा.</li>`;
+            return `<li><strong>निरोगी बीएमआय (${val.toFixed(1)}):</strong> विविध प्रकारची फळे, पालेभाज्या आणि प्रथिने यांचे सेवन करून तुमच्या सध्याच्या कॅलरींचे संतुलन कायम ठेवा.</li>`;
+        }
+        if (lang === 'ta') {
+            if (val < 18.5) return `<li><strong>குறைந்த எடை (பிஎம்ஐ ${val.toFixed(1)}):</strong> ஆரோக்கியமான உடல் எடையை அதிகரிக்க ஊட்டச்சத்து மற்றும் கலோரிகள் நிறைந்த உணவுகளை (கொட்டைகள், பால் பொருட்கள், விதைகள், முழு தானியங்கள்) உட்கொள்ளவும்.</li>`;
+            if (val >= 25) return `<li><strong>அதிகரித்த பிஎம்ஐ (${val.toFixed(1)}):</strong> ஆரோக்கியமான எடை நிர்வாகத்திற்கு பதப்படுத்தப்பட்ட கார்போஹைட்ரேட்டுகளைக் குறைக்கவும், உணவின் அளவைக் கட்டுப்படுத்தவும், மேலும் நார்ச்சத்து நிறைந்த காயறிகளைச் சேர்க்கவும்.</li>`;
+            return `<li><strong>ஆரோக்கியமான பிஎம்ஐ (${val.toFixed(1)}):</strong> பழங்கள், பச்சைக் காய்கறிகள் மற்றும் புரதங்கள் மூலம் உங்கள் தற்போதைய சமநிலையைத் தொடரவும்.</li>`;
+        }
+        if (lang === 'te') {
+            if (val < 18.5) return `<li><strong>తక్కువ బరువు (బిఎమ్‌ఐ ${val.toFixed(1)}):</strong> ఆరోగ్యకరమైన బరువు పెరగడానికి పోషకాలు మరియు కేలరీలు అధికంగా ఉండే ఆహారాలపై (గింజలు, పాల ఉత్పత్తులు, విత్తనాలు, తృణధాన్యాలు) దృష్టి పెట్టండి.</li>`;
+            if (val >= 25) return `<li><strong>అధిక బిఎమ్‌ఐ (${val.toFixed(1)}):</strong> బరువు నియంత్రణ కోసం ప్రాసెస్ చేసిన పిండిపదార్థాలను తగ్గించి, పీచుపదార్థాలు అధికంగా ఉండే కూరగాయలు మరియు ప్రోటీన్లను ఎక్కువగా తీసుకోండి.</li>`;
+            return `<li><strong>ఆరోగ్యకరమైన బిఎమ్‌ఐ (${val.toFixed(1)}):</strong> మీ ప్రస్తుత బరువును కాపాడుకోవడానికి పండ్లు, ఆకుకూరలు మరియు ప్రోటీన్లతో కూడిన సమతుల్య ఆహారాన్ని కొనసాగించండి.</li>`;
+        }
+        if (val < 18.5) return `<li><strong>Underweight (BMI ${val.toFixed(1)}):</strong> Focus on nutrient-dense, calorie-rich foods (nuts, dairy, seeds, whole grains) to safely build healthy body mass.</li>`;
+        if (val >= 25) return `<li><strong>Elevated BMI (${val.toFixed(1)}):</strong> Reduce processed carbohydrates, control portion sizes, and emphasize fiber-rich vegetables and lean proteins to support healthy weight management.</li>`;
+        return `<li><strong>Healthy BMI (${val.toFixed(1)}):</strong> Maintain your current calorie balance with a colorful variety of whole fruits, leafy greens, and lean proteins.</li>`;
+    }
+
+    function updateUI(score, screenings, completedCount, bmi) {
+        const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+        
+        // Update circular progress bar
+        const offset = circumference - (score / 100) * circumference;
+        progressCircle.style.strokeDashoffset = offset;
+        scoreLabel.innerText = score;
+
+        // Determine Risk Level & colors
+        let riskLevel = 'LOW RISK';
+        let riskClass = 'status-detected'; 
+        let strokeColor = 'url(#gradient-green)';
+        
+        if (score < 55) {
+            riskLevel = '🔴 HIGH RISK';
+            if (activeLang === 'hi') riskLevel = '🔴 उच्च जोखिम';
+            else if (activeLang === 'bn') riskLevel = '🔴 উচ্চ ঝুঁকি';
+            else if (activeLang === 'mr') riskLevel = '🔴 उच्च जोखीम';
+            else if (activeLang === 'ta') riskLevel = '🔴 அதிக ஆபத்து';
+            else if (activeLang === 'te') riskLevel = '🔴 అధిక ప్రమాదం';
+            
+            riskClass = 'status-scanning'; 
+            strokeColor = 'url(#gradient-red)';
+        } else if (score < 80) {
+            riskLevel = '🟡 MODERATE RISK';
+            if (activeLang === 'hi') riskLevel = '🟡 मध्यम जोखिम';
+            else if (activeLang === 'bn') riskLevel = '🟡 মাঝারি ঝুঁকি';
+            else if (activeLang === 'mr') riskLevel = '🟡 मध्यम जोखीम';
+            else if (activeLang === 'ta') riskLevel = '🟡 மிதமான ஆபத்து';
+            else if (activeLang === 'te') riskLevel = '🟡 మధ్యస్థ ప్రమాదం';
+            
+            riskClass = 'status-scanning'; 
+            strokeColor = 'url(#gradient-yellow)';
+        } else {
+            riskLevel = '🟢 LOW RISK';
+            if (activeLang === 'hi') riskLevel = '🟢 कम जोखिम';
+            else if (activeLang === 'bn') riskLevel = '🟢 কম ঝুঁকি';
+            else if (activeLang === 'mr') riskLevel = '🟢 कमी जोखीम';
+            else if (activeLang === 'ta') riskLevel = '🟢 குறைந்த ஆபத்து';
+            else if (activeLang === 'te') riskLevel = '🟢 తక్కువ ప్రమాదం';
+            
+            riskClass = 'status-detected';
+            strokeColor = 'url(#gradient-green)';
+        }
+
+        progressCircle.setAttribute('stroke', strokeColor);
+
+        riskBadge.className = `status-indicator ${riskClass}`;
+        if (score < 80 && score >= 55) {
+            riskBadge.style.backgroundColor = 'rgba(255, 179, 0, 0.1)';
+            riskBadge.style.color = 'var(--color-warning)';
+            riskBadge.style.borderColor = 'rgba(255, 179, 0, 0.3)';
+        } else {
+            riskBadge.style.backgroundColor = '';
+            riskBadge.style.color = '';
+            riskBadge.style.borderColor = '';
+        }
+        riskBadge.innerText = riskLevel;
+
+        // Translate card titles
+        const guideTitle = document.getElementById('guideline-card-title');
+        const nutriTitle = document.getElementById('nutrition-card-title');
+        const followTitle = document.getElementById('followup-card-title');
+        
+        if (activeLang === 'hi') {
+            guideTitle.innerHTML = '🏃‍♂️ जीवनशैली दिशानिर्देश';
+            nutriTitle.innerHTML = '🥗 पोषण सलाह';
+            followTitle.innerHTML = '📋 अनुवर्ती योजना';
+        } else if (activeLang === 'bn') {
+            guideTitle.innerHTML = '🏃‍♂️ জীবনধারা নির্দেশিকা';
+            nutriTitle.innerHTML = '🥗 পুষ্টি পরামর্শ';
+            followTitle.innerHTML = '📋 ফলো-আপ পরিকল্পনা';
+        } else if (activeLang === 'mr') {
+            guideTitle.innerHTML = '🏃‍♂️ जीवनशैली मार्गदर्शक तत्त्वे';
+            nutriTitle.innerHTML = '🥗 पोषण सल्ला';
+            followTitle.innerHTML = '📋 फॉलो-अप योजना';
+        } else if (activeLang === 'ta') {
+            guideTitle.innerHTML = '🏃‍♂️ வாழ்க்கை முறை வழிகாட்டுதல்கள்';
+            nutriTitle.innerHTML = '🥗 ஊட்டச்சத்து ஆலோசனை';
+            followTitle.innerHTML = '📋 தொடர் திட்டம்';
+        } else if (activeLang === 'te') {
+            guideTitle.innerHTML = '🏃‍♂️ జీవనశైలి మార్గదర్శకాలు';
+            nutriTitle.innerHTML = '🥗 పోషకాహార సలహా';
+            followTitle.innerHTML = '📋 తదుపరి ప్రణాళిక';
+        } else {
+            guideTitle.innerHTML = '🏃‍♂️ Lifestyle Guidelines';
+            nutriTitle.innerHTML = '🥗 Nutrition Advice';
+            followTitle.innerHTML = '📋 Follow-Up Plan';
+        }
+
+        // Compile warning boxes
+        let warnings = [];
+        if (activeLang === 'hi') {
+            if (smokingSelect.value === 'yes') warnings.push("धूम्रपान फेफड़ों और हृदय स्वास्थ्य को गंभीर रूप से प्रभावित करता है, जिससे टीबी का खतरा बढ़ जाता है।");
+            if (activitySelect.value === 'none') warnings.push("गतिहीन जीवन शैली समन्वय को कम करती है और जोड़ों/मांसपेशियों की जकड़न को बढ़ाती है।");
+            if (sleepSelect.value === 'poor') warnings.push("अशांत नींद प्रतिरक्षा प्रणाली को कमजोर करती है और न्यूरोलॉजिकल थकान को तेज करती है।");
+            if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("एनीमिया स्क्रीनिंग परिणाम मध्यम से गंभीर पीलेपन के संकेतक दर्शाते हैं।");
+            if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("तपेदिक स्क्रीनिंग परिणाम खांसी में असामान्य ध्वनि संकेत दर्शाते हैं।");
+            if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("पार्किंसंस स्क्रीनिंग परिणाम मोटर दक्षता और आवाज की अस्थिरता दर्शाते हैं।");
+            if (bmi < 18.5) warnings.push(`आपका बीएमआई ${bmi.toFixed(1)} (कम वजन) है। यह पोषण की कमी या कमजोर प्रतिरक्षा प्रणाली का संकेत हो सकता है।`);
+            else if (bmi >= 25 && bmi < 30) warnings.push(`आपका बीएमआई ${bmi.toFixed(1)} (अधिक वजन) है। अधिक शारीरिक गतिविधि और संरचित आहार परिवर्तन शामिल करने पर विचार करें।`);
+            else if (bmi >= 30) warnings.push(`आपका बीएमआई ${bmi.toFixed(1)} (मोटापा) है। मोटापा हृदय और चयापचय स्वास्थ्य जोखिमों से जुड़ा हुआ है।`);
+        } else if (activeLang === 'bn') {
+            if (smokingSelect.value === 'yes') warnings.push("ধূমপান ফুসফুস এবং হার্টের স্বাস্থ্যকে মারাত্মকভাবে প্রভাবিত করে, যা যক্ষ্মার ঝুঁকি বাড়িয়ে দেয়।");
+            if (activitySelect.value === 'none') warnings.push("অলস জীবনযাপন শরীরের নিয়ন্ত্রণ ক্ষমতা কমায় এবং পেশী ও জয়েন্টের জড়তা বাড়িয়ে দেয়।");
+            if (sleepSelect.value === 'poor') warnings.push("অশান্ত ঘুম রোগ প্রতিরোধ ক্ষমতা দুর্বল করে এবং স্নায়বিক ক্লান্তি বাড়িয়ে দেয়।");
+            if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("অ্যানিমিয়া স্ক্রিনিংয়ে মাঝারি থেকে গুরুতর ফ্যাকাশে ভাব ধরা পড়েছে।");
+            if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("যক্ষ্মা স্ক্রিনিংয়ে কাশির শব্দ তরঙ্গে অস্বাভাবিক ধরণ ধরা পড়েছে।");
+            if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("পার্কিনসন্স স্ক্রিনিংয়ে অঙ্গ সঞ্চালন ও কণ্ঠস্বরের অস্থিরতার লক্ষণ পাওয়া গেছে।");
+            if (bmi < 18.5) warnings.push(`আপনার বিএমআই ${bmi.toFixed(1)} (স্বল্প ওজন)। এটি পুষ্টির অভাব বা দুর্বল রোগ প্রতিরোধ ক্ষমতার লক্ষণ হতে পারে।`);
+            else if (bmi >= 25 && bmi < 30) warnings.push(`আপনার বিএমআই ${bmi.toFixed(1)} (অতিরিক্ত ওজন)। শারীরিক ক্রিয়াকলাপ বৃদ্ধি এবং সুষম খাদ্য তালিকা মেনে চলার পরামর্শ দেওয়া হচ্ছে।`);
+            else if (bmi >= 30) warnings.push(`আপনার বিএমআই ${bmi.toFixed(1)} (স্থূলতা)। অতিরিক্ত ওজন হৃদরোগ এবং বিপাকীয় স্বাস্থ্য ঝুঁকি বৃদ্ধি করে।`);
+        } else if (activeLang === 'mr') {
+            if (smokingSelect.value === 'yes') warnings.push("धूम्रपान फुफ्फुस आणि हृदयविकारावर गंभीर परिणाम करते, ज्यामुळे टीबी होण्याचा धोका वाढतो.");
+            if (activitySelect.value === 'none') warnings.push("अक्रिय जीवनशैलीमुळे शरीराचे नियंत्रण कमी होते आणि सांधे व स्नायू ताठ होतात.");
+            if (sleepSelect.value === 'poor') warnings.push("अपुऱ्या झोपेमुळे रोगप्रतिकारक शक्ती कमकुवत होते आणि मानसिक थकवा वाढतो.");
+            if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("ॲनिमिया स्क्रीनिंग चाचणीत मध्यम ते गंभीर फिकटपणाचे संकेत मिळाले आहेत.");
+            if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("टीबी खोकला तपासणीत खोकल्यामध्ये असामान्य ध्वनी आढळला आहे.");
+            if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("पार्किन्सन चाचणीत हालचालींमधील अडथळे आणि आवाजातील अस्थिरता आढळली आहे.");
+        } else if (activeLang === 'ta') {
+            if (smokingSelect.value === 'yes') warnings.push("புகைபிடித்தல் நுரையீரல் மற்றும் இருதய ஆரோக்கியத்தை கடுமையாக பாதிக்கிறது, இதனால் காசநோய் ஆபத்து அதிகரிக்கிறது.");
+            if (activitySelect.value === 'none') warnings.push("உடற்பயிற்சியற்ற வாழ்க்கை முறை நரம்பு ஒருங்கிணைப்பைக் குறைத்து, தசை இறுக்கத்தை உருவாக்குகிறது.");
+            if (sleepSelect.value === 'poor') warnings.push("குறைந்த தூக்கம் நோய் எதிர்ப்பு சக்தியைக் குறைத்து, நரம்பியல் சோர்வை உண்டாக்குக்கிறது.");
+            if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("இரத்த சோகை பரிசோதனையில் மிதமான மற்றும் தீவிர வெளிறிய தன்மை கண்டறியப்பட்டுள்ளது.");
+            if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("காசநோய் பரிசோதனையில் இருமலின் ஒலி அலைகளில் அசாதாரண மாற்றங்கள் கண்டறியப்பட்டுள்ளன.");
+            if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("பார்கின்சன் பரிசோதனையில் உடல் அசைவுகள் மற்றும் குரலில் அசாதாரணங்கள் கண்டறியப்பட்டுள்ளன.");
+        } else if (activeLang === 'te') {
+            if (smokingSelect.value === 'yes') warnings.push("ధూమపానం ఊపిరితిత్తులు మరియు గుండె ఆరోగ్యంపై తీవ్ర ప్రభావం చూపుతుంది, క్షయ వచ్చే ప్రమాదాన్ని పెంచుతుంది.");
+            if (activitySelect.value === 'none') warnings.push("శారీరక శ్రమ లేకపోవడం వల్ల సమన్వయం తగ్గి, కండరాల బిగుతు పెరుగుతుంది.");
+            if (sleepSelect.value === 'poor') warnings.push("నిద్రలేమి వల్ల రోగనిరోధక శక్తి బలహీనపడి, నరాల అలసట పెరుగుతుంది.");
+            if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("రక్తహీనత పరీక్షలో మధ్యస్థం నుండి తీవ్రమైన లక్షణాలు కనుగొనబడ్డాయి.");
+            if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("క్షయ పరీక్షలో దగ్గు శబ్దంలో అసాధారణ మార్పులు కనుగొనబడ్డాయి.");
+            if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("పార్కిన్సన్స్ పరీక్షలో శారీరక సమన్వయం మరియు స్వరంలో అస్థిరత కనుగొనబడింది.");
+        } else {
+            if (smokingSelect.value === 'yes') warnings.push("Smoking severely impacts lung and cardiovascular health, increasing TB vulnerability.");
+            if (activitySelect.value === 'none') warnings.push("Sedentary lifestyle reduces coordination and speeds up joint/muscle stiffness.");
+            if (sleepSelect.value === 'poor') warnings.push("Restless sleep weakens immune defenses and accelerates neurological fatigue.");
+            if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("Completed Anemia screening flags moderate-to-severe pallor indicators.");
+            if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("Completed Tuberculosis screening indicates atypical cough characteristics.");
+            if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("Completed Parkinson's screening flags motor dexterity and voicing instability.");
+        }
+
+        if (warnings.length > 0) {
+            let warningTitle = "⚠️ AI HEALTH WARNING FLAGS:";
+            if (activeLang === 'hi') warningTitle = "⚠️ एआई स्वास्थ्य चेतावनी संकेतक:";
+            else if (activeLang === 'bn') warningTitle = "⚠️ এআই স্বাস্থ্য সতর্কতা সংকেত:";
+            else if (activeLang === 'mr') warningTitle = "⚠️ एआय आरोग्य चेतावणी संकेत:";
+            else if (activeLang === 'ta') warningTitle = "⚠️  செயற்கை நுண்ணறிவு எச்சரிக்கை அறிகுறிகள்:";
+            else if (activeLang === 'te') warningTitle = "⚠️ AI ఆరోగ్య హెచ్చరిక సంకేతాలు:";
+            
+            warningBox.style.display = 'block';
+            warningBox.innerHTML = `<strong>${warningTitle}</strong><br>` + 
+                                   warnings.map(w => `• ${w}`).join('<br>');
+        } else {
+            warningBox.style.display = 'none';
+        }
+
+        // Load Recommendations
+        recsContainer.style.display = 'grid';
+        lifestyleList.innerHTML = '';
+        nutritionList.innerHTML = '';
+        followupList.innerHTML = '';
+
+        // Generate Lifestyle Recommendations
+        if (score >= 80) {
+            if (activeLang === 'hi') {
+                lifestyleList.innerHTML = `
+                    <li>साप्ताहिक रूप से 150 मिनट की मध्यम शारीरिक गतिविधि (तेज़ चलना, साइकिल चलाना) बनाए रखें।</li>
+                    <li>हर रात 7-8 घंटे की स्थिर और निर्बाध नींद लें।</li>
+                    <li>ऑक्सीजन प्रवाह को सामान्य बनाए रखने के लिए निकोटीन के उपयोग से बचें।</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>एंटीऑक्सिडेंट से भरपूर संतुलित आहार (जामुन, नट्स, ग्रीन टी) लें।</li>
+                    <li>जल स्तर बनाए रखें: प्रतिदिन कम से कम 2.5 लीटर पानी पिएं।</li>
+                    <li>आहार में दैनिक रूप से ओमेगा -3 फैटी एसिड (चिया बीज, अखरोट) शामिल करें।</li>
+                `;
+                followupList.innerHTML = `
+                    <li>उत्कृष्ट स्वास्थ्य स्थिति! हर 3-6 महीने में SehatSaathi के साथ पुनः मूल्यांकन करें।</li>
+                    <li>रक्तचाप और सामान्य स्वास्थ्य के लिए वार्षिक क्लिनिकल जांच कराएं।</li>
+                `;
+            } else if (activeLang === 'bn') {
+                lifestyleList.innerHTML = `
+                    <li>সাপ্তাহিক ১৫০ মিনিট মাঝারি শারীরিক পরিশ্রম বজায় রাখুন (দ্রুত হাঁটা, সাইকেল চালানো)।</li>
+                    <li>প্রতি রাতে ৭-৮ ঘণ্টা গভীর ও শান্ত ঘুম নিশ্চিত করুন।</li>
+                    <li>ফুসফুসে অক্সিজেন প্রবাহ সচল রাখতে নিকোটিন গ্রহণ বর্জন করুন।</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>অ্যান্টিঅক্সিডেন্ট-সমৃদ্ধ সুষম খাবার খান (বেরি, বাদাম, গ্রিন Tea)।</li>
+                    <li>পর্যাপ্ত তরল বজায় রাখুন: দৈনিক কমপক্ষে ২.৫ লিটার জল পান করুন।</li>
+                    <li>দৈনিক খাবারে ওমেगा-৩ ফ্যাট যুক্ত করুন (চিয়া বীজ, আখরোট)।</li>
+                `;
+                followupList.innerHTML = `
+                    <li>চমৎকার স্বাস্থ্য অবস্থা! প্রতি ৩-৬ মাস পর পর SehatSaathi দিয়ে স্বাস্থ্য পরীক্ষা করুন।</li>
+                    <li>রক্তচাপ ও অন্যান্য বিষয় চেক করতে বার্ষিক রুটিন পরীক্ষা করান।</li>
+                `;
+            } else if (activeLang === 'mr') {
+                lifestyleList.innerHTML = `
+                    <li>दर आठवड्याला १५० मिनिटे मध्यम व्यायाम (जलद चालणे, सायकल चालवणे) करा.</li>
+                    <li>दररोज रात्री ७-८ तासांची शांत व अखंड झोप घ्या.</li>
+                    <li>फुफ्फुसातील ऑक्सिजन प्रवाह सुरळीत ठेवण्यासाठी तंबाखूजन्य पदार्थांचे सेवन टाळा.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>अँटिऑक्सिडेंटने समृद्ध आणि संतुलित आहार (बेरीज, सुकामेवा, ग्रीन टी) घ्या.</li>
+                    <li>शरीरात पाणी कमी होऊ देऊ नका: रोज किमान २.५ लीटर पाणी प्या.</li>
+                    <li>आहारात ओमेगा-३ युक्त अन्नपदार्थ (अळशीच्या बिया, अक्रोड) समाविष्ट करा.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>उत्कृष्ट आरोग्य स्थिती! दर ३-६ महिन्यांनी SehatSaathi द्वारे पुन्हा मूल्यांकन करा.</li>
+                    <li>रक्तदाब आणि इतर आरोग्याच्या नियमित तपासण्या दरवर्षी करून घ्या.</li>
+                `;
+            } else if (activeLang === 'ta') {
+                lifestyleList.innerHTML = `
+                    <li>வாரத்திற்கு 150 நிமிடங்கள் மிதமான உடற்பயிற்சி (வேகமாக நடப்பது, சைக்கிள் ஓட்டுவது) மேற்கொள்ளவும்.</li>
+                    <li>ஒவ்வொரு இரவும் 7-8 மணிநேரம் தடையற்ற தூக்கத்தை உறுதி செய்யவும்.</li>
+                    <li>நுரையீரல் ஆரோக்கியத்தைப் பேண புகைப்பிடிப்பதைத் தவிர்க்கவும்.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>ஆக்ஸிஜனேற்றிகள் நிறைந்த சீரான உணவை உட்கொள்ளவும் (பெர்ரி, கொட்டைகள், கிரீன் டீ).</li>
+                    <li>தினமும் குறைந்தது 2.5 லிட்டர் தண்ணீர் அருந்தவும்.</li>
+                    <li>தினசரி உணவில் ஒமேகா-3 கொழுப்புகளைச் சேர்க்கவும் (சியா விதைகள், அக்ரூட் பருப்புகள்).</li>
+                `;
+                followupList.innerHTML = `
+                    <li>சிறந்த ஆரோக்கிய நிலை! SehatSaathi மூலம் 3-6 மாதங்களுக்கு ஒருமுறை பரிசோதித்துக் கொள்ளவும்.</li>
+                    <li>இரத்த அழுத்தம் மற்றும் பொது ஆரோக்கியத்திற்கான வருடாந்திர மருத்துவ பரிசோதனையை மேற்கொள்ளவும்.</li>
+                `;
+            } else if (activeLang === 'te') {
+                lifestyleList.innerHTML = `
+                    <li>వారానికి 150 నిమిషాల పాటు శారీరక శ్రమ (వేగంగా నడవడం, సైక్లింగ్) చేయండి.</li>
+                    <li>ప్రతి రోజూ రాత్రి 7-8 గంటల పాటు ప్రశాంతమైన నిద్రపోండి.</li>
+                    <li>ఊపిరితిత్తులు ఆరోగ్యంగా ఉండడానికి నికోటిన్‌కు దూరంగా ఉండండి.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>యాంటీఆక్సిడెంట్లు అధికంగా ఉండే సమతుల్య ఆహారాన్ని తీసుకోండి (బెర్రీలు, గింజలు, గ్రీన్ టీ).</li>
+                    <li>శరీరంలో నీటి శాతాన్ని పెంచండి: రోజుకు కనీసం 2.5 లీటర్ల నీరు తాగండి.</li>
+                    <li>రోజువారీ ఆహారంలో ఒమేగా -3 ఫ్యాటీ యాసిడ్లను చేర్చుకోండి (చియా విత్తనాలు, అక్రోట్లు).</li>
+                `;
+                followupList.innerHTML = `
+                    <li>అద్భుతమైన ఆరోగ్య స్థితి! ప్రతి 3-6 నెలలకొకసారి SehatSaathi తో మళ్ళీ పరీక్షించుకోండి.</li>
+                    <li>రక్తపోటు మరియు సాధారణ ఆరోగ్యం కోసం వార్షिक వైద్య పరీక్షలను చేయించుకోండి.</li>
+                `;
+            } else {
+                lifestyleList.innerHTML = `
+                    <li>Maintain 150 minutes of moderate activity weekly (brisk walking, cycling).</li>
+                    <li>Continue locking in 7-8 hours of steady, uninterrupted sleep nightly.</li>
+                    <li>Avoid nicotine usage to maintain clear oxygen flows.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>Stick to a balanced, antioxidant-dense diet (berries, nuts, green tea).</li>
+                    <li>Keep hydration constant: drink at least 2.5 liters of water daily.</li>
+                    <li>Incorporate daily omega-3 fats (chia seeds, walnuts, fish).</li>
+                `;
+                followupList.innerHTML = `
+                    <li>Excellent health status! Re-evaluate with SehatSaathi every 3-6 months.</li>
+                    <li>Maintain annual clinical check-ups for blood pressure and wellness.</li>
+                `;
+            }
+            nutritionList.innerHTML += getBmiAdvice(activeLang, bmi);
+        } else if (score >= 55) {
+            if (activeLang === 'hi') {
+                lifestyleList.innerHTML = `
+                    <li>हल्की शारीरिक दिनचर्या शुरू करें: रोजाना 20-30 मिनट की सैर।</li>
+                    <li>नींद की स्वच्छता में सुधार करें: सोने का एक निश्चित समय निर्धारित करें और सोने से 1 घंटे पहले स्क्रीन का उपयोग बंद कर दें।</li>
+                    <li>धूम्रपान करते हैं, तो इसे धीरे-धीरे कम करने का प्रयास करें।</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>आयरन और विटामिन सी युक्त खाद्य पदार्थ (खट्टे फल, शिमला मिर्च, पालक, दालें) अधिक मात्रा में लें।</li>
+                    <li>प्रसंस्कृत शर्करा (Processed sugars) और अस्वास्थ्यकर वसा का चयन कम करें।</li>
+                    <li>मैग्नीशियम युक्त खाद्य पदार्थ (बादाम, केले) खाकर न्यूरो-स्थिरता का समर्थन करें।</li>
+                `;
+                followupList.innerHTML = `
+                    <li>सामान्य स्वास्थ्य जांच के लिए अपने प्राथमिक चिकित्सक से संपर्क करें।</li>
+                    <li>प्रगति की निगरानी के लिए 2 सप्ताह में SehatSaathi पर पूरे किए गए परीक्षणों को पुनः चलाएं।</li>
+                    ${completedCount < 3 ? '<li><strong>अत्यधिक अनुशंसित:</strong> संपूर्ण विश्लेषण के लिए SehatSaathi पर शेष बीमारी स्क्रीनिंग को पूरा करें।</li>' : ''}
+                `;
+            } else if (activeLang === 'bn') {
+                lifestyleList.innerHTML = `
+                    <li>হালকা শারীরিক পরিশ্রম শুরু করুন: প্রতিদিন ২০-৩০ মিনিট হাঁটুন।</li>
+                    <li>ঘুমের অভ্যাস উন্নত করুন: নির্দিষ্ট সময়ে ঘুমানোর চেষ্টা করুন এবং শোবার ১ ঘণ্টা আগে মোবাইল/টিভি বন্ধ করুন।</li>
+                    <li>ধূমপানের অভ্যাস থাকলে তা কমানোর উদ্যোগ নিন।</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>আয়রন এবং ভিটামিন সি সমৃদ্ধ খাবার (লেবু জাতীয় ফল, ক্যাপসিকাম, পালং শাক, ডাল) বেশি খান।</li>
+                    <li>প্রক্রিয়াজাত চিনি এবং ক্ষতিকারক ফ্যাট খাওয়া কমিয়ে দিন।</li>
+                    <li>ম্যাগনেসিয়াম-সমৃদ্ধ খাবার (বাদাম, কলা) খেয়ে স্নায়বিক সুস্থতা উন্নত করুন।</li>
+                `;
+                followupList.innerHTML = `
+                    <li>প্রাথমিক স্বাস্থ্য পরীক্ষা করার জন্য চিকিৎসকের কাছে যান।</li>
+                    <li>শারীরিক অবস্থা পর্যবেক্ষণ করতে ২ সপ্তাহ পর SehatSaathi-তে সম্পন্ন করা টেস্টগুলো আবার দিন।</li>
+                    ${completedCount < 3 ? '<li><strong>বিশেষ সুপারিশ:</strong> একটি সম্পূর্ণ স্বাস্থ্যের সূচক তৈরি করতে SehatSaathi-তে বাকি থাকা টেস্টগুলো শেষ করুন।</li>' : ''}
+                `;
+            } else if (activeLang === 'mr') {
+                lifestyleList.innerHTML = `
+                    <li>हलकी शारीरिक हालचाल सुरू करा: दररोज २०-३० मिनिटे चाला.</li>
+                    <li>झोपेचे वेळापत्रक सुधारा: झोपण्याची वेळ निश्चित करा आणि झोपण्यापूर्वी १ तास स्क्रीनचा वापर थांबवा.</li>
+                    <li>धूम्रपान करत असल्यास, त्याचे प्रमाण कमी करण्याचे नियोजन करा.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>लोह आणि व्हिटॅमिन सी चे प्रमाण आहारात वाढवा (संत्री, शिमला मिरची, पालक, डाळी).</li>
+                    <li>प्रक्रिया केलेली साखरेचे आणि हानिकारक चरबीयुक्त पदार्थांचे सेवन कमी करा.</li>
+                    <li>मॅग्नेशियमयुक्त अन्नपदार्थ (बदाम, केळी) खाऊन मज्जासंस्थेला निरोगी ठेवा.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>आरोग्याची प्राथमिक माहिती मिळवण्यासाठी फॅमिली डॉक्टरांना भेटा.</li>
+                    <li>लक्षणांवर देखरेख ठेवण्यासाठी २ आठवड्यांनंतर SehatSaathi वरील चाचण्या पुन्हा करा.</li>
+                    ${completedCount < 3 ? '<li><strong>विशेष शिफारस:</strong> आरोग्याचा संपूर्ण अहवाल मिळवण्यासाठी SehatSaathi वरील उर्वरित चाचण्या पूर्ण करा.</li>' : ''}
+                `;
+            } else if (activeLang === 'ta') {
+                lifestyleList.innerHTML = `
+                    <li>தினமும் 20-30 நிமிடங்கள் லேசான நடைப்பயிற்சியை மேற்கொள்ளுங்கள்.</li>
+                    <li>உடற்பயிற்சி மற்றும் தூக்க பழக்கத்தை மேம்படுத்தவும்: குறிப்பிட்ட நேரத்திற்குத் தூங்கச் செல்லவும், தூங்குவதற்கு 1 மணி நேரத்திற்கு முன் மொபைல் திரைகளைப் பார்க்க வேண்டாம்.</li>
+                    <li>புகைபிடிக்கும் பழக்கம் இருந்தால், அதை மெதுவாகக் குறைக்கவும்.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>இரும்பு மற்றும் வைட்டமின் சி அடங்கிய உணவுகளை அதிகரிக்கவும் (சிட்ரஸ் பழங்கள், குடைமிளகாய், கீரை, பருப்பு வகைகள்).</li>
+                    <li>செயற்கை சர்க்கரை மற்றும் கொழுப்பு நிறைந்த உணவுகளைக் குறைக்கவும்.</li>
+                    <li>மெக்னீசியம் நிறைந்த உணவுகள் (பாதாம், வாழைப்பழம்) மூலம் நரம்பு நிலைத்தன்மையை ஆதரிக்கவும்.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>வழக்கமான மருத்துவச் பரிசோதனைக்காக மருத்துவரை அணுகவும்.</li>
+                    <li>உடல்நிலையைக் கண்காணிக்க 2 வாரங்களில் SehatSaathi சோதனைகளை மீண்டும் செய்யவும்.</li>
+                    ${completedCount < 3 ? '<li><strong>நிச்சயமாகப் பரிந்துரைக்கப்படுகிறது:</strong> முழுமையான ஆரோக்கிய விவரத்தைப் பெற மீதமுள்ள சோதனைகளை SehatSaathi இல் செய்து முடிக்கவும்.</li>' : ''}
+                `;
+            } else if (activeLang === 'te') {
+                lifestyleList.innerHTML = `
+                    <li>తేలికపాటి వ్యాయామాలు ప్రారంభించండి: రోజుకు 20-30 నిమిషాల పాటు నడవండి.</li>
+                    <li>నిద్ర వేళలను క్రమబద్ధీకరించుకోండి: నిద్రపోవడానికి 1 గంట ముందు మొబైల్ వాడకాన్ని ఆపండి.</li>
+                    <li>ధూమపానం చేస్తుంటే, క్రమంగా దానిని తగ్గించుకోవడానికి ప్రయత్నించండి.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>ఐరన్ మరియు విటమిన్ సి అధికంగా ఉండే ఆహారాన్ని తీసుకోండి (నిమ్మజాతి పండ్లు, క్యాప్సికమ్, పాలకూర, పప్పుధాన్యాలు).</li>
+                    <li>ప్రాసెస్ చేసిన చక్కెరలు మరియు కొవ్వు పదార్థాలను పూర్తిగా తగ్గించండి.</li>
+                    <li>మెగ్నీషియం అధికంగా ఉండే ఆహారం (బాదం, అరటిపండ్లు) ద్వారా నరాల స్థిరత్వాన్ని పెంచుకోండి.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>ప్రాథమిక ఆరోగ్య పరీక్షల కోసం వైద్యుడిని సంప్రదించండి.</li>
+                    <li>శరీరంలో మార్పులను గమనించడానికి 2 వారాల తర్వాత SehatSaathi పరీక్షలను మళ్ళీ చేసి చూసుకోండి.</li>
+                    ${completedCount < 3 ? '<li><strong>గట్టిగా సిఫార్సు చేయబడింది:</strong> పూర్తి ఆరోగ్య నివేదిక కోసం SehatSaathi లో మిగిలిన పరీక్షలను పూర్తి చేయండి.</li>' : ''}
+                `;
+            } else {
+                lifestyleList.innerHTML = `
+                    <li>Begin integrating light physical routines: 20-30 minute walks daily.</li>
+                    <li>Work on sleep hygiene: set a strict bedtime and restrict screens 1hr before sleep.</li>
+                    <li>If smoking, consider setting a reduction program.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>Increase iron and Vitamin C intake (citrus fruits, bell peppers, spinach, lentils).</li>
+                    <li>Minimize intake of processed sugars and inflammatory fats.</li>
+                    <li>Support neuro-stability with magnesium-rich foods (almonds, bananas).</li>
+                `;
+                followupList.innerHTML = `
+                    <li>Schedule a primary care doctor visit for basic vitals.</li>
+                    <li>Re-run the completed tests on SehatSaathi in 2 weeks to monitor progress.</li>
+                    ${completedCount < 3 ? '<li><strong>Highly recommended:</strong> Complete the remaining disease screenings on SehatSaathi to build a complete index.</li>' : ''}
+                `;
+            }
+            nutritionList.innerHTML += getBmiAdvice(activeLang, bmi);
+        } else {
+            if (activeLang === 'hi') {
+                lifestyleList.innerHTML = `
+                    <li>आराम को प्राथमिकता दें और अत्यधिक शारीरिक थकावट से बचें; प्रतिदिन हल्के व्यायाम/खिंचाव पर ध्यान केंद्रित करें।</li>
+                    <li>धूम्रपान को तुरंत छोड़ने के लिए किसी विशेषज्ञ से परामर्श लें।</li>
+                    <li>सोने के लिए एक शांत और अंधेरा वातावरण बनाएं और पुराने अनिद्रा रोग के लिए डॉक्टर की मदद लें।</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>आरामदायक, कम सोडियम वाले संतुलित आहार (चुकंदर, अनार, लीन प्रोटीन) का सेवन करें।</li>
+                    <li>उच्च सोडियम और ट्रांस-फैट युक्त खाद्य पदार्थों से पूरी तरह बचें।</li>
+                    <li>आयरन और खनिज सप्लीमेंट्स के लिए आहार विशेषज्ञ (Nutritionist) से परामर्श करने पर विचार करें।</li>
+                `;
+                followupList.innerHTML = `
+                    <li>⚠️ <strong>तत्काल सिफारिश:</strong> औपचारिक निदान (जैसे सीबीसी रक्त परीक्षण, छाती का एक्स-रे, या क्लिनिकल मोटर मूल्यांकन) के लिए तुरंत डॉक्टर से मिलें।</li>
+                    <li>केवल स्क्रीनिंग टूल्स पर निर्भर न रहें। तत्काल पेशेवर स्वास्थ्य मार्गदर्शन प्राप्त करें।</li>
+                    ${completedCount < 3 ? '<li>सटीक रिकॉर्ड प्रदान करने के लिए सुनिश्चित करें कि आप SehatSaathi पर सभी 3 मॉड्यूल चलाते हैं।</li>' : ''}
+                `;
+            } else if (activeLang === 'bn') {
+                lifestyleList.innerHTML = `
+                    <li>বিশ্রামকে অগ্রাধিকার দিন এবং অতিরিক্ত শারীরিক পরিশ্রম এড়িয়ে চলুন; প্রতিদিন হালকা স্ট্রেচিং বা যোগব্যায়াম করুন।</li>
+                    <li>ধূমপান অবিলম্বে বন্ধ করার জন্য একজন বিশেষজ্ঞের পরামর্শ নিয়ে একটি সুনির্দিষ্ট পরিকল্পনা তৈরি করুন।</li>
+                    <li>ঘুমের জন্য শান্ত ও অন্ধকার পরিবেশ তৈরি করুন এবং দীর্ঘস্থায়ী অনিদ্রার সমস্যার জন্য চিকিৎসকের পরামর্শ নিন।</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>প্রচুর আয়রন-সমৃদ্ধ এবং প্রদাহরোধী খাবার খান (বিট জুস, বেদানা, লীন প্রোটিন)।</li>
+                    <li>অতিরিক্ত লবণ এবং ট্রান্স-ফ্যাটযুক্ত খাবার খাওয়া সম্পূর্ণ বন্ধ করুন।</li>
+                    <li>প্রয়োজনে আয়রন এবং অন্যান্য খনিজ সাপ্লিমেন্টের জন্য পুষ্টিবিদের পরামর্শ নিন।</li>
+                `;
+                followupList.innerHTML = `
+                    <li>⚠️ <strong>জরুরি সুপারিশ:</strong> আনুষ্ঠানিক রোগ নির্ণয়ের জন্য (যেমন CBC রক্ত পরীক্ষা, বুকের এক্স-রে বা চিকিৎসকের শারীরিক পরীক্ষা) অবিলম্বে একজন যোগ্য ডাক্তারের কাছে যান।</li>
+                    <li>কেবলমাত্র প্রাথমিক স্ক্রিনিং অ্যাপের উপর নির্ভর করবেন না। চিকিৎসকের পরামর্শকে সর্বোচ্চ অগ্রাধিকার দিন।</li>
+                    ${completedCount < 3 ? '<li>আপনার চিকিৎসকদের বিস্তারিত স্ক্রিনিং রিপোর্ট প্রদান করতে SehatSaathi-এর ৩ টি টেস্টই সম্পন্ন করুন।</li>' : ''}
+                `;
+            } else if (activeLang === 'mr') {
+                lifestyleList.innerHTML = `
+                    <li>विश्रांतीला प्राधान्य द्या आणि अतिशारीरिक श्रम टाळा; दररोज हलके व्यायाम किंवा यागासनांवर भर द्या.</li>
+                    <li>धूम्रपान त्वरित थांबवण्यासाठी डॉक्टरांचा सल्ला घेऊन योजना आखा.</li>
+                    <li>झोपण्यासाठी शांत आणि अंधारी जागा निवडा, दीर्घकालीन अनिद्रा असल्यास वैद्यकीय मदत घ्या.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>लोहयुक्त आणि दाहक-विरोधी (anti-inflammatory) अन्नपदार्थ खा (बीटचा रस, डाळिंब, निरोगी प्रथिने).</li>
+                    <li>जास्त मीठ आणि ट्रान्स-फॅट असलेले पदार्थ खाणे पूर्णपणे बंद करा.</li>
+                    <li>लोह आणि खनिजांच्या गोळ्यांसाठी आहारतज्ज्ञांचा (Nutritionist) सल्ला घेण्याचा विचार करा.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>⚠️ <strong>तातडीची शिफारस:</strong> अधिकृत निदानासाठी (उदा. सीबीसी रक्त तपासणी, छातीचा एक्स-रे किंवा शारीरिक हालचालींची चाचणी) त्वरित डॉक्टरांची भेट घ्या.</li>
+                    <li>केवळ प्राथमिक चाचणी साधनांवर अवलंबून राहू नका. त्वरित डॉक्टरांचे मार्गदर्शन घ्या.</li>
+                    ${completedCount < 3 ? '<li>आपल्या डॉक्टरांना सविस्तर अहवाल देण्यासाठी SehatSaathi वरील सर्व ३ चाचण्या पूर्ण करा.</li>' : ''}
+                `;
+            } else if (activeLang === 'ta') {
+                lifestyleList.innerHTML = `
+                    <li>ஓய்வுக்கு முன்னுரிமை கொடுங்கள் மற்றும் அதிக உடல் சோர்வைத் தவிர்க்கவும்; தினமும் லேசான நீட்சி பயிற்சிகளில் கவனம் செலுத்துங்கள்.</li>
+                    <li>புகைபிடிப்பதைக் குறைக்க தகுந்த நிபுணரின் உதவியை நாடவும்.</li>
+                    <li>தூங்குவதற்கு வசதியான இருண்ட சூழலை உருவாக்கவும், தூக்கமின்மை நீடித்தால் மருத்துவரை அணுகவும்.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>இரும்புச்சத்து நிறைந்த மற்றும் வீக்கத்தைக் குறைக்கும் உணவுத் திட்டத்தை உருவாக்குங்கள் (பீட்ரூட் சாறு, மாதுளை, புரதங்கள்).</li>
+                    <li>அதிக உப்பு மற்றும் டிரான்ஸ்-கொழுப்பு உணவுகளை முற்றிலும் தவிர்க்கவும்.</li>
+                    <li>இரும்பு மற்றும் தாதுச் சத்து மாத்திரைகளுக்கு ஊட்டச்சத்து நிபுணரை அணுகவும்.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>⚠️ <strong>அவசரப் பரிந்துரை:</strong> முறையான மருத்துவ பரிசோதனைகளுக்காக (CBC இரத்த பரிசோதனை, நெஞ்சு எக்ஸ்-ரே அல்லது நரம்பியல் அசைவு சோதனைகள் போன்றவை) உடனடியாக மருத்துவரை அணுகவும்.</li>
+                    <li>பரிசோதனை கருவிகளை மட்டுமே நம்பியிருக்க வேண்டாம். உடனடியாக தொழில்முறை மருத்துவ வழிகாட்டுதலைப் பெறவும்.</li>
+                    ${completedCount < 3 ? '<li>உங்கள் மருத்துவர்களுக்கு விரிவான பரிசோதனை பதிவுகளை வழங்க SehatSaathi இன் 3 சோதனைகளையும் செய்து முடிப்பதை உறுதிசெய்யவும்.</li>' : ''}
+                `;
+            } else if (activeLang === 'te') {
+                lifestyleList.innerHTML = `
+                    <li>విశ్రాంతికి ప్రాధాన్యత ఇవ్వండి మరియు శారీరకంగా ఎక్కువగా అలసిపోవద్దు; ప్రతిరోజూ తేలికపాటి స్ట్రెచింగ్ వ్యాయామాలు చేయండి.</li>
+                    <li>ధూమపానాన్ని వెంటనే ఆపివేయడానికి నిపుణుల సలహాలను పాటించండి.</li>
+                    <li>నిద్రించడానికి అనువైన ప్రశాంతమైన వాతావరణాన్ని ఏర్పాటు చేసుకోండి మరియు నిద్రలేమి సమస్య ఉంటే వైద్యుడిని సంప్రదించండి.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>ఐరన్ అధికంగా ఉండే మరియు శోథ నిరోధక ఆహారాన్ని తీసుకోండి (బీట్‌రూట్ రసం, దానిమ్మ, ప్రోటీన్లు).</li>
+                    <li>ఎక్కువ ఉప్పు మరియు ట్రాన్స్-ఫ్యాట్ ఉన్న ఆహారాన్ని పూర్తిగా నివారించండి.</li>
+                    <li>ఐరన్ మరియు ఇతర విటమిన్ల సప్లిమెంట్ల కోసం పోషకాహార నిపుణుడిని సంప్రదించండి.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>⚠️ <strong>అత్యవసర సిఫార్సు:</strong> నివారణ నిర్ధారణ కోసం (CBCరక్త పరీక్ష, ఛాతీ ఎక్స్-రే లేదా శారీరక చలన పరీక్షలు వంటివి) వెంటనే వైద్యుడిని సంప్రదించండి.</li>
+                    <li>కేవలం ప్రాథమిక పరీక్షలపై మాత్రమే ఆధారపడవద్దు. వైద్య నిపుణుల సహాయాన్ని తీసుకోండి.</li>
+                    ${completedCount < 3 ? '<li>మీ వైద్యులకు వివరణాత్మక నివేదికలను అందించడానికి SehatSaathi లోని అన్ని 3 పరీక్షలను పూర్తి చేయండి.</li>' : ''}
+                `;
+            } else {
+                lifestyleList.innerHTML = `
+                    <li>Prioritize rest and avoid extreme physical exhaustion; focus on daily gentle stretching.</li>
+                    <li>Consult a professional to formulate a structured smoking cessation plan immediately.</li>
+                    <li>Create a relaxing, darkened sleep environment and consult a doctor for chronic insomnia.</li>
+                `;
+                nutritionList.innerHTML = `
+                    <li>Formulate an iron-dense, anti-inflammatory diet plan (beetroot juice, pomegranate, lean proteins).</li>
+                    <li>Avoid high-sodium and high-trans-fat foods completely.</li>
+                    <li>Consider consulting a nutritionist for custom iron and mineral supplements.</li>
+                `;
+                followupList.innerHTML = `
+                    <li>⚠️ <strong>Urgent Recommendation:</strong> Schedule an appointment with a medical practitioner for formal diagnostics (such as a CBC blood count, chest X-ray, or clinical motor assessments).</li>
+                    <li>Do not rely solely on screening tools. Seek immediate professional healthcare guidance.</li>
+                    ${completedCount < 3 ? '<li>Ensure you run all 3 modules on SehatSaathi to provide your physicians with detailed screening records.</li>' : ''}
+                `;
+            }
+            nutritionList.innerHTML += getBmiAdvice(activeLang, bmi);
+        }
+    }
+
+    // Add listeners to update dynamically
+    const inputsToWatch = [genderSelect, ageInput, heightInput, weightInput, smokingSelect, activitySelect, sleepSelect];
+    
+    function saveProfileAndCalc() {
+        const data = {
+            gender: genderSelect.value,
+            age: parseInt(ageInput.value) || 35,
+            height: parseFloat(heightInput.value) || 170,
+            weight: parseFloat(weightInput.value) || 70,
+            smoking: smokingSelect.value,
+            activity: activitySelect.value,
+            sleep: sleepSelect.value
+        };
+        localStorage.setItem('sehatsaathi_user_profile', JSON.stringify(data));
+        calculateHealthScore();
+    }
+    
+    inputsToWatch.forEach(input => {
+        input.addEventListener('change', saveProfileAndCalc);
+        if (input.tagName === 'INPUT') {
+            input.addEventListener('input', saveProfileAndCalc);
+        }
+    });
+
+    // Load initial profile
+    loadUserProfile();
+
+    // Initialize score
+    calculateHealthScore();
+
+    // GSAP Animations
+    try {
+        gsap.from(".lifestyle-form .form-group", {
+            duration: 0.6,
+            x: -30,
+            opacity: 0,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+
+        gsap.from(".checklist-item", {
+            duration: 0.6,
+            x: -20,
+            opacity: 0,
+            stagger: 0.08,
+            ease: "power2.out",
+            delay: 0.4
+        });
+
+        gsap.from(".gauge-wrapper", {
+            duration: 1.5,
+            scale: 0.4,
+            opacity: 0,
+            ease: "elastic.out(1, 0.75)",
+            delay: 0.2
+        });
+
+        gsap.from(".recommendation-card", {
+            duration: 0.8,
+            y: 35,
+            opacity: 0,
+            stagger: 0.15,
+            ease: "power3.out",
+            delay: 0.3
+        });
+    } catch (err) {
+        console.warn("GSAP animation skipped in health score view.");
+    }
+</script>
+{% endblock %}

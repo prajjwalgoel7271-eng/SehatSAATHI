@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Test — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="reaction-title">[Reaction] Interactive Reaction Test</h1>
+            <p class="page-subtitle" data-trn="reaction-subtitle">Quickly hover your mouse/cursor over the red target circles as they appear on the screen.</p>
+            <div class="title-separator" style="background-color: var(--color-primary);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Click target workspace -->
+                <div class="test-workspace">
+                    <div class="media-container" style="max-width: 640px; aspect-ratio: 4/3; background-color: #12121A;">
+                        <canvas id="canvas-overlay" class="canvas-overlay" width="640" height="480" style="position: relative; pointer-events: auto; transform: none;"></canvas>
+                    </div>
+                    <div class="status-indicator status-detected" id="workspace-status" style="margin-top: 1rem; width: 100%;" data-trn="status-sys-ready">
+                        ✓ TEST SYSTEM READY
+                    </div>
+                </div>
+
+                <!-- Right column: Controls & Progress -->
+                <div class="test-controls">
+                    <div class="instruction-box">
+                        <h3 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary);" data-trn="instructions-title">Instructions:</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="reaction-instr-1">1. Click "Start Test" and keep your cursor inside the black test workspace area.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="reaction-instr-2">2. A countdown delay will initiate, after which a red target circle will spawn.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.4rem;" data-trn="reaction-instr-3">3. Rapidly move your cursor to hover over/touch the red circle.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0;" data-trn="reaction-instr-4">4. Complete all 10 trials.</p>
+                    </div>
+
+                    <div class="status-indicator status-scanning" id="trial-indicator" style="display: none;">
+                        Trial 1/10
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="btn-start" class="btn btn-primary btn-block" data-trn="btn-start-test">
+                            Start Test
+                        </button>
+                        <a href="./parkinson_hub.html" class="btn btn-secondary btn-block" data-trn="btn-back-hub">Back to Hub</a>
+                    </div>
+
+                    <div id="results-display" class="results-box" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('canvas-overlay');
+        const ctx = canvas.getContext('2d');
+        const workspaceStatus = document.getElementById('workspace-status');
+        const startBtn = document.getElementById('btn-start');
+        const trialIndicator = document.getElementById('trial-indicator');
+        const resultsDisplay = document.getElementById('results-display');
+
+        let testActive = false;
+        let currentTrial = 0;
+        const numTrials = 10;
+        
+        let latencies = [];
+        let mousePaths = [];
+        let currentPath = [];
+        
+        let targetX = 320;
+        let targetY = 240;
+        const targetRadius = 25;
+        let trialStartTime = 0;
+        let waitingForTarget = false;
+        let targetSpawned = false;
+        let timerTimeout;
+
+        function drawLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (targetSpawned) {
+                // Draw red circle target
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, targetRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#e74c3c';
+                ctx.strokeStyle = '#ff6b6b';
+                ctx.lineWidth = 3;
+                ctx.fill();
+                ctx.stroke();
+
+                // Inner white dot
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+            } else if (!testActive) {
+                ctx.fillStyle = '#6E6E80';
+                ctx.font = '18px Outfit';
+                ctx.textAlign = 'center';
+                
+                const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+                let startPrompt = 'Click "Start Test" to Begin';
+                if (activeLang === 'hi') startPrompt = 'शुरू करने के लिए "परीक्षण शुरू करें" पर क्लिक करें';
+                else if (activeLang === 'bn') startPrompt = 'শুরু করতে "টেস্ট শুরু করুন" এ ক্লিক করুন';
+                else if (activeLang === 'mr') startPrompt = 'सुरू करण्यासाठी "चाचणी सुरू करा" वर क्लिक करा';
+                else if (activeLang === 'ta') startPrompt = 'தொடங்க "சோதனையைத் தொடங்கு" என்பதைக் கிளிக் செய்யவும்';
+                else if (activeLang === 'te') startPrompt = 'పరీక్షను ప్రారంభించడానికి "పరీక్ష ప్రారంభించు" క్లిక్ చేయండి';
+                
+                ctx.fillText(startPrompt, canvas.width / 2, canvas.height / 2);
+            }
+
+            requestAnimationFrame(drawLoop);
+        }
+
+        drawLoop();
+
+        startBtn.addEventListener('click', () => {
+            if (testActive) return;
+            testActive = true;
+            currentTrial = 0;
+            latencies = [];
+            mousePaths = [];
+            startBtn.setAttribute('disabled', 'true');
+            resultsDisplay.style.display = 'none';
+            trialIndicator.style.display = 'block';
+            workspaceStatus.className = 'status-indicator status-scanning';
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let runningText = '🎯 TARGET SPOTTING RUNNING';
+            if (activeLang === 'hi') runningText = '🎯 लक्ष्य खोज प्रक्रिया चल रही है';
+            else if (activeLang === 'bn') runningText = '🎯 টার্গেট স্পটিং চলছে';
+            else if (activeLang === 'mr') runningText = '🎯 लक्ष्य शोध चालू आहे';
+            else if (activeLang === 'ta') runningText = '🎯 இலக்கு கண்டறிதல் இயக்கப்படுகிறது';
+            else if (activeLang === 'te') runningText = '🎯 లక్ష్య శోధన ప్రక్రియ నడుస్తోంది';
+            workspaceStatus.innerText = runningText;
+
+            nextTrial();
+        });
+
+        function nextTrial() {
+            targetSpawned = false;
+            if (currentTrial >= numTrials) {
+                finishTest();
+                return;
+            }
+
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let getReadyText = `Trial ${currentTrial + 1}/${numTrials} — GET READY...`;
+            if (activeLang === 'hi') getReadyText = `प्रयास ${currentTrial + 1}/${numTrials} — तैयार हो जाएं...`;
+            else if (activeLang === 'bn') getReadyText = `প্রচেষ্টা ${currentTrial + 1}/${numTrials} — প্রস্তুত হন...`;
+            else if (activeLang === 'mr') getReadyText = `प्रयत्न ${currentTrial + 1}/${numTrials} — तयार व्हा...`;
+            else if (activeLang === 'ta') getReadyText = `முயற்சி ${currentTrial + 1}/${numTrials} — தயாராகுங்கள்...`;
+            else if (activeLang === 'te') getReadyText = `ప్రయత్నం ${currentTrial + 1}/${numTrials} — సిద్ధంగా ఉండండి...`;
+            
+            trialIndicator.innerText = getReadyText;
+            trialIndicator.className = 'status-indicator status-scanning';
+            waitingForTarget = true;
+
+            const delay = Math.random() * (2200 - 700) + 700;
+            timerTimeout = setTimeout(spawnTarget, delay);
+        }
+
+        function spawnTarget() {
+            if (!testActive) return;
+            
+            targetX = Math.floor(Math.random() * (560 - 80) + 80);
+            targetY = Math.floor(Math.random() * (400 - 80) + 80);
+            
+            currentPath = [];
+            waitingForTarget = false;
+            targetSpawned = true;
+            trialStartTime = Date.now();
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let touchText = '🎯 TOUCH TARGET!';
+            if (activeLang === 'hi') touchText = '🎯 लक्ष्य को छुएं!';
+            else if (activeLang === 'bn') touchText = '🎯 টার্গেট স্পর্শ করুন!';
+            else if (activeLang === 'mr') touchText = '🎯 लक्ष्याला स्पर्श करा!';
+            else if (activeLang === 'ta') touchText = '🎯 இலக்கைத் தொடவும்!';
+            else if (activeLang === 'te') touchText = '🎯 లక్ష్యాన్ని తాకండి!';
+            
+            trialIndicator.innerText = touchText;
+            trialIndicator.className = 'status-indicator status-detected';
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            return { x, y };
+        }
+
+        function trackPointer(e) {
+            if (!testActive || !targetSpawned || waitingForTarget) return;
+
+            const coords = getCanvasCoordinates(e);
+            currentPath.push([coords.x, coords.y, Date.now() / 1000]);
+
+            const dx = coords.x - targetX;
+            const dy = coords.y - targetY;
+            const distSq = dx*dx + dy*dy;
+
+            // Target touch/hover check
+            if (distSq <= Math.pow(targetRadius + 20, 2)) {
+                targetSpawned = false;
+                const latency = Date.now() - trialStartTime;
+                latencies.push(latency);
+                mousePaths.push(currentPath);
+                currentTrial++;
+                nextTrial();
+            }
+        }
+
+        canvas.addEventListener('mousemove', trackPointer);
+        canvas.addEventListener('touchmove', trackPointer, { passive: true });
+
+        function finishTest() {
+            testActive = false;
+            clearTimeout(timerTimeout);
+            trialIndicator.style.display = 'none';
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            let calculatingText = '🔬 CALCULATING RISK...';
+            if (activeLang === 'hi') calculatingText = '🔬 जोखिम की गणना की जा रही है...';
+            else if (activeLang === 'bn') calculatingText = '🔬 ঝুঁকি গণনা করা হচ্ছে...';
+            else if (activeLang === 'mr') calculatingText = '🔬 जोखीम मोजत आहे...';
+            else if (activeLang === 'ta') calculatingText = '🔬 ஆபத்து கணக்கிடப்படுகிறது...';
+            else if (activeLang === 'te') calculatingText = '🔬 ప్రమాదం లెక్కిస్తున్నారు...';
+            workspaceStatus.innerText = calculatingText;
+
+            // Local reaction data calculation
+            const meanLat = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+            
+            let jerkCounts = [];
+            mousePaths.forEach(path => {
+                if (path.length < 4) {
+                    jerkCounts.push(0);
+                    return;
+                }
+                const xs = path.map(p => p[0]);
+                const dx = [];
+                for (let i = 1; i < xs.length; i++) {
+                    dx.push(xs[i] - xs[i-1]);
+                }
+                const signs = dx.map(v => Math.sign(v));
+                let signChanges = 0;
+                for (let i = 1; i < signs.length; i++) {
+                    if (signs[i] !== 0 && signs[i-1] !== 0 && signs[i] !== signs[i-1]) {
+                        signChanges++;
+                    }
+                }
+                jerkCounts.push(signChanges);
+            });
+            const avgJerks = jerkCounts.length > 0 ? jerkCounts.reduce((a, b) => a + b, 0) / jerkCounts.length : 0;
+
+            const abnormalThreshold = 950.0; // 650 + 2 * 150
+            const span = 300.0;
+            let latencyScore = 100.0 - ((meanLat - 650.0) / span) * 100.0;
+            latencyScore = Math.max(0.0, Math.min(100.0, latencyScore));
+            const jerkPenalty = Math.min(30.0, avgJerks * 3.0);
+            const score = Math.max(0.0, Math.min(100.0, latencyScore - jerkPenalty));
+
+            // Save results to local storage
+            localStorage.setItem('sehatsaathi_result_reaction', JSON.stringify({
+                score: score,
+                mean_latency: meanLat
+            }));
+
+            let successStatusText = '✓ SCREENING COMPLETE';
+            if (activeLang === 'hi') successStatusText = '✓ स्क्रीनिंग पूरी हुई';
+            else if (activeLang === 'bn') successStatusText = '✓ স্ক্রিনিং সম্পূর্ণ';
+            else if (activeLang === 'mr') successStatusText = '✓ चाचणी पूर्ण झाली';
+            else if (activeLang === 'ta') successStatusText = '✓ பரிசோதனை முடிந்தது';
+            else if (activeLang === 'te') successStatusText = '✓ స్క్రీనింగ్ పూర్తయింది';
+            workspaceStatus.className = 'status-indicator status-detected';
+            workspaceStatus.innerText = successStatusText;
+
+            // Dynamically translate reports
+            let titleText = "Reaction Test Score";
+            let latencyText = "Mean Latency";
+
+            if (activeLang === 'hi') {
+                titleText = "प्रतिक्रिया परीक्षण स्कोर";
+                latencyText = "औसत विलंबता";
+            } else if (activeLang === 'bn') {
+                titleText = "প্রতিক্রিয়া টেস্ট স্কোর";
+                latencyText = "গড় প্রতিক্রিয়া সময়";
+            } else if (activeLang === 'mr') {
+                titleText = "प्रतिक्रिया चाचणी स्कोर";
+                latencyText = "सरासरी विलंबता";
+            } else if (activeLang === 'ta') {
+                titleText = "எதிர்வினை சோதனை மதிப்பெண்";
+                latencyText = "சராசரி எதிர்வினை நேரம்";
+            } else if (activeLang === 'te') {
+                titleText = "రియాక్షన్ పరీక్ష స్కోరు";
+                latencyText = "సగటు ప్రతిచర్య సమయం";
+            }
+
+            resultsDisplay.style.display = 'block';
+            resultsDisplay.innerHTML = `${titleText}: ${score.toFixed(2)}%\n` +
+                                        `${latencyText}: ${meanLat.toFixed(2)} ms`;
+
+            startBtn.removeAttribute('disabled');
+        }
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

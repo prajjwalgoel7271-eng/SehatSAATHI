@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — SehatSaathi{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title" data-trn="menu-title">Disease Screening Hub</h1>
+<p class="page-subtitle" data-trn="menu-subtitle">Select a multi-disease screening module to begin the assessment.</p>
+<div class="title-separator"></div>
+
+<div class="dashboard-grid">
+    <!-- Parkinson's Card -->
+    <div class="card parkinson-card" onclick="window.location.href='{{ url_for('parkinson_hub') }}'">
+        <div class="card-icon">🧠</div>
+        <h2 class="card-title" data-trn="card-parkinson-title">Parkinson's Screening</h2>
+        <p class="card-desc" data-trn="card-parkinson-desc">Multi-modal neurological screening: finger tapping dexterity, voice speech patterns, Archimedean spiral coordination, and reaction latency.</p>
+        <a href="{{ url_for('parkinson_hub') }}" class="btn btn-primary" style="width: 100%;" data-trn="btn-launch-module">Launch Module</a>
+    </div>
+
+    <!-- Anemia Card -->
+    <div class="card anemia-card" onclick="window.location.href='{{ url_for('anemia_scanner') }}'">
+        <div class="card-icon">🩸</div>
+        <h2 class="card-title" data-trn="card-anemia-title">Anemia Detection</h2>
+        <p class="card-desc" data-trn="card-anemia-desc">Non-invasive CV-based conjunctiva and palm pallor analysis. Normalizes against sclera white-balancing reference to estimate anemia risk bands.</p>
+        <a href="{{ url_for('anemia_scanner') }}" class="btn btn-danger" style="width: 100%;" data-trn="btn-launch-module">Launch Module</a>
+    </div>
+
+    <!-- TB Card -->
+    <div class="card tb-card" onclick="window.location.href='{{ url_for('tb_analyzer') }}'">
+        <div class="card-icon">🫁</div>
+        <h2 class="card-title" data-trn="card-tb-title">Tuberculosis Screening</h2>
+        <p class="card-desc" data-trn="card-tb-desc">Cough audio spectral analysis. Extracts MFCC features, spectral flatness, and centroid metrics from microphone recording to evaluate TB risk.</p>
+        <a href="{{ url_for('tb_analyzer') }}" class="btn btn-success" style="width: 100%;" data-trn="btn-launch-module">Launch Module</a>
+    </div>
+
+    <!-- AI Health Score Card -->
+    <div class="card health-score-card" onclick="window.location.href='{{ url_for("health_score") }}'" style="border-color: var(--color-warning);">
+        <div class="card-icon">📊</div>
+        <h2 class="card-title" data-trn="card-health-title">AI Health Score</h2>
+        <p class="card-desc" data-trn="card-health-desc">Consolidated wellness index and clinical action report compiled automatically from completed screening results.</p>
+        <a href="{{ url_for('health_score') }}" class="btn btn-warning" data-trn="btn-launch-module" style="width: 100%; color: #0D0D12; font-weight: bold; background-color: var(--color-warning);">Launch Module</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    try {
+        gsap.from(".card", {
+            duration: 0.8,
+            scale: 0.85,
+            opacity: 0,
+            y: 40,
+            stagger: 0.15,
+            ease: "back.out(1.5)",
+            onComplete: () => {
+                // Clear inline properties to allow transitions to fire cleanly
+                gsap.set(".card", { clearProps: "transform,opacity" });
+                document.querySelectorAll('.card').forEach(card => {
+                    card.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)";
+                });
+            }
+        });
+    } catch (err) {
+        console.warn("GSAP animation skipped in disease hub view.");
+    }
+</script>
+{% endblock %}

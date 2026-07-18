@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SehatSaathi — AI-Powered Disease Screening</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        /* Homepage specific styles */
+        .hero-section {
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, rgba(24, 15, 45, 0.45) 0%, rgba(7, 7, 10, 1) 100%);
+            overflow: hidden;
+            padding: 6rem 1.5rem;
+        }
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: -1.5px;
+            overflow: hidden;
+            display: block;
+        }
+        .hero-title .char {
+            display: inline-block;
+        }
+        .hero-tagline {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin: 0 auto 3rem auto;
+            line-height: 1.65;
+        }
+        .hero-btns {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
+        }
+        .floating-icon {
+            position: absolute;
+            font-size: 2.2rem;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.18;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.08));
+        }
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        .scroll-indicator:hover {
+            opacity: 1;
+        }
+        .scroll-mouse {
+            width: 26px;
+            height: 44px;
+            border: 2px solid var(--text-muted);
+            border-radius: 15px;
+            position: relative;
+            margin: 0 auto;
+        }
+        .scroll-wheel {
+            width: 4px;
+            height: 8px;
+            background-color: var(--color-primary);
+            border-radius: 2px;
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: scroll-anim 1.8s infinite ease-in-out;
+        }
+        @keyframes scroll-anim {
+            0% { transform: translate(-50%, 0); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translate(-50%, 14px); opacity: 0; }
+        }
+        .btn-magnetic-wrap {
+            display: inline-block;
+            position: relative;
+        }
+        .section-container {
+            padding: 4rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-layout {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            .section-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+        .section-info {
+            text-align: left;
+        }
+        .section-visual {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .section-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        .feature-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        /* Modal Window styling */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 13, 18, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./about.html" class="nav-btn" data-trn="nav-about">About</a>
+                <a href="#setup-section" class="nav-btn" data-trn="nav-setup">Device Setup</a>
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <!-- Floating medical icons -->
+            <div class="floating-icon" style="top: 18%; left: 14%;" data-depth="0.3">🩺</div>
+            <div class="floating-icon" style="top: 25%; right: 16%;" data-depth="0.5">🧠</div>
+            <div class="floating-icon" style="bottom: 30%; left: 18%;" data-depth="0.4">🩸</div>
+            <div class="floating-icon" style="bottom: 32%; right: 14%;" data-depth="0.6">🧬</div>
+            <div class="floating-icon" style="top: 55%; left: 8%;" data-depth="0.25">🛡️</div>
+            <div class="floating-icon" style="bottom: 58%; right: 8%;" data-depth="0.45">⚕️</div>
+
+            <div class="container">
+                <h1 class="hero-title" id="split-hero-title" data-trn="hero-title">Your Health, Guided by AI</h1>
+                <p class="hero-tagline" data-trn="hero-subtitle">Instant client-side neurological, hematological, and pulmonary screening on the edge.</p>
+                <div class="hero-btns">
+                    <div class="btn-magnetic-wrap">
+                        <a href="#modules-explore" class="btn btn-primary btn-magnetic" data-trn="btn-launch" style="padding: 0.85rem 2rem; font-size: 1.05rem;">Explore Screening Modules</a>
+                    </div>
+                    <div class="btn-magnetic-wrap">
+                        <a href="#setup-section" class="btn btn-secondary btn-magnetic" style="padding: 0.85rem 2rem; font-size: 1.05rem;">📷 Configure Devices</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Glowing mouse scroll indicator -->
+            <a href="#modules-explore" class="scroll-indicator">
+                <div class="scroll-mouse">
+                    <div class="scroll-wheel"></div>
+                </div>
+            </a>
+        </section>
+
+        <!-- Divider line -->
+        <div class="container"><div class="title-separator" style="margin-bottom: 0;"></div></div>
+
+        <!-- Separate Sections for each Module -->
+        <div id="modules-explore">
+            <!-- Parkinson's Neurological Test Section -->
+            <section class="section-container">
+                <div class="section-layout">
+                    <div class="section-info">
+                        <span class="feature-tag" data-trn="tag-neurological">Neurological</span>
+                        <h2 style="font-size: 2rem; font-weight: 800; margin: 0.5rem 0 1rem 0; color: var(--color-primary);" data-trn="sec-parkinson-title">🧠 Parkinson's Screening</h2>
+                        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;" data-trn="sec-parkinson-desc">
+                            Assess neurological coordination and stability indicators. This module aggregates four client-side diagnostic metrics to calculate a neurological index score:
+                        </p>
+                        <ul style="color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 2rem; line-height: 1.8;">
+                            <li data-trn="sec-parkinson-li1"><strong>Finger Tapping</strong>: Camera-based movement dexterity checking for speed and amplitude decrement.</li>
+                            <li data-trn="sec-parkinson-li2"><strong>Vocal Stability</strong>: Micro-autocorrelation tracking of voice pitch periods (Jitter, Shimmer, HNR).</li>
+                            <li data-trn="sec-parkinson-li3"><strong>Spiral Drawing</strong>: Math-based analysis of radius deviation using a K-Nearest Neighbors classifier.</li>
+                            <li data-trn="sec-parkinson-li4"><strong>Reaction Test</strong>: Target spotting latency checking pointer coordinate jerk variances.</li>
+                        </ul>
+                        <button onclick="launchWithDisclaimer('./parkinson_hub.html')" class="btn btn-primary" style="padding: 0.75rem 1.75rem;" data-trn="btn-launch-parkinson">Launch Parkinson's Module</button>
+                    </div>
+                    <div class="section-visual" style="border-color: rgba(187, 134, 252, 0.3);">
+                        <div class="section-emoji">🧠</div>
+                        <h3 style="font-weight: 700; margin-bottom: 0.5rem;" data-trn="sec-parkinson-vis-title">Neurological Stability</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; max-width: 320px;" data-trn="sec-parkinson-vis-desc">
+                            Uses canvas drawing trajectory and audio autocorrelation features to detect tremor frequency bands.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Anemia Scanner Section -->
+            <section class="section-container">
+                <div class="section-layout">
+                    <div class="section-visual" style="border-color: rgba(255, 82, 82, 0.3);">
+                        <div class="section-emoji">🩸</div>
+                        <h3 style="font-weight: 700; margin-bottom: 0.5rem;" data-trn="sec-anemia-vis-title">Multispectral Color Extraction</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; max-width: 320px;" data-trn="sec-anemia-vis-desc">
+                            Crops target tissue regions (nails, palm, eyelid) using canvas bounding boxes and analyzes RGB and saturation levels.
+                        </p>
+                    </div>
+                    <div class="section-info">
+                        <span class="feature-tag" data-trn="tag-blood-health">Blood Health</span>
+                        <h2 style="font-size: 2rem; font-weight: 800; margin: 0.5rem 0 1rem 0; color: var(--color-danger);" data-trn="sec-anemia-title">🩸 Anemia Pallor Scanner</h2>
+                        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;" data-trn="sec-anemia-desc">
+                            Estimate blood pallor index non-invasively through camera stream evaluation. The scanner runs complete computer vision steps entirely inside the browser:
+                        </p>
+                        <ul style="color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 2rem; line-height: 1.8;">
+                            <li data-trn="sec-anemia-li1"><strong>MediaPipe Alignment</strong>: Detects face mesh and hand coordinates to pinpoint target screening spots.</li>
+                            <li data-trn="sec-anemia-li2"><strong>White-Balance Calibration</strong>: Normalizes conjunctiva redness index relative to sclera (eye white) references.</li>
+                            <li data-trn="sec-anemia-li3"><strong>Multi-ROI Analysis</strong>: Collects red-ratio indicators from your palm, fingernails, and lower eyelids.</li>
+                        </ul>
+                        <button onclick="launchWithDisclaimer('./anemia.html')" class="btn btn-danger" style="padding: 0.75rem 1.75rem;" data-trn="btn-launch-anemia">Launch Anemia Scanner</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tuberculosis Cough Section -->
+            <section class="section-container">
+                <div class="section-layout">
+                    <div class="section-info">
+                        <span class="feature-tag" data-trn="tag-pulmonary">Pulmonary</span>
+                        <h2 style="font-size: 2rem; font-weight: 800; margin: 0.5rem 0 1rem 0; color: var(--color-success);" data-trn="sec-tb-title">🫁 TB Cough Analyzer</h2>
+                        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;" data-trn="sec-tb-desc">
+                            Assess respiratory cough signatures using audio diagnostics. This module utilizes the Web Audio API to capture and analyze acoustic features of cough signals:
+                        </p>
+                        <ul style="color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 2rem; line-height: 1.8;">
+                            <li data-trn="sec-tb-li1"><strong>Acoustic Event Detection</strong>: Tracks root-mean-square (RMS) energy to count discrete cough bursts.</li>
+                            <li data-trn="sec-tb-li2"><strong>FFT Frequency Analysis</strong>: Runs a local Fast Fourier Transform to find dominant cough frequencies.</li>
+                            <li data-trn="sec-tb-li3"><strong>Spectral Centroid</strong>: Computes frequency centroids to distinguish clinical cough signatures from regular clearings.</li>
+                        </ul>
+                        <button onclick="launchWithDisclaimer('./tb.html')" class="btn btn-success" style="padding: 0.75rem 1.75rem;" data-trn="btn-launch-tb">Launch Cough Analyzer</button>
+                    </div>
+                    <div class="section-visual" style="border-color: rgba(46, 204, 113, 0.3);">
+                        <div class="section-emoji">🫁</div>
+                        <h3 style="font-weight: 700; margin-bottom: 0.5rem;" data-trn="sec-tb-vis-title">Acoustic Wave DSP</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; max-width: 320px;" data-trn="sec-tb-vis-desc">
+                            Analyzes voice recording waveforms using discrete Fourier bins to extract duration and frequency flags.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Health Risk Score Section -->
+            <section class="section-container" style="background: rgba(255,179,0,0.01);">
+                <div class="section-layout">
+                    <div class="section-visual" style="border-color: rgba(255, 179, 0, 0.3);">
+                        <div class="section-emoji">📊</div>
+                        <h3 style="font-weight: 700; margin-bottom: 0.5rem;" data-trn="sec-health-vis-title">Composite Health Metrics</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; max-width: 320px;" data-trn="sec-health-vis-desc">
+                            Combines custom user inputs and diagnostic test scores into a color-coded circular risk gauge.
+                        </p>
+                    </div>
+                    <div class="section-info">
+                        <span class="feature-tag" data-trn="tag-analytics">Analytics</span>
+                        <h2 style="font-size: 2rem; font-weight: 800; margin: 0.5rem 0 1rem 0; color: var(--color-warning);" data-trn="sec-health-title">📊 AI Health Risk Score</h2>
+                        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;" data-trn="sec-health-desc">
+                            Compile all your health factors into one index. This module maps lifestyle habits and completed screenings to build a health indicator score:
+                        </p>
+                        <ul style="color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 2rem; line-height: 1.8;">
+                            <li data-trn="sec-health-li1"><strong>Lifestyle Integration</strong>: Evaluates sleep hygiene, smoking, and physical activity habits.</li>
+                            <li data-trn="sec-health-li2"><strong>Screening Aggregator</strong>: Auto-queries completed local tests to update risk index ratings.</li>
+                            <li data-trn="sec-health-li3"><strong>Personalized Plans</strong>: Delivers custom advice for nutrition, exercise, and clinical follow-ups.</li>
+                        </ul>
+                        <button onclick="launchWithDisclaimer('./health_score.html')" class="btn btn-warning" style="padding: 0.75rem 1.75rem; color: #0D0D12; font-weight: bold;" data-trn="btn-launch-health">Open Health Dashboard</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Setup Configuration Section -->
+        <section id="setup-section" class="section-container" style="background: rgba(255,255,255,0.01);">
+            <div class="container" style="max-width: 700px; margin: 0 auto;">
+                <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 1rem;" data-trn="sec-setup-title">📷 Device Configuration</h2>
+                <p style="font-size: 1rem; color: var(--text-secondary); text-align: center; margin-bottom: 2rem;" data-trn="sec-setup-desc">
+                    Scan and configure preferred camera and microphone inputs prior to launching screening modules.
+                </p>
+                
+                <div class="device-select-group">
+                    <div class="select-wrapper">
+                        <div class="select-field">
+                            <label for="camera-select" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 0.25rem;" data-trn="lbl-camera-device">Camera Device</label>
+                            <select id="camera-select" style="width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.5rem; border-radius: 6px;">
+                                <option value="" data-trn="opt-scan-cameras">Scan cameras...</option>
+                            </select>
+                        </div>
+                        <div class="select-field" style="margin-top: 1rem;">
+                            <label for="mic-select" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 0.25rem;" data-trn="lbl-mic-device">Microphone Device</label>
+                            <select id="mic-select" style="width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.5rem; border-radius: 6px;">
+                                <option value="" data-trn="opt-scan-mics">Scan microphones...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="btn-request-perms" class="btn btn-secondary btn-block" style="margin-top: 1rem; font-size: 0.9rem;" data-trn="btn-request-access">
+                        Request Camera & Mic Access
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Medical Disclaimer Pop-up Modal -->
+    <div id="disclaimer-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="disclaimer-icon" style="font-size: 2.5rem; text-align: center; margin-bottom: 1rem;">⚕️</div>
+            <h2 class="page-title" style="font-size: 1.6rem; margin-bottom: 1rem;" data-trn="disc-title">Medical Disclaimer</h2>
+            
+            <div class="disclaimer-text" style="font-size: 0.9rem; max-height: 250px; overflow-y: auto; padding-right: 0.5rem; line-height: 1.5; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                <p style="margin-bottom: 0.75rem;" data-trn="disc-p1"><strong>SehatSathi is a screening tool, not a diagnostic device.</strong> It uses client-side computer vision and audio algorithms to estimate wellness risk indicators. It does NOT replace clinical blood counts, sputum analysis, chest X-rays, or clinical exams from licensed medical practitioners.</p>
+                <p style="margin-bottom: 0.75rem;" data-trn="disc-p2">All results displayed are statistical estimates, not medical facts. Environmental lighting and microphone backgrounds heavily affect measurement precision.</p>
+                <p style="margin-bottom: 0.75rem;" data-trn="disc-p3">If this screening system flags any risk profile (mild, moderate, or severe), you should arrange a consultation with a qualified medical specialist for complete diagnostic examinations.</p>
+                <p data-trn="disc-p4">By clicking continue, you confirm you understand this software is solely for educational and preliminary screening guidelines.</p>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="closeDisclaimer()" class="btn btn-secondary btn-block" style="flex: 1;" data-trn="btn-cancel">Cancel</button>
+                <button onclick="acceptDisclaimer()" class="btn btn-success btn-block" style="flex: 2; padding: 0.75rem;" data-trn="btn-accept">I Understand — Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <script>
+        const cameraSelect = document.getElementById('camera-select');
+        const micSelect = document.getElementById('mic-select');
+        const requestPermsBtn = document.getElementById('btn-request-perms');
+        
+        let pendingTargetUrl = "";
+
+        // Open/Close Modal functions
+        function launchWithDisclaimer(targetUrl) {
+            if (sessionStorage.getItem("disclaimer_accepted") === "true") {
+                window.location.href = targetUrl;
+            } else {
+                pendingTargetUrl = targetUrl;
+                document.getElementById('disclaimer-modal').style.display = 'flex';
+            }
+        }
+
+        function closeDisclaimer() {
+            document.getElementById('disclaimer-modal').style.display = 'none';
+            pendingTargetUrl = "";
+        }
+
+        function acceptDisclaimer() {
+            sessionStorage.setItem("disclaimer_accepted", "true");
+            document.getElementById('disclaimer-modal').style.display = 'none';
+            if (pendingTargetUrl) {
+                window.location.href = pendingTargetUrl;
+            }
+        }
+
+        // Setup Device configurations
+        async function setupDevices() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                
+                // Populate cameras
+                cameraSelect.innerHTML = '';
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                if (videoDevices.length === 0) {
+                    cameraSelect.innerHTML = '<option value="">No cameras found</option>';
+                } else {
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Camera ${index + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+                }
+
+                // Populate microphones
+                micSelect.innerHTML = '';
+                const audioDevices = devices.filter(device => device.kind === 'audioinput');
+                if (audioDevices.length === 0) {
+                    micSelect.innerHTML = '<option value="">No microphones found</option>';
+                } else {
+                    audioDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Microphone ${index + 1}`;
+                        micSelect.appendChild(option);
+                    });
+                }
+
+                // Listeners
+                cameraSelect.onchange = () => {
+                    localStorage.setItem('sehatsaathi_preferred_camera', cameraSelect.value);
+                };
+                micSelect.onchange = () => {
+                    localStorage.setItem('sehatsaathi_preferred_mic', micSelect.value);
+                };
+                
+                if (cameraSelect.value) localStorage.setItem('sehatsaathi_preferred_camera', cameraSelect.value);
+                if (micSelect.value) localStorage.setItem('sehatsaathi_preferred_mic', micSelect.value);
+
+                requestPermsBtn.style.display = 'none';
+            } catch (err) {
+                console.error('Permission denied or error finding devices:', err);
+                cameraSelect.innerHTML = '<option value="">Permission Denied</option>';
+                micSelect.innerHTML = '<option value="">Permission Denied</option>';
+            }
+        }
+
+        requestPermsBtn.addEventListener('click', setupDevices);
+
+        // Auto detect permission safely
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+            navigator.mediaDevices.enumerateDevices().then(devices => {
+                const hasLabels = devices.some(device => device.label);
+                if (hasLabels) {
+                    setupDevices();
+                }
+            }).catch(err => {
+                console.warn("enumerateDevices failed:", err);
+            });
+        }
+
+        // GSAP Animations setup with fail-safes
+        try {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Vanilla SplitText character reveal
+            const heroTitle = document.getElementById('split-hero-title');
+            if (heroTitle) {
+                const text = heroTitle.textContent;
+                heroTitle.innerHTML = "";
+                text.split(" ").forEach(word => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.style.whiteSpace = 'nowrap';
+                    wordSpan.style.display = 'inline-block';
+                    word.split("").forEach(char => {
+                        const charSpan = document.createElement('span');
+                        charSpan.className = 'char';
+                        charSpan.textContent = char;
+                        wordSpan.appendChild(charSpan);
+                    });
+                    heroTitle.appendChild(wordSpan);
+                    // Space
+                    const spaceSpan = document.createElement('span');
+                    spaceSpan.innerHTML = "&nbsp;";
+                    heroTitle.appendChild(spaceSpan);
+                });
+            }
+
+            // Set initial state dynamically in JS so fallback displays immediately if GSAP fails
+            gsap.set(".hero-title .char", { y: "110%", opacity: 0 });
+
+            // 1. Text Reveal Stagger
+            gsap.to(".hero-title .char", {
+                y: "0%",
+                opacity: 1,
+                duration: 1.1,
+                stagger: 0.035,
+                ease: "power4.out",
+                delay: 0.1
+            });
+            
+            gsap.from(".hero-tagline", { duration: 1.2, y: 35, opacity: 0, ease: "power4.out", delay: 0.45 });
+            gsap.from(".hero-btns", { duration: 1.2, y: 20, opacity: 0, ease: "power4.out", delay: 0.65 });
+
+            // 2. Floating medical icons loop
+            document.querySelectorAll('.floating-icon').forEach((icon, index) => {
+                gsap.to(icon, {
+                    y: "random(-18, 18)",
+                    x: "random(-12, 12)",
+                    rotation: "random(-20, 20)",
+                    duration: "random(4.5, 7.5)",
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut",
+                    delay: index * 0.15
+                });
+            });
+
+            // 3. Mouse move Parallax depth translation
+            window.addEventListener('mousemove', (e) => {
+                const mouseX = (e.clientX / window.innerWidth) - 0.5;
+                const mouseY = (e.clientY / window.innerHeight) - 0.5;
+                
+                document.querySelectorAll('.floating-icon').forEach(icon => {
+                    const depth = parseFloat(icon.getAttribute('data-depth')) || 0.4;
+                    gsap.to(icon, {
+                        x: mouseX * depth * 90,
+                        y: mouseY * depth * 90,
+                        duration: 1.3,
+                        overwrite: "auto",
+                        ease: "power2.out"
+                    });
+                });
+            });
+
+            // 4. Magnetic CTA Buttons hover
+            document.querySelectorAll('.btn-magnetic').forEach(btn => {
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const btnX = e.clientX - rect.left - rect.width / 2;
+                    const btnY = e.clientY - rect.top - rect.height / 2;
+                    
+                    gsap.to(btn, {
+                        x: btnX * 0.35,
+                        y: btnY * 0.35,
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                });
+                btn.addEventListener('mouseleave', () => {
+                    gsap.to(btn, {
+                        x: 0,
+                        y: 0,
+                        duration: 0.6,
+                        ease: "elastic.out(1.1, 0.4)"
+                    });
+                });
+            });
+
+            // 5. Scroll Indicator continuous bounce
+            gsap.fromTo(".scroll-indicator", 
+                { y: 0 }, 
+                { y: 8, duration: 1.3, repeat: -1, yoyo: true, ease: "sine.inOut" }
+            );
+
+            // Scroll reveals for screening sections
+            gsap.utils.toArray(".section-container").forEach(section => {
+                const info = section.querySelector(".section-info");
+                const visual = section.querySelector(".section-visual");
+                
+                if (info) {
+                    gsap.from(info, {
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 85%",
+                            toggleActions: "play none none none"
+                        },
+                        x: -50,
+                        opacity: 0,
+                        duration: 1.1,
+                        ease: "power3.out"
+                    });
+                }
+                
+                if (visual) {
+                    gsap.from(visual, {
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 85%",
+                            toggleActions: "play none none none"
+                        },
+                        x: 50,
+                        opacity: 0,
+                        duration: 1.1,
+                        ease: "power3.out"
+                    });
+                }
+            });
+
+            // Setup segment reveal
+            gsap.from("#setup-section .container", {
+                scrollTrigger: {
+                    trigger: "#setup-section",
+                    start: "top 85%",
+                    toggleActions: "play none none none"
+                },
+                y: 40,
+                opacity: 0,
+                duration: 1.1,
+                ease: "power3.out"
+            });
+        } catch (gsapError) {
+            console.error("GSAP Initialization failed, using standard fallback layout:", gsapError);
+        }
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>

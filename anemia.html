@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anemia Scanner — SehatSaathi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script>
+        if (!sessionStorage.getItem("disclaimer_accepted")) {
+            window.location.href = "./index.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+    
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-emoji">⚕️</span> SehatSaathi
+            </a>
+            <div class="nav-links">
+                <a href="./menu.html" class="nav-btn" data-trn="nav-dashboard">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title" data-trn="anemia-title">🩸 Anemia Conjunctiva Scanner</h1>
+            <p class="page-subtitle" data-trn="anemia-subtitle">Multispectral Pallor Assessment Screen using computer vision.</p>
+            <div class="title-separator" style="background-color: var(--color-danger);"></div>
+
+            <div class="test-layout">
+                <!-- Left column: Webcam stream -->
+                <div class="test-workspace" style="border-color: var(--color-danger);">
+                    <div class="media-container" style="max-width: 640px; aspect-ratio: 4/3; position: relative;">
+                        <video id="video-feed" class="video-feed" autoplay playsinline style="transform: scaleX(-1);"></video>
+                        <canvas id="landmark-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; transform: scaleX(-1);"></canvas>
+                        <img id="capture-preview" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5; border-radius: 8px;" alt="Captured ROI Preview">
+                        <canvas id="snapshot-canvas" style="display: none;"></canvas>
+                    </div>
+                    <div class="status-indicator status-scanning" id="camera-status" style="margin-top: 1rem; width: 100%;" data-trn="status-init-camera">
+                        ⏳ INITIALIZING CAMERA...
+                    </div>
+                </div>
+
+                <!-- Right column: Step instructions and checklist -->
+                <div class="test-controls">
+                    <div class="instruction-box anemia-step" id="instruction-card">
+                        <h3 id="step-title" style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-danger);">Current Step: Palm Scan</h3>
+                        <p id="step-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+                            Position your palm flat in the camera frame. Keep it steady.
+                        </p>
+                    </div>
+
+                    <ul class="checklist">
+                        <li id="check-palm" class="checklist-item current">○ Palm Scan</li>
+                        <li id="check-nail" class="checklist-item">○ Nail Scan</li>
+                        <li id="check-conjunctiva" class="checklist-item">○ Conjunctiva Scan</li>
+                    </ul>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <button id="btn-capture" class="btn btn-danger" data-trn="btn-capture">📸 Capture Scan</button>
+                        <button id="btn-reset" class="btn btn-secondary" data-trn="btn-reset">🔄 Reset</button>
+                    </div>
+                    <button id="btn-calculate" class="btn btn-success btn-block" disabled data-trn="btn-calc-risk">📊 Calculate Risk</button>
+
+                    <div id="results-display" class="results-box" data-trn="anemia-results-initial">
+                        No scans captured yet. Follow instructions above.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p data-trn="footer-text">⚕️ SehatSaathi is a screening tool only — not a medical diagnosis. Consult a doctor for any flagged risk.</p>
+        </div>
+    </footer>
+
+    <!-- Load MediaPipe dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+    <script>
+        const video = document.getElementById('video-feed');
+        const snapCanvas = document.getElementById('snapshot-canvas');
+        const snapCtx = snapCanvas.getContext('2d');
+        const landmarkCanvas = document.getElementById('landmark-canvas');
+        const landmarkCtx = landmarkCanvas.getContext('2d');
+        
+        const cameraStatus = document.getElementById('camera-status');
+        const captureBtn = document.getElementById('btn-capture');
+        const resetBtn = document.getElementById('btn-reset');
+        const calcBtn = document.getElementById('btn-calculate');
+        const resultsDisplay = document.getElementById('results-display');
+        const stepTitle = document.getElementById('step-title');
+        const stepDesc = document.getElementById('step-desc');
+
+        const steps = ['palm', 'nail', 'conjunctiva'];
+        let currentStepIndex = 0;
+        let scansData = { palm: null, nail: null, conjunctiva: null };
+
+        // Realtime detected regions coordinates
+        let currentPalmCoords = null;
+        let currentNailPoints = []; // [{x, y}]
+        let currentConjunctivaCoords = null;
+        let currentScleraCoords = null;
+
+        // Load preferred camera device
+        const preferredCameraId = localStorage.getItem('sehatsaathi_preferred_camera');
+        let cameraHelper = null;
+
+        function resizeLandmarkCanvas() {
+            landmarkCanvas.width = video.videoWidth || 640;
+            landmarkCanvas.height = video.videoHeight || 480;
+        }
+
+        // MediaPipe Hand Detector
+        const handDetector = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        handDetector.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.5
+        });
+
+        // MediaPipe Face Mesh Detector
+        const faceDetector = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+        faceDetector.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.5
+        });
+
+        // Helper to extract statistics from pixel array
+        function computeColorStatistics(pixels) {
+            let r_sum = 0, g_sum = 0, b_sum = 0;
+            let count = pixels.length / 4;
+            if (count === 0) return null;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                r_sum += pixels[i];
+                g_sum += pixels[i+1];
+                b_sum += pixels[i+2];
+            }
+
+            let r_mean = r_sum / count;
+            let g_mean = g_sum / count;
+            let b_mean = b_sum / count;
+
+            let r_var_sum = 0, g_var_sum = 0, b_var_sum = 0;
+            let hsv_s_sum = 0, hsv_v_sum = 0;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                let r = pixels[i];
+                let g = pixels[i+1];
+                let b = pixels[i+2];
+
+                r_var_sum += Math.pow(r - r_mean, 2);
+                g_var_sum += Math.pow(g - g_mean, 2);
+                b_var_sum += Math.pow(b - b_mean, 2);
+
+                // RGB to HSV
+                let nr = r / 255, ng = g / 255, nb = b / 255;
+                let max = Math.max(nr, ng, nb), min = Math.min(nr, ng, nb);
+                let s = max === 0 ? 0 : (max - min) / max;
+                hsv_s_sum += s * 100;
+                hsv_v_sum += max * 255;
+            }
+
+            let r_std = Math.sqrt(r_var_sum / count);
+            let g_std = Math.sqrt(g_var_sum / count);
+            let b_std = Math.sqrt(b_var_sum / count);
+
+            let total = r_mean + g_mean + b_mean + 1e-6;
+            let red_ratio = r_mean / total;
+            let redness_index = (r_mean - g_mean) / (r_mean + g_mean + 1e-6);
+            let pallor_index = (255 - r_mean) / 255.0;
+            let pink_score = r_mean - g_mean;
+            let color_variance = (r_std + g_std + b_std) / 3.0;
+
+            return {
+                rgb: [r_mean, g_mean, b_mean],
+                saturation: hsv_s_sum / count,
+                brightness: hsv_v_sum / count,
+                red_ratio: red_ratio,
+                redness_index: redness_index,
+                pallor_index: pallor_index,
+                pink_score: pink_score,
+                color_variance: color_variance,
+                valid_analysis: true
+            };
+        }
+
+        // Bounding box helper
+        function getBoxCoords(landmarks, indices, margin, w, h) {
+            let xs = indices.map(idx => landmarks[idx].x * w);
+            let ys = indices.map(idx => landmarks[idx].y * h);
+            let x_min = Math.min(...xs);
+            let x_max = Math.max(...xs);
+            let y_min = Math.min(...ys);
+            let y_max = Math.max(...ys);
+
+            if (margin < 0) {
+                let cx = (x_min + x_max) / 2;
+                let cy = (y_min + y_max) / 2;
+                x_min = Math.min(x_min - margin, cx - 12);
+                y_min = Math.min(y_min - margin, cy - 12);
+                x_max = Math.max(x_max + margin, cx + 12);
+                y_max = Math.max(y_max + margin, cy + 12);
+            } else {
+                x_min -= margin;
+                y_min -= margin;
+                x_max += margin;
+                y_max += margin;
+            }
+
+            x_min = Math.max(0, Math.floor(x_min));
+            y_min = Math.max(0, Math.floor(y_min));
+            x_max = Math.min(w, Math.floor(x_max));
+            y_max = Math.min(h, Math.floor(y_max));
+
+            return { x: x_min, y: y_min, w: x_max - x_min, h: y_max - y_min };
+        }
+
+        // Drawing loops
+        function onHandResults(results) {
+            landmarkCtx.clearRect(0, 0, landmarkCanvas.width, landmarkCanvas.height);
+            
+            const mode = steps[currentStepIndex];
+            if (mode !== 'palm' && mode !== 'nail') return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                cameraStatus.className = 'status-indicator status-detected';
+                cameraStatus.innerText = `✓ HAND DETECTED — POSITION FOR ${mode.toUpperCase()} SCAN`;
+                
+                const landmarks = results.multiHandLandmarks[0];
+                const w = landmarkCanvas.width;
+                const h = landmarkCanvas.height;
+                
+                if (mode === 'palm') {
+                    const palmIndices = [0, 5, 9, 13, 17];
+                    const box = getBoxCoords(landmarks, palmIndices, -20, w, h);
+                    currentPalmCoords = box;
+
+                    // Draw palm center keypoints in red
+                    palmIndices.forEach(idx => {
+                        const lm = landmarks[idx];
+                        landmarkCtx.beginPath();
+                        landmarkCtx.arc(lm.x * w, lm.y * h, 6, 0, 2 * Math.PI);
+                        landmarkCtx.fillStyle = '#FF3333';
+                        landmarkCtx.fill();
+                    });
+                    
+                    // Draw Palm ROI box
+                    landmarkCtx.strokeStyle = '#FF3333';
+                    landmarkCtx.lineWidth = 3;
+                    landmarkCtx.strokeRect(box.x, box.y, box.w, box.h);
+                    
+                    // Label
+                    landmarkCtx.save();
+                    landmarkCtx.translate(w, 0);
+                    landmarkCtx.scale(-1, 1);
+                    landmarkCtx.fillStyle = '#FF3333';
+                    landmarkCtx.font = '14px Outfit';
+                    landmarkCtx.textAlign = 'right';
+                    landmarkCtx.fillText("PALM ROI", w - box.x - 10, box.y + 20);
+                    landmarkCtx.restore();
+                } else if (mode === 'nail') {
+                    const tips = [4, 8, 12];
+                    currentNailPoints = [];
+
+                    tips.forEach(idx => {
+                        const lm = landmarks[idx];
+                        const x = lm.x * w;
+                        const y = lm.y * h;
+                        currentNailPoints.push({ x, y });
+                        
+                        const ns = 12;
+                        landmarkCtx.strokeStyle = '#FF3333';
+                        landmarkCtx.lineWidth = 2.5;
+                        landmarkCtx.strokeRect(x - ns, y - ns, ns * 2, ns * 2);
+                        
+                        landmarkCtx.beginPath();
+                        landmarkCtx.arc(x, y, 6, 0, 2 * Math.PI);
+                        landmarkCtx.fillStyle = '#FF3333';
+                        landmarkCtx.fill();
+                    });
+                    
+                    landmarkCtx.save();
+                    landmarkCtx.translate(w, 0);
+                    landmarkCtx.scale(-1, 1);
+                    landmarkCtx.fillStyle = '#FF3333';
+                    landmarkCtx.font = '14px Outfit';
+                    landmarkCtx.textAlign = 'left';
+                    tips.forEach(idx => {
+                        const lm = landmarks[idx];
+                        landmarkCtx.fillText("Nail ROI", w - (lm.x * w) + 18, (lm.y * h) + 5);
+                    });
+                    landmarkCtx.restore();
+                }
+            } else {
+                cameraStatus.className = 'status-indicator status-scanning';
+                cameraStatus.innerText = `⏳ ALIGN HAND IN FRAME FOR ${mode.toUpperCase()} SCAN`;
+            }
+        }
+
+        function onFaceResults(results) {
+            landmarkCtx.clearRect(0, 0, landmarkCanvas.width, landmarkCanvas.height);
+            
+            const mode = steps[currentStepIndex];
+            if (mode !== 'conjunctiva') return;
+            
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                cameraStatus.className = 'status-indicator status-detected';
+                cameraStatus.innerText = '✓ FACE DETECTED — POSITION FOR CONJUNCTIVA SCAN';
+                
+                const landmarks = results.multiFaceLandmarks[0];
+                const w = landmarkCanvas.width;
+                const h = landmarkCanvas.height;
+                
+                const eyelidIndices = [145, 146, 147, 148, 149, 150, 151, 152];
+                const scleraIndices = [33, 133, 362, 263];
+                
+                // Draw eyelid highlights
+                eyelidIndices.forEach(idx => {
+                    const lm = landmarks[idx];
+                    landmarkCtx.beginPath();
+                    landmarkCtx.arc(lm.x * w, lm.y * h, 3, 0, 2 * Math.PI);
+                    landmarkCtx.fillStyle = '#FF3333';
+                    landmarkCtx.fill();
+                });
+                
+                // Conjunctiva Box
+                const boxConj = getBoxCoords(landmarks, eyelidIndices, 3, w, h);
+                currentConjunctivaCoords = boxConj;
+                
+                landmarkCtx.strokeStyle = '#FF3333';
+                landmarkCtx.lineWidth = 2;
+                landmarkCtx.strokeRect(boxConj.x, boxConj.y, boxConj.w, boxConj.h);
+                
+                landmarkCtx.save();
+                landmarkCtx.translate(w, 0);
+                landmarkCtx.scale(-1, 1);
+                landmarkCtx.fillStyle = '#FF3333';
+                landmarkCtx.font = '12px Outfit';
+                landmarkCtx.textAlign = 'right';
+                landmarkCtx.fillText("CONJUNCTIVA", w - boxConj.x - 5, boxConj.y - 5);
+                landmarkCtx.restore();
+                
+                // Sclera Box
+                const boxSclera = getBoxCoords(landmarks, scleraIndices, 2, w, h);
+                currentScleraCoords = boxSclera;
+                
+                landmarkCtx.strokeStyle = '#FF3333';
+                landmarkCtx.lineWidth = 2;
+                landmarkCtx.strokeRect(boxSclera.x, boxSclera.y, boxSclera.w, boxSclera.h);
+                
+                landmarkCtx.save();
+                landmarkCtx.translate(w, 0);
+                landmarkCtx.scale(-1, 1);
+                landmarkCtx.fillStyle = '#FF3333';
+                landmarkCtx.font = '12px Outfit';
+                landmarkCtx.textAlign = 'left';
+                landmarkCtx.fillText("SCLERA REF", w - boxSclera.x - boxSclera.w + 5, boxSclera.y - 5);
+                landmarkCtx.restore();
+            } else {
+                cameraStatus.className = 'status-indicator status-scanning';
+                cameraStatus.innerText = '⏳ ALIGN FACE IN FRAME FOR CONJUNCTIVA SCAN';
+            }
+        }
+
+        handDetector.onResults(onHandResults);
+        faceDetector.onResults(onFaceResults);
+
+        let processActive = false;
+        async function processAnemiaFrame() {
+            if (!processActive) return;
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                try {
+                    resizeLandmarkCanvas();
+                    const mode = steps[currentStepIndex];
+                    if (mode === 'palm' || mode === 'nail') {
+                        await handDetector.send({ image: video });
+                    } else if (mode === 'conjunctiva') {
+                        await faceDetector.send({ image: video });
+                    }
+                } catch (e) {
+                    console.error("Error processing camera frames:", e);
+                }
+            }
+            requestAnimationFrame(processAnemiaFrame);
+        }
+
+        // Start video feed
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: preferredCameraId ? { deviceId: { exact: preferredCameraId } } : true,
+                    audio: false
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.onloadedmetadata = () => {
+                    captureBtn.removeAttribute('disabled');
+                    cameraStatus.className = 'status-indicator status-detected';
+                    cameraStatus.innerText = '✓ CAMERA READY — POSITION FOR PALM SCAN';
+                    
+                    snapCanvas.width = video.videoWidth || 640;
+                    snapCanvas.height = video.videoHeight || 480;
+                    resizeLandmarkCanvas();
+
+                    processActive = true;
+                    processAnemiaFrame();
+                };
+                video.srcObject = stream;
+                video.play().catch(err => {
+                    console.warn("Video play deferred:", err);
+                });
+            } catch (err) {
+                console.error('Camera stream failed:', err);
+                cameraStatus.className = 'status-indicator status-scanning';
+                cameraStatus.innerText = '❌ CAMERA ERROR: ' + err.message;
+            }
+        }
+
+        startCamera();
+
+        function updateStepUI() {
+            landmarkCtx.clearRect(0, 0, landmarkCanvas.width, landmarkCanvas.height);
+            const mode = steps[currentStepIndex];
+            
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            const dict = (window.translationMap && window.translationMap[activeLang]) || {};
+            
+            let statusText = '';
+            if (mode === 'palm') {
+                stepTitle.textContent = dict['step-palm-title'] || 'Current Step: Palm Scan';
+                stepDesc.textContent = dict['step-palm-desc'] || 'Position your palm flat in the camera frame. Keep it steady.';
+                document.getElementById('check-palm').className = 'checklist-item current';
+                document.getElementById('check-nail').className = 'checklist-item';
+                document.getElementById('check-conjunctiva').className = 'checklist-item';
+                
+                statusText = '✓ CAMERA READY — POSITION FOR PALM SCAN';
+                if (activeLang === 'hi') statusText = '✓ कैमरा तैयार — हथेली को स्कैन करने के लिए सही स्थिति में रखें';
+                else if (activeLang === 'bn') statusText = '✓ ক্যামেরা প্রস্তুত — হাতের তালু স্ক্যান করার জন্য পজিশন করুন';
+                else if (activeLang === 'mr') statusText = '✓ कॅमेरा तयार — हथेली स्कॅनिंगसाठी योग्य ठिकाणी ठेवा';
+                else if (activeLang === 'ta') statusText = '✓ கேமரா தயார் — உள்ளங்கையை ஸ்கேன் செய்ய வைக்கவும்';
+                else if (activeLang === 'te') statusText = '✓ కెమెరా సిద్ధంగా ఉంది — అరచేతిని స్కాన్ చేయడానికి సరిచేయండి';
+                cameraStatus.innerText = statusText;
+            } else if (mode === 'nail') {
+                stepTitle.textContent = dict['step-nail-title'] || 'Current Step: Nail Scan';
+                stepDesc.textContent = dict['step-nail-desc'] || 'Position your fingernails clearly in the highlighted focus frame.';
+                document.getElementById('check-palm').className = 'checklist-item checked';
+                document.getElementById('check-nail').className = 'checklist-item current';
+                document.getElementById('check-conjunctiva').className = 'checklist-item';
+                
+                statusText = '✓ CAMERA READY — POSITION FOR NAIL SCAN';
+                if (activeLang === 'hi') statusText = '✓ कैमरा तैयार — नाखूनों को स्कैन करने के लिए सही स्थिति में रखें';
+                else if (activeLang === 'bn') statusText = '✓ ক্যামেরা প্রস্তুত — নখ স্ক্যান করার জন্য পজিশন করুন';
+                else if (activeLang === 'mr') statusText = '✓ कॅमेरा तयार — नखांच्या स्कॅनिंगसाठी योग्य ठिकाणी ठेवा';
+                else if (activeLang === 'ta') statusText = '✓ கேமரா தயார் — நகங்களை ஸ்கேன் செய்ய வைக்கவும்';
+                else if (activeLang === 'te') statusText = '✓ కెమెరా సిద్ధంగా ఉంది — గోళ్ళను స్కాన్ చేయడానికి సరిచేయండి';
+                cameraStatus.innerText = statusText;
+            } else if (mode === 'conjunctiva') {
+                stepTitle.textContent = dict['step-conj-title'] || 'Current Step: Conjunctiva Scan';
+                stepDesc.textContent = dict['step-conj-desc'] || 'Gently pull down your lower eyelid to expose the conjunctiva under the camera feed.';
+                document.getElementById('check-palm').className = 'checklist-item checked';
+                document.getElementById('check-nail').className = 'checklist-item checked';
+                document.getElementById('check-conjunctiva').className = 'checklist-item current';
+                
+                statusText = '✓ CAMERA READY — POSITION FOR CONJUNCTIVA SCAN';
+                if (activeLang === 'hi') statusText = '✓ कैमरा तैयार — कंजांक्टिवा को स्कैन करने के लिए स्थिति में रखें';
+                else if (activeLang === 'bn') statusText = '✓ ক্যামেরা প্রস্তুত — কনজাংটিভা স্ক্যান করার জন্য পজিশন করুন';
+                else if (activeLang === 'mr') statusText = '✓ कॅमेरा तयार — कंजंक्टिवा स्कॅनिंगसाठी योग्य ठिकाणी ठेवा';
+                else if (activeLang === 'ta') statusText = '✓ கேமரா தயார் — கண் இமையை ஸ்கேன் செய்ய வைக்கவும்';
+                else if (activeLang === 'te') statusText = '✓ కెమెరా సిద్ధంగా ఉంది — కంటి రెప్పను స్కాన్ చేయడానికి సరిచేయండి';
+                cameraStatus.innerText = statusText;
+            }
+
+            // Sync checklist items labels
+            let palmPrefix = document.getElementById('check-palm').className.includes('checked') ? '✓ ' : '○ ';
+            let nailPrefix = document.getElementById('check-nail').className.includes('checked') ? '✓ ' : '○ ';
+            let conjPrefix = document.getElementById('check-conjunctiva').className.includes('checked') ? '✓ ' : '○ ';
+            
+            let palmLabel = 'Palm Scan';
+            let nailLabel = 'Nail Scan';
+            let conjLabel = 'Conjunctiva Scan';
+            
+            if (activeLang === 'hi') {
+                palmLabel = 'हथेली का स्कैन';
+                nailLabel = 'नाखून का स्कैन';
+                conjLabel = 'कंजंक्टिवा का स्कैन';
+            } else if (activeLang === 'bn') {
+                palmLabel = 'হাতের তালু স্ক্যান';
+                nailLabel = 'নখের স্ক্যান';
+                conjLabel = 'কনজাংটিভা স্ক্যান';
+            } else if (activeLang === 'mr') {
+                palmLabel = 'हथेलीचे स्कॅनिंग';
+                nailLabel = 'नखांचे स्कॅनिंग';
+                conjLabel = 'कंजंक्टिवा स्कॅनिंग';
+            } else if (activeLang === 'ta') {
+                palmLabel = 'உள்ளங்கை ஸ்கேனிங்';
+                nailLabel = 'நகங்கள் ஸ்கேனிங்';
+                conjLabel = 'கண் இமை ஸ்கேனிங்';
+            } else if (activeLang === 'te') {
+                palmLabel = 'అరచేతి స్కానింగ్';
+                nailLabel = 'గోళ్ళ స్కానింగ్';
+                conjLabel = 'కంటి రెప్ప స్కానింగ్';
+            }
+            
+            document.getElementById('check-palm').innerText = palmPrefix + palmLabel;
+            document.getElementById('check-nail').innerText = nailPrefix + nailLabel;
+            document.getElementById('check-conjunctiva').innerText = conjPrefix + conjLabel;
+        }
+
+        // Draw preview overlay
+        function generateMarkedPreview(boxCoordsArray) {
+            const previewCanvas = document.createElement('canvas');
+            previewCanvas.width = snapCanvas.width;
+            previewCanvas.height = snapCanvas.height;
+            const prevCtx = previewCanvas.getContext('2d');
+            
+            // Draw captured image
+            prevCtx.drawImage(snapCanvas, 0, 0);
+            
+            // Draw red bounding boxes
+            prevCtx.strokeStyle = '#FF3333';
+            prevCtx.lineWidth = 4;
+            boxCoordsArray.forEach(b => {
+                if (b) prevCtx.strokeRect(b.x, b.y, b.w, b.h);
+            });
+            
+            return previewCanvas.toDataURL('image/jpeg');
+        }
+
+        captureBtn.addEventListener('click', async () => {
+            const mode = steps[currentStepIndex];
+            cameraStatus.innerText = `🔬 PROCESSING ${mode.toUpperCase()} SCAN...`;
+
+            // Capture snapshot from video feed
+            snapCtx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+
+            // Execute local crop and statistics calculations
+            let data = null;
+            let boxesToDraw = [];
+
+            if (mode === 'palm') {
+                if (!currentPalmCoords) {
+                    alert("No palm detected in frame. Please reposition.");
+                    cameraStatus.innerText = '❌ PALM DETECTION FAILED';
+                    return;
+                }
+                const cropCanvas = document.createElement('canvas');
+                cropCanvas.width = currentPalmCoords.w;
+                cropCanvas.height = currentPalmCoords.h;
+                const cropCtx = cropCanvas.getContext('2d');
+                cropCtx.drawImage(snapCanvas, currentPalmCoords.x, currentPalmCoords.y, currentPalmCoords.w, currentPalmCoords.h, 0, 0, currentPalmCoords.w, currentPalmCoords.h);
+                
+                const pixels = cropCtx.getImageData(0, 0, cropCanvas.width, cropCanvas.height).data;
+                const stats = computeColorStatistics(pixels);
+                
+                if (stats) {
+                    // Assess
+                    let score = 0, warnings = [];
+                    if (stats.red_ratio < 0.28) {
+                        score += 1.5; warnings.push("Mild palm pallor");
+                    } else if (stats.red_ratio < 0.35) {
+                        score += 0.5; warnings.push("Slight color reduction");
+                    }
+                    if (stats.saturation < 20) {
+                        score += 0.5; warnings.push("Moderate saturation");
+                    }
+                    let conf = Math.max(0.5, 1.0 - (stats.color_variance / 100.0));
+                    
+                    data = {
+                        detected: true,
+                        risk_score: Math.min(score, 5),
+                        warnings: warnings,
+                        confidence: conf,
+                        rgb: stats.rgb,
+                        red_ratio: stats.red_ratio
+                    };
+                    boxesToDraw = [currentPalmCoords];
+                }
+            } else if (mode === 'nail') {
+                if (currentNailPoints.length < 2) {
+                    alert("No fingernails detected. Please reposition.");
+                    cameraStatus.innerText = '❌ NAIL DETECTION FAILED';
+                    return;
+                }
+                
+                // Extract 3 fingernails
+                let allR = [], allG = [], allB = [];
+                let totalVarianceSum = 0;
+                let ns = 12;
+                
+                currentNailPoints.forEach(pt => {
+                    const nx1 = Math.max(0, Math.floor(pt.x - ns));
+                    const ny1 = Math.max(0, Math.floor(pt.y - ns));
+                    const nw = Math.min(snapCanvas.width - nx1, ns * 2);
+                    const nh = Math.min(snapCanvas.height - ny1, ns * 2);
+                    
+                    if (nw > 2 && nh > 2) {
+                        const cropCanvas = document.createElement('canvas');
+                        cropCanvas.width = nw;
+                        cropCanvas.height = nh;
+                        const cropCtx = cropCanvas.getContext('2d');
+                        cropCtx.drawImage(snapCanvas, nx1, ny1, nw, nh, 0, 0, nw, nh);
+                        
+                        const pixels = cropCtx.getImageData(0, 0, nw, nh).data;
+                        const stats = computeColorStatistics(pixels);
+                        if (stats) {
+                            allR.push(stats.rgb[0]);
+                            allG.push(stats.rgb[1]);
+                            allB.push(stats.rgb[2]);
+                            totalVarianceSum += stats.color_variance;
+                        }
+                        boxesToDraw.push({ x: nx1, y: ny1, w: nw, h: nh });
+                    }
+                });
+
+                if (allR.length > 0) {
+                    let r_mean = allR.reduce((a,b)=>a+b, 0) / allR.length;
+                    let g_mean = allG.reduce((a,b)=>a+b, 0) / allG.length;
+                    let b_mean = allB.reduce((a,b)=>a+b, 0) / allB.length;
+                    let avgVar = totalVarianceSum / allR.length;
+                    let pink_score = r_mean - g_mean;
+                    
+                    let score = 0, warnings = [];
+                    if (pink_score < 10) {
+                        score += 1.5; warnings.push("Pale nail beds");
+                    } else if (pink_score < 25) {
+                        score += 0.5; warnings.push("Slight nail pallor");
+                    }
+                    let conf = (avgVar < 30) ? 0.7 : 0.5;
+
+                    data = {
+                        detected: true,
+                        risk_score: Math.min(score, 5),
+                        warnings: warnings,
+                        confidence: conf,
+                        rgb: [r_mean, g_mean, b_mean],
+                        red_ratio: r_mean / (r_mean + g_mean + b_mean + 1e-6)
+                    };
+                }
+            } else if (mode === 'conjunctiva') {
+                if (!currentConjunctivaCoords) {
+                    alert("No face detected in frame. Please reposition.");
+                    cameraStatus.innerText = '❌ CONJUNCTIVA SCAN FAILED';
+                    return;
+                }
+                // Eyelid ROI
+                const cropConj = document.createElement('canvas');
+                cropConj.width = currentConjunctivaCoords.w;
+                cropConj.height = currentConjunctivaCoords.h;
+                const cropConjCtx = cropConj.getContext('2d');
+                cropConjCtx.drawImage(snapCanvas, currentConjunctivaCoords.x, currentConjunctivaCoords.y, currentConjunctivaCoords.w, currentConjunctivaCoords.h, 0, 0, currentConjunctivaCoords.w, currentConjunctivaCoords.h);
+                const pixelsConj = cropConjCtx.getImageData(0, 0, cropConj.width, cropConj.height).data;
+                const statsConj = computeColorStatistics(pixelsConj);
+                
+                // Sclera ROI
+                let scleraRatio = null;
+                if (currentScleraCoords) {
+                    const cropSclera = document.createElement('canvas');
+                    cropSclera.width = currentScleraCoords.w;
+                    cropSclera.height = currentScleraCoords.h;
+                    const cropScleraCtx = cropSclera.getContext('2d');
+                    cropScleraCtx.drawImage(snapCanvas, currentScleraCoords.x, currentScleraCoords.y, currentScleraCoords.w, currentScleraCoords.h, 0, 0, currentScleraCoords.w, currentScleraCoords.h);
+                    const pixelsSclera = cropScleraCtx.getImageData(0, 0, cropSclera.width, cropSclera.height).data;
+                    const statsSclera = computeColorStatistics(pixelsSclera);
+                    if (statsSclera) {
+                        const [sr_m, sg_m, sb_m] = statsSclera.rgb;
+                        scleraRatio = sr_m / (sg_m + sb_m + 1e-6);
+                    }
+                }
+
+                if (statsConj) {
+                    const [r_mean, g_mean, b_mean] = statsConj.rgb;
+                    let pallor_ratio = r_mean / (g_mean + b_mean + 1e-6);
+                    if (scleraRatio) {
+                        pallor_ratio = pallor_ratio / (scleraRatio + 1e-6);
+                    }
+
+                    let score = 0, warnings = [];
+                    if (pallor_ratio > 0.85) {
+                        score = 0; warnings.push("Conjunctiva appears healthy");
+                    } else if (pallor_ratio > 0.70) {
+                        score = 1.5; warnings.push("Mild conjunctival pallor detected");
+                    } else if (pallor_ratio > 0.55) {
+                        score = 3.0; warnings.push("Moderate conjunctival pallor detected");
+                    } else {
+                        score = 4.5; warnings.push("Severe conjunctival pallor detected");
+                    }
+
+                    data = {
+                        detected: true,
+                        risk_score: Math.min(score, 5),
+                        warnings: warnings,
+                        confidence: 0.8,
+                        rgb: statsConj.rgb,
+                        red_ratio: statsConj.red_ratio
+                    };
+                    boxesToDraw = [currentConjunctivaCoords, currentScleraCoords];
+                }
+            }
+
+            if (!data) {
+                alert("Failed to analyze image. Try resetting.");
+                cameraStatus.innerText = '❌ SCAN FAILING';
+                return;
+            }
+
+            scansData[mode] = data;
+            
+            // Create and show preview base64 marked image
+            const previewUrl = generateMarkedPreview(boxesToDraw);
+            const previewImg = document.getElementById('capture-preview');
+            previewImg.src = previewUrl;
+            previewImg.style.display = 'block';
+            setTimeout(() => {
+                previewImg.style.display = 'none';
+            }, 1800);
+            
+            // Display results
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            if (currentStepIndex === 0) resultsDisplay.innerHTML = '';
+            
+            let labelCaptured = `✓ ${mode.toUpperCase()} SCAN CAPTURED:`;
+            let scoreLabel = 'Score';
+            let redRatioLabel = 'Red Ratio';
+            let rgbLabel = 'RGB Color';
+            if (activeLang === 'hi') {
+                labelCaptured = `✓ ${mode === 'palm' ? 'हथेली' : mode === 'nail' ? 'नाखून' : 'कंजंक्टिवा'} का स्कैन कैप्चर किया गया:`;
+                scoreLabel = 'स्कोर';
+                redRatioLabel = 'लाल अनुपात';
+                rgbLabel = 'आरजीबी रंग';
+            } else if (activeLang === 'bn') {
+                labelCaptured = `✓ ${mode === 'palm' ? 'হাতের তালু' : mode === 'nail' ? 'নখ' : 'কনজাংটিভা'} স্ক্যান ক্যাপচার করা হয়েছে:`;
+                scoreLabel = 'স্কোর';
+                redRatioLabel = 'লাল অনুপাত';
+                rgbLabel = 'আরজিবি কালার';
+            } else if (activeLang === 'mr') {
+                labelCaptured = `✓ ${mode === 'palm' ? 'हथेलीचे' : mode === 'nail' ? 'नखांचे' : 'कंजंक्टिवा'} स्कॅनिंग पूर्ण झाले:`;
+                scoreLabel = 'स्कोर';
+                redRatioLabel = 'लाल गुणोत्तर';
+                rgbLabel = 'आरजीबी रंग';
+            } else if (activeLang === 'ta') {
+                labelCaptured = `✓ ${mode === 'palm' ? 'உள்ளங்கை' : mode === 'nail' ? 'நகங்கள்' : 'கண் இமை'} ஸ்கேன் எடுக்கப்பட்டது:`;
+                scoreLabel = 'மதிப்பெண்';
+                redRatioLabel = 'சிவப்பு விகிதம்';
+                rgbLabel = 'ஆர்ஜிபி வண்ணம்';
+            } else if (activeLang === 'te') {
+                labelCaptured = `✓ ${mode === 'palm' ? 'అరచేతి' : mode === 'nail' ? 'గోళ్ళ' : 'కంటి రెప్ప'} స్కాన్ విజయవంతంగా తీసుకోబడింది:`;
+                scoreLabel = 'స్కోరు';
+                redRatioLabel = 'ఎరుపు నిష్పత్తి';
+                rgbLabel = 'ఆర్జీబీ రంగు';
+            }
+
+            resultsDisplay.innerHTML += `${labelCaptured}\n` +
+                                         `  • ${scoreLabel}: ${data.risk_score.toFixed(2)}/5.0\n` +
+                                         `  • ${redRatioLabel}: ${data.red_ratio.toFixed(4)}\n` +
+                                         `  • ${rgbLabel}: R:${Math.round(data.rgb[0])} G:${Math.round(data.rgb[1])} B:${Math.round(data.rgb[2])}\n\n`;
+
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                updateStepUI();
+            } else {
+                document.getElementById('check-conjunctiva').className = 'checklist-item checked';
+                cameraStatus.className = 'status-indicator status-detected';
+                
+                let allCapturedText = '✓ ALL SCANS CAPTURED';
+                if (activeLang === 'hi') allCapturedText = '✓ सभी स्कैन कैप्चर किए गए';
+                else if (activeLang === 'bn') allCapturedText = '✓ সমস্ত স্ক্যান ক্যাপচার করা হয়েছে';
+                else if (activeLang === 'mr') allCapturedText = '✓ सर्व स्कॅनिंग पूर्ण झाले';
+                else if (activeLang === 'ta') allCapturedText = '✓ அனைத்து ஸ்கேன்களும் எடுக்கப்பட்டன';
+                else if (activeLang === 'te') allCapturedText = '✓ అన్ని స్కాన్లు విజయవంతంగా సేకరించబడ్డాయి';
+                cameraStatus.innerText = allCapturedText;
+                
+                captureBtn.setAttribute('disabled', 'true');
+                calcBtn.removeAttribute('disabled');
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            currentStepIndex = 0;
+            scansData = { palm: null, nail: null, conjunctiva: null };
+            captureBtn.removeAttribute('disabled');
+            calcBtn.setAttribute('disabled', 'true');
+            document.getElementById('capture-preview').style.display = 'none';
+            
+            let initialText = 'No scans captured yet. Follow instructions above.';
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            if (activeLang === 'hi') initialText = 'अभी तक कोई स्कैन कैप्चर नहीं किया गया है। ऊपर दिए गए निर्देशों का पालन करें।';
+            else if (activeLang === 'bn') initialText = 'এখনও কোনো স্ক্যান নেওয়া হয়নি। উপরের নির্দেশাবলী অনুসরণ করুন।';
+            else if (activeLang === 'mr') initialText = 'अद्याप कोणतेही स्कॅन केलेले नाही. वरील सूचनांचे अनुसरण करा.';
+            else if (activeLang === 'ta') initialText = 'ஸ்கேன்கள் இன்னும் எடுக்கப்படவில்லை. மேலே உள்ள வழிமுறைகளைப் பின்பற்றவும்.';
+            else if (activeLang === 'te') initialText = 'ఇంకా ఎలాంటి స్కాన్‌లు తీసుకోలేదు. పైన పేర్కొన్న సూచనలను అనుసరించండి.';
+            resultsDisplay.innerHTML = initialText;
+            
+            updateStepUI();
+        });
+
+        // Explanations dictionary
+        const anemiaExplanations = {
+            en: {
+                HEALTHY: "The AI detected a healthy level. Indicators appear normal. This does not confirm a diagnosis, but we recommend maintaining a balanced diet with proper iron intake.",
+                MILD: "The AI detected a mild possibility of anemia. This does not confirm the disease, but it is recommended to monitor your nutrition, focus on iron-rich foods, and consult a doctor if you experience fatigue or weakness.",
+                MODERATE: "The AI detected a moderate possibility of anemia. This does not confirm the disease, but it is recommended to consult a healthcare professional and consider a blood test (Complete Blood Count) soon.",
+                SEVERE: "The AI detected a severe risk of anemia. This does not confirm the disease, but it is highly recommended to consult a healthcare professional immediately for a diagnostic blood test."
+            },
+            hi: {
+                HEALTHY: "एआई ने एक स्वस्थ स्तर का पता लगाया है। संकेतक सामान्य दिखाई देते हैं। यह किसी बीमारी की पुष्टि नहीं करता है, लेकिन हम उचित आयरन के सेवन के साथ संतुलित आहार बनाए रखने की सलाह देते हैं।",
+                MILD: "एआई ने एनीमिया की हल्की संभावना का पता लगाया है। यह बीमारी की पुष्टि नहीं करता है, लेकिन पोषण की निगरानी करने, आयरन से भरपूर खाद्य पदार्थों पर ध्यान देने और थकान या कमजोरी होने पर डॉक्टर से परामर्श करने की सलाह दी जाती है।",
+                MODERATE: "एआई ने एनीमिया की मध्यम संभावना का पता लगाया है। यह बीमारी की पुष्टि नहीं करता है, लेकिन किसी स्वास्थ्य सेवा पेशेवर से परामर्श करने और जल्द ही रक्त परीक्षण (सीबीसी) पर विचार करने की सलाह दी जाती है।",
+                SEVERE: "एआई ने एनीमिया के गंभीर जोखिम का पता लगाया है। यह बीमारी की पुष्टि नहीं करता है, लेकिन नैदानिक रक्त परीक्षण के लिए तुरंत डॉक्टर से संपर्क करने की अत्यधिक सलाह दी जाती है।"
+            },
+            bn: {
+                HEALTHY: "এআই একটি স্বাভাবিক ও সুস্থ স্তর সনাক্ত করেছে। সমস্ত সূচক স্বাভাবিক দেখাচ্ছে। এটি রোগ নির্ণয় নিশ্চিত করে না, তবে উপযুক্ত পরিমাণে আয়রনযুক্ত সুষম খাদ্য বজায় রাখার পরামর্শ দেওয়া হচ্ছে।",
+                MILD: "এআই রক্তাল্পতা (অ্যানিমিয়া)-র মৃদু সম্ভাবনা সনাক্ত করেছে। এটি রোগ নিশ্চিত করে না, তবে আপনার পুষ্টির দিকে নজর দেওয়া, আয়রন-সমৃদ্ধ খাবার খাওয়া এবং ক্লান্তি বা দুর্বলতা অনুভব করলে চিকিৎসকের পরামর্শ নেওয়া উচিত।",
+                MODERATE: "এআই রক্তাল্পতা (অ্যানিমিয়া)-র মাঝারি সম্ভাবনা সনাক্ত করেছে। এটি রোগ নিশ্চিত করে না, তবে একজন স্বাস্থ্যসেবা পেশাদারের সাথে পরামর্শ করার এবং শীঘ্রই একটি রক্ত পরীক্ষা (সিবিসি) করার কথা বিবেচনা করার সুপারিশ করা হচ্ছে।",
+                SEVERE: "এআই রক্তাল্পতার একটি গুরুতর ঝুঁকি সনাক্ত করেছে। এটি রোগ নিশ্চিত করে না, তবে অবিলম্বে রোগ নির্ণয়কারী রক্ত পরীক্ষার জন্য ডাক্তারের সাথে যোগাযোগ করার জোরালো সুপারিশ করা হচ্ছে।"
+            },
+            mr: {
+                HEALTHY: "एआयने निरोगी पातळी शोधली आहे. सर्व निर्देशक सामान्य दिसत आहेत. हे निदानाची खात्री करत नाही, परंतु आम्ही योग्य लोहयुक्त संतुलित आहार राखण्याची शिफारस करतो.",
+                MILD: "एआयने ॲनिमियाची सौम्य शक्यता ओळखली आहे. यामुळे आजाराची खात्री होत नाही, परंतु तुमच्या पोषणावर लक्ष ठेवणे, लोहयुक्त अन्नावर भर देणे आणि थकवा किंवा अशक्तपणा जाणवल्यास डॉक्टरांचा सल्ला घेणे योग्य आहे.",
+                MODERATE: "एआयने ॲनिमियाची मध्यम शक्यता ओळखली आहे. यामुळे आजाराची खात्री होत नाही, परंतु वैद्यकीय तज्ञांचा सल्ला घेणे आणि लवकरच रक्त तपासणी (सीबीसी) करून घेणे शिफारसीय आहे.",
+                SEVERE: "एआयने ॲनिमियाचा गंभीर धोका ओळखला आहे. यामुळे आजाराची खात्री होत नाही, परंतु तातडीने वैद्यकीय तज्ञांचा सल्ला घेऊन रक्त चाचणी करून घेणे अत्यंत आवश्यक आहे."
+            },
+            ta: {
+                HEALTHY: "செயற்கை நுண்ணறிவு (AI) மூலம் இரத்த சோகைக்கான அறிகுறிகள் எதுவும் கண்டறியப்படவில்லை. அளவுகள் இயல்பாகவே உள்ளன. இது நோயறிதலை உறுதிப்படுத்தவில்லை, எனினும் இரும்புச்சத்து நிறைந்த சீரான உணவை உட்கொள்ள பரிந்துரைக்கப்படுகிறது.",
+                MILD: "செயற்கை நுண்ணறிவு (AI) மூலம் இரத்த சோகை ஏற்படுவதற்கான லேசான வாய்ப்பு கண்டறியப்பட்டுள்ளது. இது நோயை உறுதிப்படுத்தவில்லை, எனினும் உணவில் இரும்புச்சத்தை அதிகரிப்பதுடன் சோர்வு அல்லது பலவீனம் இருந்தால் மருத்துவரை அணுகவும்.",
+                MODERATE: "செயற்கை நுண்ணறிவு (AI) மூலம் இரத்த சோகை ஏற்படுவதற்கான நடுத்தர வாய்ப்பு கண்டறியப்பட்டுள்ளது. இது நோயை உறுதிப்படுத்தவில்லை, எனினும் விரைவில் மருத்துவரை அணுகி இரத்தப் பரிசோதனை (CBC) மேற்கொள்ள அறிவுறுத்தப்படுகிறது.",
+                SEVERE: "செயற்கை நுண்ணறிவு (AI) மூலம் இரத்த சோகைக்கான தீவிர ஆபத்து கண்டறியப்பட்டுள்ளது. இது நோயை உறுதிப்படுத்தவில்லை, எனினும் உடனடியாக மருத்துவரை அணுகி உரிய இரத்த பரிசோதனை செய்து கொள்வது மிக அவசியமாகும்."
+            },
+            te: {
+                HEALTHY: "AI ఒక ఆరోగ్యకరమైన స్థాయిని గుర్తించింది. అన్ని సూచికలు సాధారణంగా ఉన్నాయి. ఇది వ్యాధిని నిర్ధారించదు, కానీ తగినంత ఐరన్ ఉన్న సమతుల్య ఆహారాన్ని తీసుకోవాలని మేము సిఫార్సు చేస్తున్నాము.",
+                MILD: "రక్తహీనత (ఎనీమియా) వచ్చే స్వల్ప అవకాశం ఉందని AI గుర్తించింది. ఇది వ్యాధిని ధృవీకరించదు, కానీ మీ పోషణపై శ్రద్ధ పెట్టడం, ఐరన్ అధికంగా ఉండే ఆహారాన్ని తీసుకోవడం మరియు అలసట ఉంటే వైద్యుడిని సంప్రదించడం మంచిది.",
+                MODERATE: "రక్తహీనత వచ్చే అవకాశం మధ్యస్థంగా ఉందని AI గుర్తించింది. ఇది వ్యాధిని ధృవీకరించదు, కానీ వైద్యుడిని సంప్రదించడం మరియు త్వరలోనే రక్త పరీక్ష (CBC) చేయించుకోవాలని సిఫార్సు చేయబడింది.",
+                SEVERE: "రక్తహీనత వచ్చే ప్రమాదం ఎక్కువగా ఉందని AI గుర్తించింది. ఇది వ్యాధిని ధృవీకరించదు, కానీ రోగనిర్ధారణ రక్త పరీక్ష కోసం వెంటనే వైద్యుడిని సంప్రదించాలని గట్టిగా సిఫార్సు చేయబడింది."
+            }
+        };
+
+        calcBtn.addEventListener('click', () => {
+            const activeLang = localStorage.getItem('sehatsaathi_lang') || 'en';
+            const completedScans = Object.values(scansData).filter(x => x !== null).length;
+            if (completedScans < 3) {
+                let alertText = 'Please capture all 3 scans (Palm, Nail, and Conjunctiva) before calculating risk.';
+                if (activeLang === 'hi') alertText = 'जोखिम की गणना करने से पहले कृपया सभी 3 स्कैन (हथेली, नाखून और कंजांक्टिवा) कैप्चर करें।';
+                else if (activeLang === 'bn') alertText = 'ঝুঁকি গণনা করার আগে অনুগ্রহ করে ৩ টি স্ক্যানই (হাতের তালু, নখ এবং কনজাংটিভা) সম্পন্ন করুন।';
+                else if (activeLang === 'mr') alertText = 'जोखीम मोजण्यापूर्वी कृपया सर्व ३ स्कॅन (हथेली, नखे आणि कंजंक्टिवा) पूर्ण करा.';
+                else if (activeLang === 'ta') alertText = 'ஆபத்தைக் கணக்கிடும் முன் தயవుசெய்து 3 ஸ்கேன்களையும் (உள்ளங்கை, நகங்கள் மற்றும் கண் இமை) எடுக்கவும்.';
+                else if (activeLang === 'te') alertText = 'ప్రమాదాన్ని లెక్కించే ముందు దయచేసి అన్ని 3 స్కాన్లు (అరచేతి, గోళ్ళు మరియు కంటి రెప్ప) తీసుకోండి.';
+                alert(alertText);
+                return;
+            }
+
+            // Client-side combined assessment
+            let total_score = 0;
+            let all_warnings = [];
+            for (let mode in scansData) {
+                total_score += scansData[mode].risk_score;
+                all_warnings.push(...scansData[mode].warnings);
+            }
+            let avg_score = total_score / 3;
+
+            let risk_level = "HEALTHY";
+            let recommendation = "Indicators appear normal";
+            let bannerClass = 'risk-healthy';
+
+            if (avg_score >= 3.5) {
+                risk_level = "SEVERE";
+                recommendation = "Consult a doctor immediately for blood work";
+                bannerClass = 'risk-severe';
+            } else if (avg_score >= 2.0) {
+                risk_level = "MODERATE";
+                recommendation = "Consider a medical check-up soon";
+                bannerClass = 'risk-moderate';
+            } else if (avg_score >= 1.0) {
+                risk_level = "MILD";
+                recommendation = "Monitor nutrition and iron intake";
+                bannerClass = 'risk-mild';
+            }
+
+            // Save results to local storage for AI Health Score module
+            localStorage.setItem('sehatsaathi_result_anemia', JSON.stringify({
+                score: avg_score,
+                risk_level: risk_level,
+                timestamp: Date.now()
+            }));
+
+            // Remove duplicate warnings
+            all_warnings = [...new Set(all_warnings)];
+
+            function getSummaryHtml(lang) {
+                const explanation = anemiaExplanations[lang][risk_level];
+                
+                let riskLabelText = risk_level;
+                let titlePrompt = "This is a screening estimate, not a diagnosis. Please consult a doctor for confirmation.";
+                let averageScoreText = "Average Score";
+                let detailedMetricsText = "DETAILED SCAN METRICS";
+                let keyFindingsText = "KEY FINDINGS";
+                let noSignificantText = "No significant pallor detected.";
+                let recTitleText = "RECOMMENDATIONS & MEDICAL WARNING";
+                let warningPrompt = "WARNING: If you see abnormal scores or experience symptoms like fatigue, dizziness, or paleness, you should visit a qualified doctor or healthcare professional for a complete blood count (CBC) test.";
+                let localRecommendation = recommendation;
+
+                if (lang === 'hi') {
+                    riskLabelText = risk_level === "HEALTHY" ? "स्वस्थ" : risk_level === "MILD" ? "हल्का" : risk_level === "MODERATE" ? "मध्यम" : "गंभीर";
+                    titlePrompt = "यह एक स्क्रीनिंग अनुमान है, निदान नहीं। पुष्टि के लिए कृपया डॉक्टर से परामर्श लें।";
+                    averageScoreText = "औसत स्कोर";
+                    detailedMetricsText = "विस्तृत स्कैन मीट्रिक";
+                    keyFindingsText = "मुख्य निष्कर्ष";
+                    noSignificantText = "कोई महत्वपूर्ण पीलापन नहीं पाया गया।";
+                    recTitleText = "सिफारिशें और चिकित्सा चेतावनी";
+                    warningPrompt = "चेतावनी: यदि आप असामान्य स्कोर देखते हैं या थकान, चक्कर आना या पीलापन जैसे लक्षणों का अनुभव करते हैं, तो आपको पूर्ण रक्त गणना (सीबीसी) परीक्षण के लिए किसी योग्य चिकित्सक से मिलना चाहिए।";
+                    localRecommendation = recommendation.includes("normal") ? "संकेतक सामान्य दिखाई देते हैं" :
+                                         recommendation.includes("nutrition") ? "पोषण और आयरन के सेवन की निगरानी करें" :
+                                         recommendation.includes("medical") ? "जल्द ही एक मेडिकल चेक-अप पर विचार करें" : "रक्त परीक्षण के लिए तुरंत डॉक्टर से परामर्श लें";
+                } else if (lang === 'bn') {
+                    riskLabelText = risk_level === "HEALTHY" ? "স্বাভাবিক" : risk_level === "MILD" ? "মৃদু" : risk_level === "MODERATE" ? "মাঝারি" : "গুরুতর";
+                    titlePrompt = "এটি একটি স্ক্রিনিং অনুমান, কোনো রোগ নির্ণয় নয়। নিশ্চিতকরণের জন্য চিকিৎসকের পরামর্শ নিন।";
+                    averageScoreText = "গড় স্কোর";
+                    detailedMetricsText = "বিস্তারিত স্ক্যান মেট্রিক্স";
+                    keyFindingsText = "মূল অনুসন্ধান";
+                    noSignificantText = "কোনো উল্লেখযোগ্য ফ্যাকাশে ভাব পাওয়া যায়নি।";
+                    recTitleText = "সুপারিশ ও চিকিৎসা সংক্রান্ত সতর্কতা";
+                    warningPrompt = "সতর্কতা: আপনি যদি অস্বাভাবিক স্কোর দেখতে পান বা ক্লান্তি, মাথা ঘোরা বা ফ্যাকাশে ভাব অনুভব করেন, তবে আপনার রক্তের সম্পূর্ণ পরীক্ষার (CBC) জন্য একজন যোগ্য ডাক্তারের কাছে যাওয়া উচিত।";
+                    localRecommendation = recommendation.includes("normal") ? "সূচকগুলি স্বাভাবিক দেখাচ্ছে" :
+                                         recommendation.includes("nutrition") ? "পুষ্টি এবং আয়রন গ্রহণ পর্যবেক্ষণ করুন" :
+                                         recommendation.includes("medical") ? "শীঘ্রই একটি মেডিকেল চেক-আপের কথা বিবেচনা করুন" : "রক্ত পরীক্ষার জন্য অবিলম্বে ডাক্তারের পরামর্শ নিন";
+                } else if (lang === 'mr') {
+                    riskLabelText = risk_level === "HEALTHY" ? "निरोगी" : risk_level === "MILD" ? "सौम्य" : risk_level === "MODERATE" ? "मध्यम" : "गंभीर";
+                    titlePrompt = "हा प्राथमिक अंदाज आहे, निदान नाही. पुष्टीकरणासाठी कृपया डॉक्टरांचा सल्ला घ्या.";
+                    averageScoreText = "सरासरी स्कोर";
+                    detailedMetricsText = "तपशीलवार स्कॅन मेट्रिक्स";
+                    keyFindingsText = "मुख्य निष्कर्ष";
+                    noSignificantText = "कोणताही लक्षणीय फिकटपणा आढळला नाही.";
+                    recTitleText = "शिफारसी आणि वैद्यकीय इशारा";
+                    warningPrompt = "इशारा: जर तुम्हाला असामान्य स्कोर दिसल्यास किंवा थकवा, चक्कर येणे किंवा फिकटपणा यांसारखी लक्षणे जाणवल्यास, आपण संपूर्ण रक्त चाचणी (सीबीसी) साठी डॉक्टरांचा सल्ला घ्यावा.";
+                    localRecommendation = recommendation.includes("normal") ? "निर्देशक सामान्य दिसत आहेत" :
+                                         recommendation.includes("nutrition") ? "पोषण आणि लोहाच्या सेवनावर लक्ष ठेवा" :
+                                         recommendation.includes("medical") ? "लवकरच वैद्यकीय तपासणीचा विचार करा" : "रक्ताच्या चाचणीसाठी त्वरित डॉक्टरांचा सल्ला घ्या";
+                } else if (lang === 'ta') {
+                    riskLabelText = risk_level === "HEALTHY" ? "ஆரோக்கியமானது" : risk_level === "MILD" ? "லேசானது" : risk_level === "MODERATE" ? "மிதமானது" : "தீவிரமானது";
+                    titlePrompt = "இது ஒரு ஆரம்ப பரிசோதனை மட்டுமே, உத்தியோகபூர்வ நோய் கண்டறிதல் அல்ல. உறுதிப்படுத்த மருத்துவரை அணுகவும்.";
+                    averageScoreText = "சராசரி மதிப்பெண்";
+                    detailedMetricsText = "விரிவான ஸ்கேன் அளவீடுகள்";
+                    keyFindingsText = "முக்கிய முடிவுகள்";
+                    noSignificantText = "வெளிறிய தன்மை எதுவும் கண்டறியப்படவில்லை.";
+                    recTitleText = "பரிந்துரைகள் & மருத்துவ எச்சரிக்கை";
+                    warningPrompt = "எச்சரிக்கை: நீங்கள் அசாதாரண மதிப்பெண்களைக் கண்டாலோ அல்லது சோர்வு, தலைச்சுற்றல் அல்லது வெளிறிய தன்மை போன்ற அறிகுறிகளை உணர்ந்தாலோ, முழுமையான இரத்த பரிசோதனைக்காக (CBC) தகுதி வாய்ந்த மருத்துவரை அணுக வேண்டும்.";
+                    localRecommendation = recommendation.includes("normal") ? "அறிகுறிகள் இயல்பாகவே உள்ளன" :
+                                         recommendation.includes("nutrition") ? "உணவு மற்றும் இரும்புச்சத்து உட்கொள்ளலை கண்காணிக்கவும்" :
+                                         recommendation.includes("medical") ? "விரைவில் மருத்துவ பரிசோதனை செய்து கொள்ளவும்" : "இரத்த பரிசோதனைக்கு உடனடியாக மருத்துவரை அணுகவும்";
+                } else if (lang === 'te') {
+                    riskLabelText = risk_level === "HEALTHY" ? "ఆరోగ్యంగా" : risk_level === "MILD" ? "స్వల్పం" : risk_level === "MODERATE" ? "మధ్యస్థం" : "తీవ్రం";
+                    titlePrompt = "ఇది ప్రాథమిక అంచనా మాత్రమే, నివారణ కాదు. నిర్ధారణ కోసం వైద్యుడిని సంప్రదించండి.";
+                    averageScoreText = "సగటు స్కోరు";
+                    detailedMetricsText = "వివరణాత్మక స్కాన్ కొలతలు";
+                    keyFindingsText = "ముఖ్యమైన పరిశీలనలు";
+                    noSignificantText = "ఎలాంటి వెలవెలబోవడం గుర్తించబడలేదు.";
+                    recTitleText = "సిఫార్సులు & వైద్య హెచ్చరిక";
+                    warningPrompt = "హెచ్చరిక: మీరు అసాధారణ స్కోర్లను చూసినా లేదా అలసట, తలతిరగడం లేదా వెలవెలబోవడం వంటి లక్షణాలను అనుభవిస్తే, ఖచ్చితమైన రక్త పరీక్ష (CBC) కోసం వైద్యుడిని సంప్రదించాలి.";
+                    localRecommendation = recommendation.includes("normal") ? "సూచికలు సాధారణంగా ఉన్నాయి" :
+                                         recommendation.includes("nutrition") ? "పోషకాహారం మరియు ఐరన్ తీసుకోవడం గమనించండి" :
+                                         recommendation.includes("medical") ? "త్వరలోనే వైద్య పరీక్షను చేయించుకోండి" : "రక్త పరీక్షల కోసం వెంటనే వైద్యుడిని సంప్రదించండి";
+                }
+
+                return `
+${titlePrompt}
+
+<div class="risk-banner ${bannerClass}" style="margin-top: 1rem;">
+    ANEMIA RISK: ${riskLabelText}<br>
+    <span style="font-size: 1rem; font-weight: 500;">${averageScoreText}: ${avg_score.toFixed(2)} / 5.0</span>
+</div>
+
+<div class="lang-selector-container" style="margin: 1rem 0; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
+    <span style="font-size: 0.85rem; color: var(--text-secondary);">🌐 AI Explanation Language / भाषा:</span>
+    <select id="lang-select" style="background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: Outfit; font-size: 0.85rem;">
+        <option value="en" ${lang === 'en' ? 'selected' : ''}>🇬🇧 English</option>
+        <option value="hi" ${lang === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी (Hindi)</option>
+        <option value="bn" ${lang === 'bn' ? 'selected' : ''}>🇧🇩 বাংলা (Bengali)</option>
+        <option value="mr" ${lang === 'mr' ? 'selected' : ''}>🇮🇳 मराठी (Marathi)</option>
+        <option value="ta" ${lang === 'ta' ? 'selected' : ''}>🇮🇳 தமிழ் (Tamil)</option>
+        <option value="te" ${lang === 'te' ? 'selected' : ''}>🇮🇳 తెలుగు (Telugu)</option>
+    </select>
+</div>
+
+<div class="ai-explanation-box" style="background: rgba(255,255,255,0.03); border-left: 4px solid var(--color-danger); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); margin-bottom: 1rem;">
+    <strong>🤖 AI Report Explanation:</strong><br>
+    <span>${explanation}</span>
+</div>
+
+📊 ${detailedMetricsText}:
+${Object.keys(scansData).map(k => {
+    const s = scansData[k];
+    if (!s) return '';
+    let localKey = k.toUpperCase();
+    if (lang === 'hi') localKey = k === 'palm' ? 'हथेली' : k === 'nail' ? 'नाखून' : 'कंजंक्टिवा';
+    else if (lang === 'bn') localKey = k === 'palm' ? 'হাতের তালু' : k === 'nail' ? 'নখ' : 'কনজাংটিভা';
+    else if (lang === 'mr') localKey = k === 'palm' ? 'हथेली' : k === 'nail' ? 'नखे' : 'कंजंक्टिवा';
+    else if (lang === 'ta') localKey = k === 'palm' ? 'உள்ளங்கை' : k === 'nail' ? 'நகங்கள்' : 'கண் இமை';
+    else if (lang === 'te') localKey = k === 'palm' ? 'అరచేతి' : k === 'nail' ? 'గోళ్ళు' : 'కంటి రెప్ప';
+    return `  • ${localKey}: Score=${s.risk_score.toFixed(2)} | Red Ratio=${s.red_ratio.toFixed(4)} | RGB=(${Math.round(s.rgb[0])},${Math.round(s.rgb[1])},${Math.round(s.rgb[2])})`;
+}).join('\n')}
+
+🔍 ${keyFindingsText}:
+${all_warnings.length > 0 ? all_warnings.map(w => {
+    let localW = w;
+    if (lang === 'hi') {
+        localW = w.includes('Palm') ? 'हथेली में असामान्य पीलापन पाया गया।' :
+                 w.includes('Nail') ? 'नाखून के बेड में पीलापन या असामान्य चमक पाई गई।' :
+                 w.includes('Conjunctiva') ? 'कंजंक्टिवा (आँख के अंदर) का लालपन सूचकांक काफी कम है।' : w;
+    } else if (lang === 'bn') {
+        localW = w.includes('Palm') ? 'হাতের তালুতে অস্বাভাবিক ফ্যাকাশে ভাব সনাক্ত হয়েছে।' :
+                 w.includes('Nail') ? 'নখের নিচে ফ্যাকাশে ভাব বা রক্তাল্পতার চিহ্ন পাওয়া গেছে।' :
+                 w.includes('Conjunctiva') ? 'চোখের নিচের অংশে (কনজাংটিভা) লালচে ভাব বেশ কম দেখা গেছে।' : w;
+    } else if (lang === 'mr') {
+        localW = w.includes('Palm') ? 'हथेलीमध्ये असामान्य फिकटपणा आढळला.' :
+                 w.includes('Nail') ? 'नखांखालील फिकटपणा किंवा संशयास्पद रंग आढळला.' :
+                 w.includes('Conjunctiva') ? 'कंजंक्टिव्हामध्ये लालसरपणाचे प्रमाण कमी आढळले.' : w;
+    } else if (lang === 'ta') {
+        localW = w.includes('Palm') ? 'உள்ளங்கையில் அசாதாரண வெளிறிய தன்மை கண்டறியப்பட்டுள்ளது.' :
+                 w.includes('Nail') ? 'நகங்களில் இரத்த ஓட்டம் குறைவாகவும் வெளிறியும் உள்ளது.' :
+                 w.includes('Conjunctiva') ? 'கண் வெண்படலத்தில் (கண் இமையின் உள்) சிவப்பு நிறம் மிகவும் குறைவாக உள்ளது.' : w;
+    } else if (lang === 'te') {
+        localW = w.includes('Palm') ? 'అరచేతిలో అసాధారణ వెలవెలబోవడం గుర్తించబడింది.' :
+                 localW = w.includes('Nail') ? 'గోళ్ళ లోపల వెలవెలబోవడం లేదా అసాధారణ రంగు కనుగొనబడింది.' :
+                 localW = w.includes('Conjunctiva') ? 'కంటి రెప్ప లోపలి భాగంలో ఎరుపుదనం చాలా తక్కువగా ఉంది.' : w;
+    }
+    return `  • ${localW}`;
+}).join('\n') : `  • ${noSignificantText}`}
+
+📋 ${recTitleText}:
+  • ${localRecommendation}
+  • ⚠️ ${warningPrompt}
+`;
+            }
+
+            // Render initial summary in active language
+            resultsDisplay.innerHTML = getSummaryHtml(activeLang);
+
+            // Add change listener to select dropdown
+            resultsDisplay.addEventListener('change', (e) => {
+                if (e.target && e.target.id === 'lang-select') {
+                    resultsDisplay.innerHTML = getSummaryHtml(e.target.value);
+                }
+            });
+        });
+    </script>
+    <script src="static/js/translate.js"></script>
+</body>
+</html>
