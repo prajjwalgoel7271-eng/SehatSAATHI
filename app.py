@@ -29,6 +29,14 @@ from detection.tb import analyze_cough_audio
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "sehatsaathi_secret_key_12345")
 
+# ── Force HTTPS Middleware ──
+@app.before_request
+def force_https():
+    # Render's load balancer terminates SSL and sets X-Forwarded-Proto to 'http' or 'https'
+    if request.headers.get('X-Forwarded-Proto') == 'http':
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
+
 # ── Disclaimer Gate Middleware ──
 @app.before_request
 def check_disclaimer():
