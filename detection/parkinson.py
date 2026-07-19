@@ -11,6 +11,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import librosa
+import parselmouth
 
 # ── Thresholds (EXACT copy from Parkinson1.py) ──────────────────────────────
 TH_JITTER_PCT = 1.04
@@ -245,6 +246,7 @@ def load_wav_file(file_obj_or_path):
 
 def analyze_voice_audio(audio_path_or_bytes, sample_rate=22050):
     """Analyze voice audio file. Returns dict with score, raw metrics, plot."""
+    print("DEBUG: analyze_voice_audio EXECUTING - parselmouth version", flush=True)
     try:
         y, sr = load_wav_file(audio_path_or_bytes)
     except Exception as e:
@@ -253,9 +255,13 @@ def analyze_voice_audio(audio_path_or_bytes, sample_rate=22050):
     fs = sr
     
     # 1. Pitch contour tracking (F0)
-    # We call librosa.pyin to find fundamental frequencies over time
-    f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=50, fmax=500, sr=fs)
-    times = librosa.times_like(f0)
+    # We call parselmouth (Praat) for robust, numba-free pitch tracking
+    snd = parselmouth.Sound(y, sampling_frequency=fs)
+    pitch = snd.to_pitch(time_step=0.02, pitch_floor=50.0, pitch_ceiling=500.0)
+    frequencies = pitch.selected_array['frequency']
+    f0 = np.array([f if f > 0.0 else np.nan for f in frequencies])
+    voiced_flag = frequencies > 0.0
+    times = pitch.xs()
     duration = len(y) / fs
     
     # 2. Extract periods and compute jitter
@@ -274,7 +280,10 @@ def analyze_voice_audio(audio_path_or_bytes, sample_rate=22050):
     rms_frames = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
     
     # Align RMS frames with voiced frames
-    voiced_rms = rms_frames[voiced_flag[:len(rms_frames)]]
+    min_len = min(len(rms_frames), len(voiced_flag))
+    rms_frames = rms_frames[:min_len]
+    voiced_flag = voiced_flag[:min_len]
+    voiced_rms = rms_frames[voiced_flag]
     if len(voiced_rms) > 2:
         rms_diffs = np.abs(np.diff(voiced_rms))
         shimmer = (np.mean(rms_diffs) / (np.mean(voiced_rms) + 1e-8)) * 100.0

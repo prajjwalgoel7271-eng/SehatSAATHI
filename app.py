@@ -10,6 +10,9 @@ import io
 import json
 import base64
 import traceback
+import tempfile
+import subprocess
+import imageio_ffmpeg
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 
 from detection.parkinson import (
@@ -119,18 +122,72 @@ def api_parkinson_motor():
 
 @app.route("/api/parkinson/voice", methods=["POST"])
 def api_parkinson_voice():
+    input_temp_path = None
+    output_temp_path = None
     try:
+        print("api_parkinson_voice: Received voice audio upload request.")
         if "audio" not in request.files:
+            print("api_parkinson_voice: No audio file in request.files")
             return jsonify({"error": "No audio file provided"}), 400
+        
         audio_file = request.files["audio"]
-        # Save to buffer
-        audio_bytes = audio_file.read()
-        audio_io = io.BytesIO(audio_bytes)
-        result = analyze_voice_audio(audio_io)
+        print(f"api_parkinson_voice: Received file '{audio_file.filename}'. Saving raw upload to temp webm/opus file...")
+        
+        # Get bundled static ffmpeg exe path
+        FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        
+        # Save raw audio to a temporary input file
+        input_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
+        input_temp_path = input_temp.name
+        audio_file.save(input_temp_path)
+        input_temp.close()
+        print(f"api_parkinson_voice: Saved input webm/opus to '{input_temp_path}'.")
+        
+        # Create a temporary output WAV file path
+        output_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        output_temp_path = output_temp.name
+        output_temp.close()
+        print(f"api_parkinson_voice: Prepared output wav path '{output_temp_path}'.")
+        
+        # Run conversion to 44100 Hz WAV using ffmpeg subprocess
+        print(f"api_parkinson_voice: Converting from webm/opus to WAV using subprocess/ffmpeg...")
+        subprocess.run([
+            FFMPEG_PATH,
+            "-i", input_temp_path,
+            "-ar", "44100",
+            output_temp_path,
+            "-y"
+        ], check=True, capture_output=True)
+        print(f"api_parkinson_voice: Successfully converted to WAV.")
+        
+        # Call voice analysis logic
+        print("api_parkinson_voice: Passing wav temp path to analysis...")
+        result = analyze_voice_audio(output_temp_path)
+        
+        if result and "error" in result:
+            print(f"api_parkinson_voice: Analysis returned error: {result['error']}")
+            return jsonify({
+                "error": "Audio processing failed",
+                "detail": result["error"]
+            }), 500
+            
+        print("api_parkinson_voice: Voice analysis completed successfully.")
         return jsonify(result)
     except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
+        err_msg = traceback.format_exc()
+        print(f"api_parkinson_voice: Exception caught during processing:\n{err_msg}", file=sys.stderr)
+        return jsonify({
+            "error": "Audio processing failed",
+            "detail": str(e)
+        }), 500
+    finally:
+        for path in [input_temp_path, output_temp_path]:
+            if path and os.path.exists(path):
+                try:
+                    print(f"api_parkinson_voice: Cleaning up temp file: {path}")
+                    os.remove(path)
+                except Exception as cleanup_err:
+                    print(f"api_parkinson_voice: Failed to delete temp file {path}: {cleanup_err}", file=sys.stderr)
 
 @app.route("/api/parkinson/spiral", methods=["POST"])
 def api_parkinson_spiral():
@@ -196,17 +253,73 @@ def api_anemia_overall():
 
 @app.route("/api/tb/analyze", methods=["POST"])
 def api_tb_analyze():
+    input_temp_path = None
+    output_temp_path = None
     try:
+        print("api_tb_analyze: Received TB cough audio upload request.")
         if "audio" not in request.files:
+            print("api_tb_analyze: No audio file in request.files")
             return jsonify({"error": "No audio file provided"}), 400
+        
         audio_file = request.files["audio"]
-        audio_bytes = audio_file.read()
-        audio_io = io.BytesIO(audio_bytes)
-        result = analyze_cough_audio(audio_io)
+        print(f"api_tb_analyze: Received file '{audio_file.filename}'. Saving raw upload to temp webm/opus file...")
+        
+        # Get bundled static ffmpeg exe path
+        FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        
+        # Save raw audio to a temporary input file
+        input_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
+        input_temp_path = input_temp.name
+        audio_file.save(input_temp_path)
+        input_temp.close()
+        print(f"api_tb_analyze: Saved input webm/opus to '{input_temp_path}'.")
+        
+        # Create a temporary output WAV file path
+        output_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        output_temp_path = output_temp.name
+        output_temp.close()
+        print(f"api_tb_analyze: Prepared output wav path '{output_temp_path}'.")
+        
+        # Run conversion to 44100 Hz WAV using ffmpeg subprocess
+        print(f"api_tb_analyze: Converting from webm/opus to WAV using subprocess/ffmpeg...")
+        subprocess.run([
+            FFMPEG_PATH,
+            "-i", input_temp_path,
+            "-ar", "44100",
+            output_temp_path,
+            "-y"
+        ], check=True, capture_output=True)
+        print(f"api_tb_analyze: Successfully converted to WAV.")
+        
+        # Call cough analysis logic
+        print("api_tb_analyze: Passing wav temp path to analysis...")
+        with open(output_temp_path, "rb") as f:
+            result = analyze_cough_audio(f)
+            
+        if result and "error" in result:
+            print(f"api_tb_analyze: Analysis returned error: {result['error']}")
+            return jsonify({
+                "error": "Audio processing failed",
+                "detail": result["error"]
+            }), 500
+            
+        print("api_tb_analyze: TB analysis completed successfully.")
         return jsonify(result)
     except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": f"{str(e)}\n{traceback.format_exc()}"}), 400
+        err_msg = traceback.format_exc()
+        print(f"api_tb_analyze: Exception caught during processing:\n{err_msg}", file=sys.stderr)
+        return jsonify({
+            "error": "Audio processing failed",
+            "detail": str(e)
+        }), 500
+    finally:
+        for path in [input_temp_path, output_temp_path]:
+            if path and os.path.exists(path):
+                try:
+                    print(f"api_tb_analyze: Cleaning up temp file: {path}")
+                    os.remove(path)
+                except Exception as cleanup_err:
+                    print(f"api_tb_analyze: Failed to delete temp file {path}: {cleanup_err}", file=sys.stderr)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
