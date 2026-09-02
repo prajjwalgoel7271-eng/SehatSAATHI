@@ -1,0 +1,165 @@
+{
+  "language": "English",
+  "code": "en",
+  "tier": 3,
+  "multi_round_ran": {
+    "round1_colors": [
+      "Red",
+      "Blue",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Orange"
+    ],
+    "round2_letters": [
+      "A",
+      "B",
+      "D",
+      "O",
+      "P",
+      "S",
+      "T",
+      "Z"
+    ],
+    "round3_mixed": [
+      "Red",
+      "A",
+      "5",
+      "Blue",
+      "D",
+      "9",
+      "Green",
+      "K"
+    ]
+  },
+  "adaptive_nonwords": [
+    {
+      "id": "nw1",
+      "level": 1,
+      "complexity": "2-letter",
+      "nonword": "og",
+      "phonemes": "o-g"
+    },
+    {
+      "id": "nw2",
+      "level": 1,
+      "complexity": "2-letter",
+      "nonword": "ib",
+      "phonemes": "i-b"
+    },
+    {
+      "id": "nw3",
+      "level": 2,
+      "complexity": "blends",
+      "nonword": "strop",
+      "phonemes": "s-t-r-o-p"
+    },
+    {
+      "id": "nw4",
+      "level": 2,
+      "complexity": "blends",
+      "nonword": "flint",
+      "phonemes": "f-l-i-n-t"
+    },
+    {
+      "id": "nw5",
+      "level": 3,
+      "complexity": "multisyllabic",
+      "nonword": "flimberate",
+      "phonemes": "flim-ber-ate"
+    },
+    {
+      "id": "nw6",
+      "level": 3,
+      "complexity": "multisyllabic",
+      "nonword": "sprottle",
+      "phonemes": "sprot-tle"
+    }
+  ],
+  "sight_word_decay": [
+    {
+      "id": "swd1",
+      "target": "caught",
+      "brief_display_ms": 1200,
+      "distractor_task": "Count backwards from 20 to 15",
+      "delayed_choices": [
+        {
+          "text": "cought",
+          "is_target": false
+        },
+        {
+          "text": "caught",
+          "is_target": true
+        },
+        {
+          "text": "chaught",
+          "is_target": false
+        },
+        {
+          "text": "coght",
+          "is_target": false
+        }
+      ]
+    },
+    {
+      "id": "swd2",
+      "target": "enough",
+      "brief_display_ms": 1200,
+      "distractor_task": "Tap the odd number: 4, 8, 7, 2",
+      "delayed_choices": [
+        {
+          "text": "enuff",
+          "is_target": false
+        },
+        {
+          "text": "anough",
+          "is_target": false
+        },
+        {
+          "text": "enough",
+          "is_target": true
+        },
+        {
+          "text": "enougth",
+          "is_target": false
+        }
+      ]
+    }
+  ],
+  "long_comprehension_passage": {
+    "title": "Ecosystem Dynamics & Adaptation",
+    "text": "Forest ecosystems rely on intricate food webs where every organism plays a vital role. Plants convert sunlight into organic nutrients through photosynthesis. Primary consumers feed on plants, while apex predators control herbivore populations, preventing overgrazing and soil erosion.",
+    "questions": [
+      {
+        "id": "lq1",
+        "question": "What is the primary role of apex predators mentioned in the text?",
+        "options": [
+          "Convert sunlight into energy",
+          "Control herbivore populations to prevent erosion",
+          "Produce organic nutrients"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "lq2",
+        "question": "Which process allows plants to create nutrients?",
+        "options": [
+          "Photosynthesis",
+          "Herbivory",
+          "Erosion"
+        ],
+        "correct": 0
+      },
+      {
+        "id": "lq3",
+        "question": "What would happen if apex predators disappeared?",
+        "options": [
+          "Plants would grow faster",
+          "Overgrazing and soil erosion would increase",
+          "Sunlight would decrease"
+        ],
+        "correct": 1
+      }
+    ]
+  }
+}

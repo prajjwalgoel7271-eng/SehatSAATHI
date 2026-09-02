@@ -1,0 +1,236 @@
+{
+  "language": "English",
+  "code": "en",
+  "tier": 4,
+  "academic_distress_questionnaire": [
+    {
+      "id": "q1",
+      "text": "I feel anxious or uneasy when asked to read aloud in class or group settings.",
+      "domain": "reading_anxiety"
+    },
+    {
+      "id": "q2",
+      "text": "I avoid tasks that involve long reading assignments or complex documents.",
+      "domain": "reading_avoidance"
+    },
+    {
+      "id": "q3",
+      "text": "I experience significant frustration when attempting timed math calculations.",
+      "domain": "math_frustration"
+    },
+    {
+      "id": "q4",
+      "text": "I feel my handwriting or writing speed holds me back despite knowing the answers.",
+      "domain": "writing_distress"
+    },
+    {
+      "id": "q5",
+      "text": "I spend double or triple the expected time completing reading or writing homework.",
+      "domain": "effort_burden"
+    },
+    {
+      "id": "q6",
+      "text": "I lose my line frequently or reread sentences multiple times to understand them.",
+      "domain": "reading_mechanics"
+    },
+    {
+      "id": "q7",
+      "text": "I feel mental fatigue or headache quickly when working with numbers or tables.",
+      "domain": "math_fatigue"
+    },
+    {
+      "id": "q8",
+      "text": "I try to hide my reading/writing difficulties from peers or teachers.",
+      "domain": "social_masking"
+    },
+    {
+      "id": "q9",
+      "text": "I worry that my academic speed does not reflect my true intelligence.",
+      "domain": "discrepancy_distress"
+    },
+    {
+      "id": "q10",
+      "text": "I avoid choosing courses or careers that require extensive reading or writing.",
+      "domain": "academic_avoidance"
+    }
+  ],
+  "options": [
+    {
+      "text": "Never",
+      "score": 0
+    },
+    {
+      "text": "Sometimes",
+      "score": 1
+    },
+    {
+      "text": "Often / Constantly",
+      "score": 2
+    }
+  ],
+  "advanced_cognitive": {
+    "language": "English",
+    "code": "en",
+    "tier": 3,
+    "multi_round_ran": {
+      "round1_colors": [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow",
+        "Purple",
+        "Orange"
+      ],
+      "round2_letters": [
+        "A",
+        "B",
+        "D",
+        "O",
+        "P",
+        "S",
+        "T",
+        "Z"
+      ],
+      "round3_mixed": [
+        "Red",
+        "A",
+        "5",
+        "Blue",
+        "D",
+        "9",
+        "Green",
+        "K"
+      ]
+    },
+    "adaptive_nonwords": [
+      {
+        "id": "nw1",
+        "level": 1,
+        "complexity": "2-letter",
+        "nonword": "og",
+        "phonemes": "o-g"
+      },
+      {
+        "id": "nw2",
+        "level": 1,
+        "complexity": "2-letter",
+        "nonword": "ib",
+        "phonemes": "i-b"
+      },
+      {
+        "id": "nw3",
+        "level": 2,
+        "complexity": "blends",
+        "nonword": "strop",
+        "phonemes": "s-t-r-o-p"
+      },
+      {
+        "id": "nw4",
+        "level": 2,
+        "complexity": "blends",
+        "nonword": "flint",
+        "phonemes": "f-l-i-n-t"
+      },
+      {
+        "id": "nw5",
+        "level": 3,
+        "complexity": "multisyllabic",
+        "nonword": "flimberate",
+        "phonemes": "flim-ber-ate"
+      },
+      {
+        "id": "nw6",
+        "level": 3,
+        "complexity": "multisyllabic",
+        "nonword": "sprottle",
+        "phonemes": "sprot-tle"
+      }
+    ],
+    "sight_word_decay": [
+      {
+        "id": "swd1",
+        "target": "caught",
+        "brief_display_ms": 1200,
+        "distractor_task": "Count backwards from 20 to 15",
+        "delayed_choices": [
+          {
+            "text": "cought",
+            "is_target": false
+          },
+          {
+            "text": "caught",
+            "is_target": true
+          },
+          {
+            "text": "chaught",
+            "is_target": false
+          },
+          {
+            "text": "coght",
+            "is_target": false
+          }
+        ]
+      },
+      {
+        "id": "swd2",
+        "target": "enough",
+        "brief_display_ms": 1200,
+        "distractor_task": "Tap the odd number: 4, 8, 7, 2",
+        "delayed_choices": [
+          {
+            "text": "enuff",
+            "is_target": false
+          },
+          {
+            "text": "anough",
+            "is_target": false
+          },
+          {
+            "text": "enough",
+            "is_target": true
+          },
+          {
+            "text": "enougth",
+            "is_target": false
+          }
+        ]
+      }
+    ],
+    "long_comprehension_passage": {
+      "title": "Ecosystem Dynamics & Adaptation",
+      "text": "Forest ecosystems rely on intricate food webs where every organism plays a vital role. Plants convert sunlight into organic nutrients through photosynthesis. Primary consumers feed on plants, while apex predators control herbivore populations, preventing overgrazing and soil erosion.",
+      "questions": [
+        {
+          "id": "lq1",
+          "question": "What is the primary role of apex predators mentioned in the text?",
+          "options": [
+            "Convert sunlight into energy",
+            "Control herbivore populations to prevent erosion",
+            "Produce organic nutrients"
+          ],
+          "correct": 1
+        },
+        {
+          "id": "lq2",
+          "question": "Which process allows plants to create nutrients?",
+          "options": [
+            "Photosynthesis",
+            "Herbivory",
+            "Erosion"
+          ],
+          "correct": 0
+        },
+        {
+          "id": "lq3",
+          "question": "What would happen if apex predators disappeared?",
+          "options": [
+            "Plants would grow faster",
+            "Overgrazing and soil erosion would increase",
+            "Sunlight would decrease"
+          ],
+          "correct": 1
+        }
+      ]
+    }
+  }
+}
