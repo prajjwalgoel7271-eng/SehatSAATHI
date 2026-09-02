@@ -173,6 +173,7 @@
             <li id="check-anemia" class="checklist-item">○ Anemia Screening</li>
             <li id="check-tb" class="checklist-item">○ TB Cough Analysis</li>
             <li id="check-parkinson" class="checklist-item">○ Parkinson's Coordination</li>
+            <li id="check-dyslexia" class="checklist-item">○ Dyslexia Risk Screening</li>
         </ul>
     </div>
 
@@ -378,6 +379,35 @@
             checkParkinson.innerText = initialPk;
         }
 
+        const checkDyslexia = document.getElementById('check-dyslexia');
+        const dyslexia = localStorage.getItem('sehatsaathi_result_dyslexia') || localStorage.getItem('dyslexia_score_questionnaire');
+        if (dyslexia) {
+            try {
+                results.dyslexia = typeof dyslexia === 'string' && dyslexia.startsWith('{') ? JSON.parse(dyslexia) : { composite_score: parseFloat(dyslexia), risk_band: 'Evaluated' };
+            } catch (e) {
+                results.dyslexia = { composite_score: parseFloat(dyslexia) || 30.0, risk_band: 'Evaluated' };
+            }
+            checkDyslexia.className = 'checklist-item checked';
+            
+            let dysScore = results.dyslexia.composite_score !== undefined ? results.dyslexia.composite_score : 0.0;
+            let dysPerf = Math.max(0, (100.0 - dysScore)).toFixed(1);
+            let dysLabel = `✓ Dyslexia Screening: ${dysPerf}% Performance (${dysScore.toFixed(1)}% Risk)`;
+            if (activeLang === 'hi') dysLabel = `✓ डिस्लेक्सिया स्क्रीनिंग: ${dysPerf}% प्रदर्शन (${dysScore.toFixed(1)}% जोखिम)`;
+            else if (activeLang === 'bn') dysLabel = `✓ ডিসলেক্সিয়া স্ক্রিনিং: ${dysPerf}% পারফরম্যান্স (${dysScore.toFixed(1)}% ঝুঁকি)`;
+            else if (activeLang === 'mr') dysLabel = `✓ डिस्लेक्सिया स्क्रीनिंग: ${dysPerf}% कामगिरी (${dysScore.toFixed(1)}% जोखीम)`;
+            else if (activeLang === 'ta') dysLabel = `✓ டிஸ்லெக்ஸியா பரிசோதனை: ${dysPerf}% செயல்திறன் (${dysScore.toFixed(1)}% ஆபத்து)`;
+            else if (activeLang === 'te') dysLabel = `✓ డిస్లెక్సియా స్క్రీనింగ్: ${dysPerf}% పనితీరు (${dysScore.toFixed(1)}% ప్రమాదం)`;
+            checkDyslexia.innerText = dysLabel;
+        } else {
+            let initialDys = "○ Dyslexia Risk Screening";
+            if (activeLang === 'hi') initialDys = '○ डिस्लेक्सिया स्क्रीनिंग';
+            else if (activeLang === 'bn') initialDys = '○ ডিসলেক্সিয়া স্ক্রিনিং';
+            else if (activeLang === 'mr') initialDys = '○ डिस्लेक्सिया स्क्रीनिंग';
+            else if (activeLang === 'ta') initialDys = '○ டிஸ்லெக்ஸியா பரிசோதனை';
+            else if (activeLang === 'te') initialDys = '○ డిస్లెక్సియా స్క్రీనింగ్';
+            checkDyslexia.innerText = initialDys;
+        }
+
         return results;
     }
 
@@ -439,6 +469,12 @@
         if (screenings.parkinson) {
             let parkinsonHealth = screenings.parkinson.score;
             screeningScoreSum += parkinsonHealth;
+            completedCount++;
+        }
+        if (screenings.dyslexia) {
+            let dysScore = screenings.dyslexia.composite_score !== undefined ? screenings.dyslexia.composite_score : 30.0;
+            let dyslexiaHealth = 100 - dysScore;
+            screeningScoreSum += dyslexiaHealth;
             completedCount++;
         }
 
@@ -584,6 +620,7 @@
             if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("एनीमिया स्क्रीनिंग परिणाम मध्यम से गंभीर पीलेपन के संकेतक दर्शाते हैं।");
             if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("तपेदिक स्क्रीनिंग परिणाम खांसी में असामान्य ध्वनि संकेत दर्शाते हैं।");
             if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("पार्किंसंस स्क्रीनिंग परिणाम मोटर दक्षता और आवाज की अस्थिरता दर्शाते हैं।");
+            if (screenings.dyslexia && (screenings.dyslexia.composite_score >= 50.0 || (screenings.dyslexia.risk_band && screenings.dyslexia.risk_band.includes('High')))) warnings.push("डिस्लेक्सिया स्क्रीनिंग परिणाम उच्च ध्वन्यात्मक और पठन विलंबता दर्शाते हैं।");
             if (bmi < 18.5) warnings.push(`आपका बीएमआई ${bmi.toFixed(1)} (कम वजन) है। यह पोषण की कमी या कमजोर प्रतिरक्षा प्रणाली का संकेत हो सकता है।`);
             else if (bmi >= 25 && bmi < 30) warnings.push(`आपका बीएमआई ${bmi.toFixed(1)} (अधिक वजन) है। अधिक शारीरिक गतिविधि और संरचित आहार परिवर्तन शामिल करने पर विचार करें।`);
             else if (bmi >= 30) warnings.push(`आपका बीएमआई ${bmi.toFixed(1)} (मोटापा) है। मोटापा हृदय और चयापचय स्वास्थ्य जोखिमों से जुड़ा हुआ है।`);
@@ -625,6 +662,7 @@
             if (screenings.anemia && screenings.anemia.score >= 2.0) warnings.push("Completed Anemia screening flags moderate-to-severe pallor indicators.");
             if (screenings.tb && screenings.tb.score >= 50.0) warnings.push("Completed Tuberculosis screening indicates atypical cough characteristics.");
             if (screenings.parkinson && screenings.parkinson.score < 68.0) warnings.push("Completed Parkinson's screening flags motor dexterity and voicing instability.");
+            if (screenings.dyslexia && (screenings.dyslexia.composite_score >= 50.0 || (screenings.dyslexia.risk_band && screenings.dyslexia.risk_band.includes('High')))) warnings.push("Completed Dyslexia screening flags elevated phonological delays and rapid naming hesitations.");
         }
 
         if (warnings.length > 0) {

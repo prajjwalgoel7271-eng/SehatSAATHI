@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Dyslexia Screening Report — SehatSaathi{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📊 Dyslexia Screening Report</h1>
+<p class="page-subtitle">Multi-subtest developmental analysis and risk quantification.</p>
+<div class="title-separator" style="background-color: #3498db;"></div>
+
+<div style="max-width: 900px; margin: 0 auto; text-align: left;">
+    <!-- Risk Banner Container -->
+    <div id="risk-banner-card" class="card" style="padding: 2rem; text-align: center; margin-bottom: 2rem; border-width: 2px;">
+        <h2 id="risk-title" style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">
+            Calculating Screening Risk...
+        </h2>
+        <p id="age-bracket-label" style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Calibration: Ages 8-10
+        </p>
+        <p id="risk-recommendation" style="font-size: 1rem; line-height: 1.5; color: var(--text-primary); max-width: 700px; margin: 0 auto;">
+            Processing subscores...
+        </p>
+    </div>
+
+    <!-- Grid of 5 Subscores -->
+    <h2 style="font-size: 1.25rem; font-weight: 700; color: #3498db; margin-bottom: 1rem;">
+        Subtest Breakdown (0 = Low Risk, 100 = High Risk)
+    </h2>
+    <div id="subscores-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <!-- Dynamically injected subscore cards -->
+    </div>
+
+    <!-- STEP 6 NOVEL FEATURE 3: Subtest-Level Explainability Box -->
+    <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; background: rgba(52, 152, 219, 0.05); border: 1px solid rgba(52, 152, 219, 0.3);">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #3498db; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🤖</span> Clinical Subtest Explainability
+        </h3>
+        <ul id="explainability-list" style="margin: 0; padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-primary);">
+            <!-- Bullet points injected here -->
+        </ul>
+    </div>
+
+    <!-- STEP 6 NOVEL FEATURE 5: Longitudinal Re-Test Trend View -->
+    <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; background: rgba(3, 218, 197, 0.05); border: 1px solid rgba(3, 218, 197, 0.3);">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #03DAC5; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📈</span> Longitudinal Re-Test History &amp; Trend
+        </h3>
+        <div id="trend-history-box" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-primary);">
+            Loading progress records...
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem;">
+        <button id="btn-download-dyslexia-report" class="btn btn-primary" style="flex: 1; min-width: 240px; background: linear-gradient(135deg, #3498db, #03DAC5); border: none; font-weight: 700; font-size: 1rem; padding: 0.9rem;">
+            📥 Download Clinical Report (HTML/PDF)
+        </button>
+        <a href="{{ url_for('health_score') }}" class="btn btn-warning" style="flex: 1; min-width: 240px; text-align: center; padding: 0.9rem; color: #0D0D12; font-weight: bold;">
+            📊 View Integrated AI Health Score
+        </a>
+        <a href="{{ url_for('dyslexia_hub') }}" class="btn btn-secondary" style="flex: 1; min-width: 180px; text-align: center; padding: 0.9rem;">
+            Return to Hub
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const age = localStorage.getItem('dyslexia_age') || 8;
+    const gender = localStorage.getItem('dyslexia_gender') || 'unspecified';
+    const childName = localStorage.getItem('dyslexia_name') || 'Child';
+    const lang = localStorage.getItem('dyslexia_lang') || 'en';
+
+    const bgScore = parseFloat(localStorage.getItem('dyslexia_score_questionnaire') || '30.0');
+    const ranScore = parseFloat(localStorage.getItem('dyslexia_score_ran') || '35.0');
+    const phScore = parseFloat(localStorage.getItem('dyslexia_score_phonological') || '25.0');
+    const decScore = parseFloat(localStorage.getItem('dyslexia_score_decoding') || '30.0');
+    const oralScore = parseFloat(localStorage.getItem('dyslexia_score_oral_spelling') || '20.0');
+
+    let resultData = null;
+
+    try {
+        const resp = await fetch('/api/dyslexia/calculate_risk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                age: age,
+                gender: gender,
+                background_score: bgScore,
+                ran_score: ranScore,
+                phonological_score: phScore,
+                decoding_score: decScore,
+                oral_reading_score: oralScore,
+                metadata: { child_name: childName, lang: lang }
+            })
+        });
+        resultData = await resp.json();
+        renderResults(resultData);
+    } catch (err) {
+        document.getElementById('risk-title').innerText = "Error calculating risk scores.";
+    }
+
+    function renderResults(data) {
+        const bannerCard = document.getElementById('risk-banner-card');
+        const title = document.getElementById('risk-title');
+        const ageLabel = document.getElementById('age-bracket-label');
+        const rec = document.getElementById('risk-recommendation');
+
+        const profMarks = data.proficiency_marks !== undefined ? data.proficiency_marks : Math.max(0, (100.0 - data.composite_score)).toFixed(1);
+
+        ageLabel.innerText = `Age Bracket Calibration: ${data.age_group_label} (Model: ${data.model_used})`;
+        title.innerHTML = `
+            <div style="font-size: 2.2rem; font-weight: 900; margin-bottom: 0.35rem;">
+                🎯 Performance Score: ${profMarks}% Marks
+            </div>
+            <div style="font-size: 1.2rem; font-weight: 700; opacity: 0.9;">
+                Clinical Risk Status: ${data.risk_band} (${data.composite_score}% Risk Index)
+            </div>
+        `;
+        rec.innerText = data.recommendation;
+
+        // Save composite result for SehatSaathi global AI Health Score index
+        try {
+            localStorage.setItem('sehatsaathi_result_dyslexia', JSON.stringify(data));
+        } catch (e) {
+            console.error("Failed saving sehatsaathi_result_dyslexia", e);
+        }
+
+        if (data.risk_band === "High Risk") {
+            bannerCard.style.borderColor = "#e74c3c";
+            bannerCard.style.background = "rgba(231, 76, 60, 0.12)";
+            title.style.color = "#e74c3c";
+        } else if (data.risk_band === "Moderate Risk") {
+            bannerCard.style.borderColor = "#f1c40f";
+            bannerCard.style.background = "rgba(241, 196, 15, 0.12)";
+            title.style.color = "#f1c40f";
+        } else {
+            bannerCard.style.borderColor = "#2ecc71";
+            bannerCard.style.background = "rgba(46, 204, 113, 0.12)";
+            title.style.color = "#2ecc71";
+        }
+
+        // Subscores Grid displaying Performance Marks
+        const grid = document.getElementById('subscores-grid');
+        grid.innerHTML = '';
+
+        const subNames = {
+            background: '1. Background Qs',
+            ran: '2. RAN Naming',
+            phonological: '3. Phonological',
+            decoding: '4. Nonword Decoding',
+            oral_reading: '5. Oral & Spelling'
+        };
+
+        for (let [k, v] of Object.entries(data.subscores)) {
+            const riskVal = parseFloat(v);
+            const perfVal = Math.max(0, (100.0 - riskVal)).toFixed(1);
+            let perfColor = "#2ecc71";
+            if (riskVal >= 45) perfColor = "#e74c3c";
+            else if (riskVal >= 25) perfColor = "#f1c40f";
+
+            const card = document.createElement('div');
+            card.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;";
+            card.innerHTML = `
+                <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">${subNames[k]}</span>
+                <span style="font-size: 1.45rem; font-weight: 800; color: ${perfColor}; display: block; margin-top: 0.25rem;">${perfVal}% Marks</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 2px;">Risk: ${riskVal}%</span>
+            `;
+            grid.appendChild(card);
+        }
+
+        // Explainability Bullet Points
+        const expList = document.getElementById('explainability-list');
+        expList.innerHTML = '';
+        data.explainability.forEach(item => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '0.4rem';
+            li.innerText = item;
+            expList.appendChild(li);
+        });
+
+        // STEP 6 NOVEL FEATURE 5: Save & Render Longitudinal Trend
+        saveAndRenderTrend(data);
+    }
+
+    function saveAndRenderTrend(data) {
+        const historyKey = `dyslexia_history_${childName.toLowerCase().trim()}`;
+        let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        
+        let trend = "stable";
+        if (history.length > 0) {
+            const prevScore = history[history.length - 1].composite_score;
+            if (data.composite_score < prevScore - 5.0) trend = "improving (risk decreased)";
+            else if (data.composite_score > prevScore + 5.0) trend = "worsening (risk increased)";
+            else trend = "stable";
+        }
+
+        const newEntry = {
+            timestamp: Date.now(),
+            composite_score: data.composite_score,
+            risk_band: data.risk_band,
+            trend: trend
+        };
+        history.push(newEntry);
+        localStorage.setItem(historyKey, JSON.stringify(history));
+
+        const trendBox = document.getElementById('trend-history-box');
+        let html = `<p>Child: <strong>${childName}</strong> | Current Trend: <strong style="color:#03DAC5;">${trend.toUpperCase()}</strong></p>`;
+        html += `<ul style="list-style: square; padding-left: 1.25rem; margin-top: 0.5rem;">`;
+        history.slice(-5).reverse().forEach(h => {
+            const d = new Date(h.timestamp).toLocaleDateString('en-IN');
+            html += `<li>${d}: <strong>${h.risk_band}</strong> (${h.composite_score}%) — <em>${h.trend}</em></li>`;
+        });
+        html += `</ul>`;
+        trendBox.innerHTML = html;
+    }
+
+    // Download Report Listener
+    document.getElementById('btn-download-dyslexia-report').addEventListener('click', () => {
+        if (!resultData) return;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        const reportHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dyslexia Screening Report - ${childName}</title>
+<style>
+body { font-family: sans-serif; background: #0D0D12; color: #E8E8EC; padding: 2rem; line-height: 1.6; }
+.card { background: #16161E; border: 1px solid #3498db; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+h1 { color: #3498db; text-align: center; }
+.score { font-size: 1.5rem; font-weight: bold; color: #2ecc71; }
+</style>
+</head>
+<body>
+<h1>📖 SehatSaathi Dyslexia Risk Screening Report</h1>
+<p><strong>Child Name:</strong> ${childName} | <strong>Age:</strong> ${age} | <strong>Date:</strong> ${dateStr}</p>
+<div class="card">
+<h2>Composite Risk Band: ${resultData.risk_band} (${resultData.composite_score}%)</h2>
+<p><strong>Calibration:</strong> ${resultData.age_group_label}</p>
+<p>${resultData.recommendation}</p>
+</div>
+<div class="card">
+<h3>Subtest Explainability</h3>
+<ul>${resultData.explainability.map(e => `<li>${e}</li>`).join('')}</ul>
+</div>
+<p style="font-size: 0.8rem; text-align: center; color: #888;">
+⚕️ Disclaimer: Screening tool only. Consult a psychologist/special educator for diagnosis.
+</p>
+</body>
+</html>`;
+
+        const blob = new Blob([reportHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Dyslexia_Report_${childName}_${now.toISOString().slice(0,10)}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+});
+</script>
+{% endblock %}

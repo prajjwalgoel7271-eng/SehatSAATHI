@@ -299,7 +299,33 @@
             </div>
         </section>
 
-        <!-- AI Health Risk Score Section -->
+        <!-- SLD Screening Section -->
+        <section class="section-container">
+            <div class="section-layout">
+                <div class="section-visual" style="border-color: rgba(155, 89, 182, 0.4);">
+                    <div class="section-emoji">🧠</div>
+                    <h3 style="font-weight: 700; margin-bottom: 0.5rem;">Age-Tiered SLD Battery</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; max-width: 320px;">
+                        DSM-5-TR &amp; ICD-11 traceable screening across Dyslexia, Dyscalculia, Dysgraphia, and Academic Task Distress.
+                    </p>
+                </div>
+
+                <div class="section-info">
+                    <span class="feature-tag" style="background: rgba(155,89,182,0.15); color: #9b59b6; border-color: rgba(155,89,182,0.3);">Neurodevelopmental / Cognitive</span>
+                    <h2 style="font-size: 2rem; font-weight: 800; margin: 0.5rem 0 1rem 0; color: #9b59b6;">🧠 Specific Learning Disorder (SLD)</h2>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+                        Comprehensive 4-tier age-gated screening module evaluating reading, mathematics, writing, and academic distress:
+                    </p>
+                    <ul style="color: var(--text-secondary); padding-left: 1.25rem; margin-bottom: 2rem; line-height: 1.8;">
+                        <li><strong>Tier 1 (Ages 3–5)</strong>: Gamified Precursor Screening (Rhyming, Subitizing flash, Midline tracing).</li>
+                        <li><strong>Tier 2 (Ages 6–9)</strong>: Manifestation Screening (Dyslexia, Dyscalculia, Dysgraphia + comorbidity detection).</li>
+                        <li><strong>Tier 3 (Ages 10–13)</strong>: Compensation-Resistant Battery (Multi-round RAN slowdown, Sight-word decay, Decoding ceiling).</li>
+                        <li><strong>Tier 4 (Ages 14+)</strong>: Executive Function &amp; Academic Task Distress (Task anxiety + Social Masking flag).</li>
+                    </ul>
+                    <button onclick="launchWithDisclaimer('{{ url_for("sld_hub") }}')" class="btn btn-primary" style="padding: 0.75rem 1.75rem; background-color: #9b59b6; border-color: #9b59b6;">Launch SLD Screening</button>
+                </div>
+            </div>
+        </section>
         <section class="section-container" style="background: rgba(255,179,0,0.01); border-bottom: none;">
             <div class="section-layout">
                 <div class="section-visual" style="border-color: rgba(255, 179, 0, 0.3);">

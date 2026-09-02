@@ -25,6 +25,23 @@ from detection.parkinson import (
 )
 from detection.anemia import analyze_frame, combined_assessment
 from detection.tb import analyze_cough_audio
+from detection.dyslexia import (
+    load_content_bank,
+    analyze_questionnaire_data,
+    analyze_ran_data,
+    analyze_phonological_data,
+    analyze_decoding_data,
+    analyze_oral_spelling_data,
+    calculate_dyslexia_risk
+)
+from detection.sld import (
+    load_sld_content_bank,
+    analyze_tier1_data,
+    analyze_tier2_data,
+    analyze_tier3_data,
+    analyze_tier4_data,
+    DSM_ICD_MAPPING
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "sehatsaathi_secret_key_12345")
@@ -47,7 +64,7 @@ def check_disclaimer():
         "/disclaimer",
         "/accept-disclaimer"
     ]
-    if request.path.startswith("/static") or request.path in allowed_paths:
+    if request.path.startswith("/static") or request.path.startswith("/api/") or request.path in allowed_paths:
         return
     # If session does not have disclaimer accepted, redirect to disclaimer page
     if not session.get("disclaimer_accepted"):
@@ -76,6 +93,7 @@ def menu():
     return render_template("menu.html")
 
 # Health Score view
+@app.route("/health-score")
 @app.route("/test/health-score")
 def health_score():
     return render_template("health_score.html")
@@ -113,6 +131,238 @@ def anemia_scanner():
 def tb_analyzer():
     return render_template("tb.html")
 
+# Dyslexia views (Redirects to unified SLD Screening Hub)
+@app.route("/test/dyslexia")
+def dyslexia_hub():
+    return redirect(url_for("sld_hub"))
+
+@app.route("/test/dyslexia/questionnaire")
+def dyslexia_questionnaire():
+    return render_template("dyslexia/questionnaire.html")
+
+@app.route("/test/dyslexia/ran")
+def dyslexia_ran():
+    return render_template("dyslexia/ran.html")
+
+@app.route("/test/dyslexia/phonological")
+def dyslexia_phonological():
+    return render_template("dyslexia/phonological.html")
+
+@app.route("/test/dyslexia/decoding")
+def dyslexia_decoding():
+    return render_template("dyslexia/decoding.html")
+
+@app.route("/test/dyslexia/oral_spelling")
+def dyslexia_oral_spelling():
+    return render_template("dyslexia/oral_spelling.html")
+
+@app.route("/test/dyslexia/results")
+def dyslexia_results():
+    return render_template("dyslexia/results.html")
+
+
+# ── Specific Learning Disorder (SLD) Age-Tiered Screening Views & APIs ──
+@app.route("/test/sld")
+def sld_hub():
+    return render_template("sld/hub.html")
+
+@app.route("/test/sld/tier1")
+def sld_tier1():
+    return render_template("sld/tier1.html")
+
+@app.route("/test/sld/tier2")
+def sld_tier2():
+    return render_template("sld/tier2.html")
+
+@app.route("/test/sld/tier3")
+def sld_tier3():
+    return render_template("sld/tier3.html")
+
+@app.route("/test/sld/tier4")
+def sld_tier4():
+    return render_template("sld/tier4.html")
+
+@app.route("/test/sld/results")
+def sld_results():
+    return render_template("sld/results.html")
+
+
+@app.route("/api/sld/content/<int:tier_num>", methods=["GET"])
+def api_sld_content(tier_num):
+    try:
+        lang = request.args.get("lang", "en")
+        content, fallback = load_sld_content_bank(lang, tier_num)
+        return jsonify({"content": content, "fallback": fallback, **content})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/sld/analyze/tier1", methods=["POST"])
+def api_sld_analyze_tier1():
+    try:
+        data = request.get_json()
+        rhyme = data.get("rhyme_results", [])
+        subitizing = data.get("subitizing_results", [])
+        motor = data.get("motor_results", {})
+        res = analyze_tier1_data(rhyme, subitizing, motor)
+        return jsonify(res)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/sld/analyze/tier2", methods=["POST"])
+def api_sld_analyze_tier2():
+    try:
+        data = request.get_json()
+        dyslexia = data.get("dyslexia", {})
+        dyscalculia = data.get("dyscalculia", {})
+        dysgraphia = data.get("dysgraphia", {})
+        res = analyze_tier2_data(dyslexia, dyscalculia, dysgraphia)
+        return jsonify(res)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/sld/analyze/tier3", methods=["POST"])
+def api_sld_analyze_tier3():
+    try:
+        data = request.get_json()
+        ran = data.get("ran_multi_round", {})
+        decoding = data.get("adaptive_decoding", {})
+        decay = data.get("sight_word_decay", {})
+        comp = data.get("long_comprehension", {})
+        dyscalculia = data.get("dyscalculia", {})
+        dysgraphia = data.get("dysgraphia", {})
+        res = analyze_tier3_data(ran, decoding, decay, comp, dyscalculia, dysgraphia)
+        return jsonify(res)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/sld/analyze/tier4", methods=["POST"])
+def api_sld_analyze_tier4():
+    try:
+        data = request.get_json()
+        distress = data.get("distress_answers", {})
+        cog = data.get("cognitive_data", {})
+        res = analyze_tier4_data(distress, cog)
+        return jsonify(res)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+
+
+@app.route("/api/dyslexia/content/<resource>", methods=["GET"])
+def api_dyslexia_content(resource):
+    try:
+        lang = request.args.get("lang", "en")
+        content, fallback = load_content_bank(lang, resource)
+        if isinstance(content, dict):
+            return jsonify({"content": content, "fallback": fallback, **content})
+        return jsonify({"content": content, "fallback": fallback})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/dyslexia/analyze/questionnaire", methods=["POST"])
+def api_dyslexia_analyze_questionnaire():
+    try:
+        data = request.get_json()
+        answers = data.get("answers", {})
+        lang = data.get("lang", "en")
+        score, fallback = analyze_questionnaire_data(answers, lang)
+        return jsonify({"score": score, "fallback": fallback})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/dyslexia/analyze/ran", methods=["POST"])
+def api_dyslexia_analyze_ran():
+    try:
+        data = request.get_json()
+        grid_times = data.get("grid_times", [])
+        grid_errors = data.get("grid_errors", [])
+        total_items = int(data.get("total_items", 40))
+        recognized_count = data.get("recognized_count", None)
+        if recognized_count is not None:
+            recognized_count = int(recognized_count)
+        lang = data.get("lang", "en")
+        score, fallback = analyze_ran_data(
+            grid_times, grid_errors, lang_code=lang,
+            total_items=total_items, recognized_count=recognized_count
+        )
+        return jsonify({"score": score, "fallback": fallback})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/dyslexia/analyze/phonological", methods=["POST"])
+def api_dyslexia_analyze_phonological():
+    try:
+        data = request.get_json()
+        task_results = data.get("task_results", [])
+        lang = data.get("lang", "en")
+        score, fallback = analyze_phonological_data(task_results, lang_code=lang)
+        return jsonify({"score": score, "fallback": fallback})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/dyslexia/analyze/decoding", methods=["POST"])
+def api_dyslexia_analyze_decoding():
+    try:
+        data = request.get_json()
+        decoding_items = data.get("decoding_items", [])
+        lang = data.get("lang", "en")
+        score, fallback = analyze_decoding_data(decoding_items, lang_code=lang)
+        return jsonify({"score": score, "fallback": fallback})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/dyslexia/analyze/oral_spelling", methods=["POST"])
+def api_dyslexia_analyze_oral_spelling():
+    try:
+        data = request.get_json()
+        reading_time_sec = float(data.get("reading_time_sec", 25.0))
+        words_correct = int(data.get("words_correct", 25))
+        spelling_attempts = data.get("spelling_attempts", [])
+        lang = data.get("lang", "en")
+        score, wcpm, phonetic_err, non_phonetic_err, fallback = analyze_oral_spelling_data(
+            reading_time_sec, words_correct, spelling_attempts, lang_code=lang
+        )
+        return jsonify({
+            "score": score,
+            "wcpm": wcpm,
+            "phonetic_errors": phonetic_err,
+            "non_phonetic_errors": non_phonetic_err,
+            "fallback": fallback
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/dyslexia/calculate_risk", methods=["POST"])
+def api_dyslexia_calculate_risk():
+    try:
+        data = request.get_json()
+        result = calculate_dyslexia_risk(
+            age=data.get("age", 8),
+            gender=data.get("gender", "unspecified"),
+            background_score=data.get("background_score", 0.0),
+            ran_score=data.get("ran_score", 0.0),
+            phonological_score=data.get("phonological_score", 0.0),
+            decoding_score=data.get("decoding_score", 0.0),
+            oral_reading_score=data.get("oral_reading_score", 0.0),
+            metadata=data.get("metadata", {})
+        )
+        return jsonify(result)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 400
+
+
 
 # ── API Endpoints ──
 
@@ -141,8 +391,10 @@ def api_parkinson_voice():
         audio_file = request.files["audio"]
         print(f"api_parkinson_voice: Received file '{audio_file.filename}'. Saving raw upload to temp webm/opus file...")
         
-        # Get bundled static ffmpeg exe path
-        FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        try:
+            FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            FFMPEG_PATH = "ffmpeg"
         
         # Save raw audio to a temporary input file
         input_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
@@ -272,8 +524,10 @@ def api_tb_analyze():
         audio_file = request.files["audio"]
         print(f"api_tb_analyze: Received file '{audio_file.filename}'. Saving raw upload to temp webm/opus file...")
         
-        # Get bundled static ffmpeg exe path
-        FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        try:
+            FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            FFMPEG_PATH = "ffmpeg"
         
         # Save raw audio to a temporary input file
         input_temp = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
@@ -329,7 +583,31 @@ def api_tb_analyze():
                 except Exception as cleanup_err:
                     print(f"api_tb_analyze: Failed to delete temp file {path}: {cleanup_err}", file=sys.stderr)
 
+import urllib.request
+import urllib.parse
+
+@app.route("/api/translate", methods=["POST"])
+def api_translate():
+    try:
+        data = request.get_json() or {}
+        text = data.get("text", "")
+        target_lang = data.get("target_lang", "en")
+        
+        if not text or target_lang == "en":
+            return jsonify({"translated": text})
+            
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_json = json.loads(response.read().decode('utf-8'))
+            translated = "".join([item[0] for item in res_json[0] if item and item[0]])
+            return jsonify({"translated": translated, "target_lang": target_lang})
+    except Exception as e:
+        print(f"Translation API error: {e}")
+        return jsonify({"translated": text, "error": str(e)})
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() in ("true", "1")
     app.run(debug=debug_mode, host="0.0.0.0", port=port)
+

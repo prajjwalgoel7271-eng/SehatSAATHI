@@ -30,12 +30,31 @@ This walkthrough summarizes the localization changes, navigation bug fixes, and 
 - **Parkinson's Motor, Reaction, Spiral, and Voice Sub-tests**: Localized canvas drawing, countdowns, and latency metric graphs.
 - **Device Configuration Disclaimer**: Dynamically localizes autodetected hardware options.
 
+### 4. Robust Ephemeral Audio Processing and Parselmouth-Based Pitch Extraction
+- **Files**:
+  - [app.py](file:///C:/Users/Prajjwal/.gemini/antigravity/scratch/SehatSathi-master/app.py) [MODIFY]
+  - [detection/parkinson.py](file:///C:/Users/Prajjwal/.gemini/antigravity/scratch/SehatSathi-master/detection/parkinson.py) [MODIFY]
+  - [requirements.txt](file:///C:/Users/Prajjwal/.gemini/antigravity/scratch/SehatSathi-master/requirements.txt) [MODIFY]
+- **Details**:
+  - Added `imageio-ffmpeg` dependency to bundle static ffmpeg binaries for serverless deployment platforms (like Render's native Python runtime, which restricts `apt-get` system installs).
+  - Added `praat-parselmouth` dependency to requirements.txt for robust, numba-free pitch tracking.
+  - Replaced the `librosa.pyin()` pitch (F0) tracking call in `analyze_voice_audio` with parselmouth's native `Sound.to_pitch()`. This resolves memory exhaustion and JIT compilation crashes caused by Numba on low-RAM Render instances, without modifying downstream clinical scoring thresholds.
+  - Aligned array boundaries between librosa's `rms_frames` and parselmouth's `voiced_flag` by truncating both arrays to their minimum matching length before boolean indexing, eliminating potential index dimension mismatch errors.
+  - Configured `/api/parkinson/voice` and `/api/tb/analyze` to handle incoming audio recordings (WebM/Opus) by:
+    1. Saving the uploaded stream to a secure input temporary file using `tempfile.NamedTemporaryFile(delete=False)`.
+    2. Invoking the bundled static `ffmpeg` executable via python's `subprocess.run` to convert the file into a `44100 Hz` PCM WAV file.
+    3. Passing the converted WAV file to `analyze_voice_audio` / `analyze_cough_audio` without touching downstream analytical math.
+    4. Automatically deleting both input and output temp files inside `finally` blocks to prevent disk space buildup.
+    5. Adding comprehensive log statements at each step of the pipeline (receive, convert, analyze, finish/error) to make failure modes visible in live logging.
+  - Wrapped conversion and analysis inside a try-except layer that catches and returns clean `500` JSON errors on failure.
+
 ---
 
 ## Verification Plan
 
 ### Automated Verification
-- Probed and verified that the local Flask web server boots up cleanly without syntax or import errors on port `5000`.
+- Ran an automated route simulation verifying that an invalid/non-WAV upload to the audio endpoints yields the correct `500` response JSON and that temp files are successfully created and cleaned up.
+- Verified that all python files pass compilation checks cleanly.
 
 ### Manual Verification
 1. Launch the local Flask server.

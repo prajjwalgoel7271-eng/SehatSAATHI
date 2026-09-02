@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Subtest 1: Questionnaire — Dyslexia Screening{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📝 Subtest 1: Background Risk Questionnaire</h1>
+<p class="page-subtitle">Assessing early developmental indicators, speech delays, and reading behaviors.</p>
+<div class="title-separator" style="background-color: #3498db;"></div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: left; padding: 2rem;">
+    <div id="loading-state" style="text-align: center; padding: 2rem;">
+        <span style="font-size: 1.2rem; color: #3498db;">Loading questionnaire in selected language...</span>
+    </div>
+
+    <form id="questionnaire-form" style="display: none;">
+        <div id="questions-container" style="display: flex; flex-direction: column; gap: 1.5rem;"></div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('dyslexia_hub') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="background: #3498db; border-color: #3498db;">
+                Save &amp; Continue to Hub
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const lang = localStorage.getItem('dyslexia_lang') || 'en';
+    const container = document.getElementById('questions-container');
+    const loading = document.getElementById('loading-state');
+    const form = document.getElementById('questionnaire-form');
+
+    try {
+        const resp = await fetch(`/api/dyslexia/content/questionnaire?lang=${lang}`);
+        const data = await resp.json();
+        
+        loading.style.display = 'none';
+        form.style.display = 'block';
+
+        const questions = data.questions || (data.content && data.content.questions) || [];
+        if (data.fallback) {
+            const warning = document.createElement('div');
+            warning.style.cssText = "background: rgba(255,179,0,0.15); border: 1px solid #FFB300; padding: 0.75rem; border-radius: 6px; color: #FFB300; margin-bottom: 1rem; font-size: 0.85rem;";
+            warning.innerText = "ⓘ Content for this language is architecture-ready. Falling back to English questions.";
+            container.appendChild(warning);
+        }
+
+        if (questions.length === 0) {
+            container.innerHTML = '<div style="color: #e74c3c; padding: 1rem;">No questions found for the selected language.</div>';
+        }
+
+        questions.forEach((q, idx) => {
+            const qDiv = document.createElement('div');
+            qDiv.style.cssText = "background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px;";
+            
+            let optionsHtml = '';
+            (q.options || []).forEach((opt, oIdx) => {
+                optionsHtml += `
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; cursor: pointer; color: var(--text-primary);">
+                        <input type="radio" name="${q.id}" value="${opt.score}" ${oIdx === 0 ? 'checked' : ''}>
+                        <span>${opt.text}</span>
+                    </label>
+                `;
+            });
+
+            qDiv.innerHTML = `
+                <p style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: #3498db;">
+                    Q${idx + 1}. ${q.text}
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    ${optionsHtml}
+                </div>
+            `;
+            container.appendChild(qDiv);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const answers = {};
+            for (let [k, v] of formData.entries()) {
+                answers[k] = parseInt(v);
+            }
+
+            try {
+                const res = await fetch('/api/dyslexia/analyze/questionnaire', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answers, lang })
+                });
+                const result = await res.json();
+                
+                if (result.score !== undefined) {
+                    localStorage.setItem('dyslexia_score_questionnaire', result.score);
+                    window.location.href = "{{ url_for('dyslexia_hub') }}";
+                } else {
+                    alert("Submission error: " + (result.error || "Unknown error"));
+                }
+            } catch (submitErr) {
+                alert("Network or server error while submitting questionnaire: " + submitErr.message);
+            }
+        });
+
+    } catch (err) {
+        console.error("Error loading questionnaire:", err);
+        loading.innerHTML = `<span style="color: var(--color-danger);">Failed to load questionnaire questions: ${err.message}</span>`;
+    }
+});
+</script>
+{% endblock %}

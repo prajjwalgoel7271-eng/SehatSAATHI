@@ -998,12 +998,19 @@ ${titlePrompt}
         <option value="mr" ${lang === 'mr' ? 'selected' : ''}>🇮🇳 मराठी (Marathi)</option>
         <option value="ta" ${lang === 'ta' ? 'selected' : ''}>🇮🇳 தமிழ் (Tamil)</option>
         <option value="te" ${lang === 'te' ? 'selected' : ''}>🇮🇳 తెలుగు (Telugu)</option>
+        <option value="gu" ${lang === 'gu' ? 'selected' : ''}>🇮🇳 ગુજરાતી (Gujarati)</option>
+        <option value="kn" ${lang === 'kn' ? 'selected' : ''}>🇮🇳 ಕನ್ನಡ (Kannada)</option>
+        <option value="ml" ${lang === 'ml' ? 'selected' : ''}>🇮🇳 മലയാളം (Malayalam)</option>
+        <option value="pa" ${lang === 'pa' ? 'selected' : ''}>🇮🇳 ਪੰਜਾਬੀ (Punjabi)</option>
+        <option value="or" ${lang === 'or' ? 'selected' : ''}>🇮🇳 ଓଡ଼ିଆ (Odia)</option>
+        <option value="ur" ${lang === 'ur' ? 'selected' : ''}>🇵🇰 اردو (Urdu)</option>
+        <option value="bho" ${lang === 'bho' ? 'selected' : ''}>🇮🇳 भोजपुरी (Bhojpuri)</option>
     </select>
 </div>
 
 <div class="ai-explanation-box" style="background: rgba(255,255,255,0.03); border-left: 4px solid var(--color-danger); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); margin-bottom: 1rem;">
     <strong>🤖 AI Report Explanation:</strong><br>
-    <span>${explanation}</span>
+    <span id="anemia-exp-text">${explanation}</span>
 </div>
 
 📊 ${detailedMetricsText}:
@@ -1052,16 +1059,27 @@ ${all_warnings.length > 0 ? all_warnings.map(w => {
 `;
             }
 
+            async function renderSummaryAsync(lang) {
+                resultsDisplay.innerHTML = getSummaryHtml(lang);
+                if (lang !== 'en' && (!anemiaExplanations[lang] || !anemiaExplanations[lang][risk_level])) {
+                    const baseEng = anemiaExplanations['en'][risk_level];
+                    const translatedExp = await window.translateTextWithGoogle(baseEng, lang);
+                    const expElem = document.getElementById('anemia-exp-text');
+                    if (expElem) expElem.innerText = translatedExp;
+                }
+            }
+
             // Render initial summary in active language
-            resultsDisplay.innerHTML = getSummaryHtml(activeLang);
+            renderSummaryAsync(activeLang);
 
             // Add change listener to select dropdown
             resultsDisplay.addEventListener('change', (e) => {
                 if (e.target && e.target.id === 'lang-select') {
-                    resultsDisplay.innerHTML = getSummaryHtml(e.target.value);
+                    renderSummaryAsync(e.target.value);
                 }
             });
         });
+
     </script>
     <script src="static/js/translate.js"></script>
 </body>

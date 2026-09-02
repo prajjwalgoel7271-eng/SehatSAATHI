@@ -1,0 +1,573 @@
+{% extends "base.html" %}
+
+{% block title %}Subtest 2: Rapid Automatized Naming (RAN) — Dyslexia Screening{% endblock %}
+
+{% block content %}
+<h1 class="page-title">⚡ Subtest 2: Rapid Automatized Naming (RAN)</h1>
+<p class="page-subtitle">Real-time audio recorded visual-verbal naming speed assessment across letters, digits, colors, and objects.</p>
+<div class="title-separator" style="background-color: #3498db;"></div>
+
+<div class="card" style="max-width: 900px; margin: 0 auto; text-align: left; padding: 2rem;">
+    <!-- Grid Title & Speed Gauge Header -->
+    <div id="grid-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <h2 id="grid-title" style="font-size: 1.35rem; font-weight: 800; color: #3498db;">Grid 1 of 4: Letters (Randomized)</h2>
+            <p id="grid-instruction" style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">Name each item aloud sequentially into the mic. Tap item or press Space to advance instantly with 0ms lag.</p>
+        </div>
+        
+        <div style="text-align: right; background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 10px; border: 1px solid var(--border-color);">
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 1px;">Elapsed Time</span>
+            <span id="timer-display" style="font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 800; color: #2ecc71;">0.0s</span>
+            <span id="speed-badge" class="status-indicator" style="display: block; margin-top: 0.25rem; font-size: 0.75rem; background: rgba(46,204,113,0.15); color: #2ecc71; border-color: rgba(46,204,113,0.3);">
+                Target: &lt; 15s (0% Risk / Excellent)
+            </span>
+        </div>
+    </div>
+
+    <!-- Interactive Visual Grid -->
+    <div id="ran-items-box" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; min-height: 200px; align-items: center; justify-items: center;">
+        <!-- Dynamically injected randomized items -->
+    </div>
+
+    <!-- Real-Time Audio VAD & Speech Recognition Status Bar -->
+    <div style="margin-top: 1.5rem; background: rgba(52, 152, 219, 0.05); border: 1px solid rgba(52, 152, 219, 0.3); border-radius: 10px; padding: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #3498db; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🎙️</span> Real-Time Audio Recording &amp; Voice Pulse:
+            </span>
+            <span id="stt-match-count" style="font-size: 0.85rem; font-weight: 700; color: #2ecc71;">In-Order Step: 0 / 10</span>
+        </div>
+        <div id="stt-transcript-box" style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--text-primary); min-height: 42px; background: rgba(0,0,0,0.4); padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); word-break: break-word; display: flex; align-items: center; justify-content: space-between;">
+            <span id="transcript-text" style="color: var(--text-muted);">Microphone ready. Click Start to begin zero-lag voice trial...</span>
+            <div id="audio-visualizer-bar" style="width: 80px; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #444;">
+                <div id="audio-visualizer-fill" style="width: 0%; height: 100%; background: #2ecc71; transition: width 0.05s ease;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls & Status -->
+    <div style="margin-top: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <span id="mic-status-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #e74c3c;"></span>
+            <span id="mic-status-text">Microphone Standby</span>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <button id="btn-re-randomize" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.75rem 1.25rem;">
+                🔀 Re-Randomize Grid
+            </button>
+            <button id="btn-start-grid" class="btn btn-primary" style="background: #2ecc71; border-color: #2ecc71; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 700;">
+                ▶ Start Trial
+            </button>
+            <button id="btn-next-grid" class="btn btn-primary" style="background: #3498db; border-color: #3498db; display: none; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 700;">
+                Next Grid ➔
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const selectedLang = localStorage.getItem('dyslexia_lang') || 'en';
+
+    const langMap = {
+        'en': 'en-US',
+        'hi': 'hi-IN',
+        'bn': 'bn-IN',
+        'ta': 'ta-IN',
+        'te': 'te-IN',
+        'mr': 'mr-IN',
+        'gu': 'gu-IN',
+        'kn': 'kn-IN',
+        'ml': 'ml-IN',
+        'pa': 'pa-IN',
+        'or': 'or-IN',
+        'ur': 'ur-IN',
+        'bho': 'hi-IN'
+    };
+    const sttLang = langMap[selectedLang] || 'en-US';
+
+    const itemPools = {
+        letters: ['A', 'B', 'D', 'O', 'P', 'S', 'T', 'Z', 'M', 'K', 'R', 'L'],
+        digits: ['2', '4', '6', '7', '9', '3', '5', '8', '1'],
+        colors: [
+            { name: 'Red', hex: '#E74C3C', alt: ['लाल', 'red'] },
+            { name: 'Blue', hex: '#3498DB', alt: ['नीला', 'blue'] },
+            { name: 'Green', hex: '#2ECC71', alt: ['हरा', 'green'] },
+            { name: 'Yellow', hex: '#F1C40F', alt: ['पीला', 'yellow'] },
+            { name: 'Black', hex: '#2C3E50', alt: ['काला', 'black'] },
+            { name: 'Orange', hex: '#E67E22', alt: ['नारंगी', 'orange'] }
+        ],
+        objects: [
+            { name: 'Dog', emoji: '🐶', alt: ['कुत्ता', 'dog'] },
+            { name: 'Cat', emoji: '🐱', alt: ['बिल्ली', 'cat'] },
+            { name: 'Car', emoji: '🚗', alt: ['गाड़ी', 'car'] },
+            { name: 'Tree', emoji: '🌳', alt: ['पेड़', 'tree'] },
+            { name: 'Star', emoji: '⭐️', alt: ['तारा', 'star'] },
+            { name: 'Key', emoji: '🔑', alt: ['चाबी', 'key'] },
+            { name: 'Ball', emoji: '⚽️', alt: ['गेंद', 'ball'] },
+            { name: 'Apple', emoji: '🍎', alt: ['सेब', 'apple'] }
+        ]
+    };
+
+    const gridConfigs = [
+        { type: 'letters', title: 'Grid 1 of 4: Letters', instruction: 'Name each letter aloud from top-left to bottom-right.' },
+        { type: 'digits', title: 'Grid 2 of 4: Digits', instruction: 'Name each digit aloud rapidly.' },
+        { type: 'colors', title: 'Grid 3 of 4: Colors', instruction: 'Name the color of each block aloud.' },
+        { type: 'objects', title: 'Grid 4 of 4: Objects', instruction: 'Name each object picture aloud.' }
+    ];
+
+    let currentGridIdx = 0;
+    let randomizedItems = [];
+    let expectedPointer = 0;
+    let matchedItemIndices = new Set();
+
+    let gridTimes = [];
+    let gridErrors = [];
+    let totalItemsAcc = 0;
+    let totalRecognizedAcc = 0;
+
+    let timerInterval = null;
+    let startTime = 0;
+    let currentElapsedSec = 0;
+
+    // Real-Time Audio Recording + Web Audio VAD
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioCtx = null;
+    let analyser = null;
+    let vadAnimationId = null;
+
+    // Optional SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+
+    const gridTitle = document.getElementById('grid-title');
+    const gridInstruction = document.getElementById('grid-instruction');
+    const timerDisplay = document.getElementById('timer-display');
+    const speedBadge = document.getElementById('speed-badge');
+    const itemsBox = document.getElementById('ran-items-box');
+    const transcriptText = document.getElementById('transcript-text');
+    const matchCountLabel = document.getElementById('stt-match-count');
+    const vizFill = document.getElementById('audio-visualizer-fill');
+
+    const startBtn = document.getElementById('btn-start-grid');
+    const nextBtn = document.getElementById('btn-next-grid');
+    const reRandomBtn = document.getElementById('btn-re-randomize');
+    const micDot = document.getElementById('mic-status-dot');
+    const micText = document.getElementById('mic-status-text');
+
+    // Dynamic Vernacular Content Bank Loader for RAN
+    fetch(`/api/dyslexia/content/ran_items?lang=${selectedLang}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.content && res.content.grids) {
+                res.content.grids.forEach(g => {
+                    if (g.type === 'letters' && g.items && g.items.length > 0) {
+                        itemPools.letters = g.items;
+                    } else if (g.type === 'digits' && g.items && g.items.length > 0) {
+                        itemPools.digits = g.items.map((it, idx) => ({
+                            display: it,
+                            target: (g.target_words && g.target_words[idx]) ? g.target_words[idx] : it
+                        }));
+                    } else if (g.type === 'colors' && g.target_words && g.target_words.length > 0) {
+                        const hexes = ["#E74C3C", "#3498DB", "#2ECC71", "#F1C40F", "#9B59B6", "#E67E22"];
+                        itemPools.colors = g.target_words.map((w, idx) => ({
+                            name: w,
+                            hex: hexes[idx % hexes.length],
+                            alt: [w]
+                        }));
+                    } else if (g.type === 'objects' && g.target_words && g.target_words.length > 0) {
+                        const emojis = ["⭐️", "🍎", "🐱", "🚗", "🔑", "⚽️"];
+                        itemPools.objects = g.target_words.map((w, idx) => ({
+                            name: w,
+                            emoji: emojis[idx % emojis.length],
+                            alt: [w]
+                        }));
+                    }
+                });
+                renderCurrentGrid();
+            }
+        })
+        .catch(err => {
+            console.log("Using default RAN item pools", err);
+        });
+
+    function generateRandomGridItems(type) {
+        const count = 10;
+        let pool = itemPools[type];
+        let items = [];
+        for (let i = 0; i < count; i++) {
+            const randIdx = Math.floor(Math.random() * pool.length);
+            items.push(pool[randIdx]);
+        }
+        return items;
+    }
+
+    function updateActivePointerHighlight() {
+        randomizedItems.forEach((_, idx) => {
+            const el = document.getElementById(`ran-item-${idx}`);
+            if (!el) return;
+            if (idx === expectedPointer) {
+                el.style.border = '3px solid #3498db';
+                el.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.9)';
+                el.style.transform = 'scale(1.1)';
+                el.style.cursor = 'pointer';
+            } else if (matchedItemIndices.has(idx)) {
+                el.style.border = '2px solid #2ecc71';
+                el.style.boxShadow = 'none';
+                el.style.transform = 'scale(1)';
+                el.style.opacity = '0.7';
+                el.style.cursor = 'default';
+            } else {
+                el.style.border = '2px solid rgba(255,255,255,0.15)';
+                el.style.boxShadow = 'none';
+                el.style.transform = 'scale(1)';
+                el.style.opacity = '1';
+                el.style.cursor = 'default';
+            }
+        });
+    }
+
+    function advanceStepInOrder() {
+        if (expectedPointer >= randomizedItems.length) return;
+
+        matchedItemIndices.add(expectedPointer);
+        const el = document.getElementById(`ran-item-${expectedPointer}`);
+        if (el) {
+            el.style.border = '3px solid #2ecc71';
+            el.style.boxShadow = '0 0 15px rgba(46, 204, 113, 0.6)';
+            
+            const badge = document.createElement('span');
+            badge.innerText = `${expectedPointer + 1} ✓`;
+            badge.style.cssText = "position: absolute; top: -8px; right: -8px; background: #2ecc71; color: black; font-size: 0.7rem; font-weight: bold; padding: 2px 5px; border-radius: 10px; display: flex; align-items: center; justify-content: center;";
+            el.appendChild(badge);
+        }
+
+        expectedPointer++;
+        matchCountLabel.innerText = `In-Order Step: ${expectedPointer} / 10`;
+        updateActivePointerHighlight();
+
+        if (expectedPointer >= randomizedItems.length) {
+            clearInterval(timerInterval);
+            speedBadge.innerText = `✓ Complete! Speed: ${currentElapsedSec.toFixed(1)}s (0.0% Risk)`;
+            speedBadge.style.background = "rgba(46,204,113,0.2)";
+            speedBadge.style.color = "#2ecc71";
+            timerDisplay.style.color = "#2ecc71";
+        }
+    }
+
+    // Expanded Phonetic & Word Dictionaries to handle lump vs spaced speech variations
+    const digitVariants = {
+        '1': ['1', 'one', 'वन', 'एक', 'ஒன்று', 'ఒకటి', 'এক', 'ਇੱਕ'],
+        '2': ['2', 'two', 'to', 'too', 'टू', 'दो', 'ਦੋ', 'రెండు', 'இரண்டு', 'দুই', 'બે', 'ಎರಡು', 'രണ്ട്'],
+        '3': ['3', 'three', 'थ्री', 'तीन', 'তিন', 'மூன்று', 'మూడు', 'ત્રણ', 'ਮੂਰੂ', 'ਤਿੰਨ', 'ତିନି'],
+        '4': ['4', 'four', 'for', 'फोर', 'चार', 'ચાર', 'ਚਾਰ', 'ચાર', 'ચાર', 'ચાર', 'চার'],
+        '5': ['5', 'five', 'फाइव', 'पांच', 'પાંચ', 'ਪੰਜ', 'পাঁচ', 'ఐదు', 'ஐந்து'],
+        '6': ['6', 'six', 'सिक्स', 'छह', 'ਛੇ', 'છ', 'ছয়', 'ఆరు', 'ஆறு'],
+        '7': ['7', 'seven', 'सेवन', 'सात', 'ਸੱਤ', 'સાત', 'সাত', 'ఏడు', 'ஏழு'],
+        '8': ['8', 'eight', 'ate', 'एट', 'आठ', 'ਆਠ', 'આઠ', 'আট', 'ఎనిమిది', 'எட்டு'],
+        '9': ['9', 'nine', 'नाइन', 'नौ', 'ਨੌਂ', 'નવ', 'নয়', 'తొమ్మిది', 'ஒன்பது']
+    };
+
+    const letterVariants = {
+        'A': ['a', 'ay', 'ए', 'अ'],
+        'B': ['b', 'be', 'bee', 'बी'],
+        'D': ['d', 'de', 'dee', 'डी'],
+        'O': ['o', 'oh', 'ओ'],
+        'P': ['p', 'pe', 'pee', 'पी'],
+        'S': ['s', 'es', 'ess', 'एस'],
+        'T': ['t', 'te', 'tee', 'टी'],
+        'Z': ['z', 'ze', 'zee', 'zed', 'जेड'],
+        'M': ['m', 'em', 'emm', 'एम'],
+        'K': ['k', 'kay', 'के'],
+        'R': ['r', 'ar', 'arr', 'आर'],
+        'L': ['l', 'el', 'ell', 'एल']
+    };
+
+    let lastMatchedCharPos = -1;
+
+    function renderCurrentGrid() {
+        matchedItemIndices.clear();
+        expectedPointer = 0;
+        lastMatchedCharPos = -1;
+        transcriptText.innerHTML = '<em style="color: var(--text-muted);">Microphone ready. Click Start to begin zero-lag voice trial...</em>';
+        matchCountLabel.innerText = `In-Order Step: 0 / 10`;
+
+        const cfg = gridConfigs[currentGridIdx];
+        gridTitle.innerText = cfg.title + " (" + selectedLang.toUpperCase() + ")";
+        gridInstruction.innerText = cfg.instruction + " Speak items aloud (continuous or with spaces) or tap/press Space.";
+        timerDisplay.innerText = "0.0s";
+        timerDisplay.style.color = "#2ecc71";
+        
+        speedBadge.innerText = "Target: < 15s (0.0% Risk / Excellent)";
+        speedBadge.style.background = "rgba(46,204,113,0.15)";
+        speedBadge.style.color = "#2ecc71";
+
+        randomizedItems = generateRandomGridItems(cfg.type);
+        itemsBox.innerHTML = '';
+
+        randomizedItems.forEach((item, idx) => {
+            const itemCard = document.createElement('div');
+            itemCard.id = `ran-item-${idx}`;
+            itemCard.style.cssText = "width: 80px; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15); font-size: 1.8rem; font-weight: 800; position: relative; transition: all 0.2s ease;";
+
+            if (cfg.type === 'colors') {
+                itemCard.style.background = item.hex;
+                itemCard.style.border = '2px solid rgba(255,255,255,0.3)';
+                itemCard.innerHTML = `<span style="font-size: 0.75rem; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; color: white;">${item.name}</span>`;
+            } else if (cfg.type === 'objects') {
+                itemCard.innerHTML = `<span>${item.emoji}</span><span style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">${item.name}</span>`;
+            } else if (typeof item === 'object') {
+                itemCard.innerText = item.display || item.target;
+            } else {
+                itemCard.innerText = item;
+            }
+
+            // Click / Tap listener for 0ms latency input
+            itemCard.addEventListener('click', () => {
+                if (timerInterval && idx === expectedPointer) {
+                    advanceStepInOrder();
+                }
+            });
+
+            itemsBox.appendChild(itemCard);
+        });
+
+        updateActivePointerHighlight();
+        startBtn.style.display = 'inline-block';
+        reRandomBtn.style.display = 'inline-block';
+        nextBtn.style.display = 'none';
+    }
+
+    reRandomBtn.addEventListener('click', () => {
+        renderCurrentGrid();
+    });
+
+    // Spacebar listener for instant keyboard advance
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && timerInterval) {
+            e.preventDefault();
+            advanceStepInOrder();
+        }
+    });
+
+    function cleanText(str) {
+        return str.toLowerCase().replace(/[^a-zA-Z0-9\u0900-\u0D7F]/g, ' ').trim();
+    }
+
+    function cleanCondensed(str) {
+        return str.toLowerCase().replace(/[^a-zA-Z0-9\u0900-\u0D7F]/g, '');
+    }
+
+    function checkSpeechMatches(transcript) {
+        if (expectedPointer >= randomizedItems.length) return;
+
+        const cleanSpeechSpaced = cleanText(transcript);
+        const cleanSpeechCondensed = cleanCondensed(transcript);
+        const tokens = cleanSpeechSpaced.split(/\s+/);
+        const cfg = gridConfigs[currentGridIdx];
+        const targetItem = randomizedItems[expectedPointer];
+
+        let targetAlts = [];
+        if (cfg.type === 'letters') {
+            const raw = typeof targetItem === 'object' ? (targetItem.display || targetItem.target) : targetItem;
+            targetAlts = letterVariants[raw] || [raw.toLowerCase(), raw];
+        } else if (cfg.type === 'digits') {
+            if (typeof targetItem === 'object') {
+                targetAlts = [targetItem.display.toLowerCase(), targetItem.target.toLowerCase(), ...(digitVariants[targetItem.display] || [])];
+            } else {
+                targetAlts = digitVariants[targetItem] || [targetItem.toString()];
+            }
+        } else {
+            targetAlts = targetItem.alt || [targetItem.name.toLowerCase()];
+        }
+
+        let matches = false;
+
+        // Method A: Check Spaced Word Tokens (e.g. "a b d" or "two four six")
+        for (let alt of targetAlts) {
+            const cleanAlt = alt.toLowerCase().trim();
+            if (tokens.some(w => w === cleanAlt)) {
+                matches = true;
+                break;
+            }
+        }
+
+        // Method B: Check Lumped Continuous Strings without Spaces (e.g. "abdop" or "24679")
+        if (!matches && cleanSpeechCondensed.length > 0) {
+            for (let alt of targetAlts) {
+                const cleanAltCondensed = cleanCondensed(alt);
+                if (cleanAltCondensed.length > 0) {
+                    const pos = cleanSpeechCondensed.indexOf(cleanAltCondensed, Math.max(0, lastMatchedCharPos));
+                    if (pos !== -1) {
+                        matches = true;
+                        lastMatchedCharPos = pos + cleanAltCondensed.length;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (matches) {
+            advanceStepInOrder();
+        }
+    }
+
+    startBtn.addEventListener('click', async () => {
+        startBtn.style.display = 'none';
+        reRandomBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-block';
+        nextBtn.innerText = currentGridIdx === gridConfigs.length - 1 ? 'Finish & Save Subtest' : 'Done / Next Grid ➔';
+
+        // 1. MediaRecorder + Web Audio API VAD setup
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.start();
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaStreamSource(stream);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function updateVisualizer() {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                let avg = sum / dataArray.length;
+                let pct = Math.min(100, Math.max(0, (avg / 128.0) * 100));
+                vizFill.style.width = `${pct}%`;
+
+                vadAnimationId = requestAnimationFrame(updateVisualizer);
+            }
+            updateVisualizer();
+
+            micDot.style.background = '#2ecc71';
+            micText.innerText = 'Microphone Recording (Real-Time)';
+        } catch (err) {
+            micDot.style.background = '#f1c40f';
+            micText.innerText = 'Mic Disabled (Tap/Spacebar Mode Active)';
+        }
+
+        // 2. SpeechRecognition stream
+        if (SpeechRecognition) {
+            try {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = sttLang;
+
+                recognition.onresult = (event) => {
+                    let text = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        text += event.results[i][0].transcript + ' ';
+                    }
+                    transcriptText.innerText = text.trim() || 'Listening...';
+                    checkSpeechMatches(text);
+                };
+                recognition.start();
+            } catch (e) {}
+        }
+
+        // 3. Precise High-Resolution Timer (<15s = 0.0% Risk)
+        startTime = performance.now();
+        timerInterval = setInterval(() => {
+            currentElapsedSec = (performance.now() - startTime) / 1000.0;
+            timerDisplay.innerText = `${currentElapsedSec.toFixed(1)}s`;
+
+            if (currentElapsedSec < 15.0) {
+                timerDisplay.style.color = "#2ecc71";
+                speedBadge.innerText = "Speed: Excellent / 0.0% Risk (<15s)";
+                speedBadge.style.background = "rgba(46,204,113,0.15)";
+                speedBadge.style.color = "#2ecc71";
+            } else if (currentElapsedSec <= 20.0) {
+                timerDisplay.style.color = "#f1c40f";
+                speedBadge.innerText = "Speed: Moderate Delay (15s – 20s)";
+                speedBadge.style.background = "rgba(241,196,15,0.15)";
+                speedBadge.style.color = "#f1c40f";
+            } else {
+                timerDisplay.style.color = "#e74c3c";
+                speedBadge.innerText = "Speed: High Risk / Delayed (>20s)";
+                speedBadge.style.background = "rgba(231,76,60,0.15)";
+                speedBadge.style.color = "#e74c3c";
+            }
+        }, 100);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        if (vadAnimationId) cancelAnimationFrame(vadAnimationId);
+
+        if (recognition) {
+            try { recognition.stop(); } catch (e) {}
+        }
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            micDot.style.background = '#e74c3c';
+            micText.innerText = 'Microphone Standby';
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(blob);
+                
+                let savedClips = JSON.parse(localStorage.getItem('dyslexia_review_audio') || '[]');
+                savedClips.push({ label: `RAN Grid ${currentGridIdx + 1}`, url: audioUrl });
+                localStorage.setItem('dyslexia_review_audio', JSON.stringify(savedClips));
+            };
+        }
+
+        gridTimes.push(currentElapsedSec);
+        totalItemsAcc += 10;
+        totalRecognizedAcc += expectedPointer;
+
+        const unrecognised = 10 - expectedPointer;
+        gridErrors.push(unrecognised);
+
+        currentGridIdx++;
+        if (currentGridIdx < gridConfigs.length) {
+            renderCurrentGrid();
+        } else {
+            finishRanSubtest();
+        }
+    });
+
+    async function finishRanSubtest() {
+        itemsBox.innerHTML = '<div style="text-align: center; padding: 2rem;"><h3 style="color: #2ecc71;">✓ Processing RAN Results...</h3></div>';
+        
+        try {
+            const res = await fetch('/api/dyslexia/analyze/ran', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    grid_times: gridTimes,
+                    grid_errors: gridErrors,
+                    total_items: totalItemsAcc,
+                    recognized_count: totalRecognizedAcc,
+                    lang: selectedLang
+                })
+            });
+            const result = await res.json();
+            localStorage.setItem('dyslexia_score_ran', result.score);
+        } catch (e) {
+            const avgTime = gridTimes.reduce((a, b) => a + b, 0) / gridTimes.length;
+            let fallbackScore = 0.0;
+            if (avgTime > 20.0) fallbackScore = 75.0;
+            else if (avgTime > 15.0) fallbackScore = 30.0;
+            localStorage.setItem('dyslexia_score_ran', fallbackScore.toFixed(1));
+        }
+
+        window.location.href = "{{ url_for('dyslexia_hub') }}";
+    }
+
+    renderCurrentGrid();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,747 @@
+================================================================================
+  SEHAT SATHI - SPECIFIC LEARNING DISORDER (SLD) SCREENING MODULE (MULTI-LANGUAGE)
+================================================================================
+
+========================================
+LANGUAGE: English (en)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: "Which word rhymes with Cat?" | Target: Cat | Options: [A] Hat (Correct) | [B] Dog | [C] Sun
+T2: Prompt: "Which word rhymes with Star?" | Target: Star | Options: [A] Car (Correct) | [B] Pen | [C] Fish
+T3: Prompt: "Which word rhymes with Tree?" | Target: Tree | Options: [A] Bee (Correct) | [B] Ball | [C] Cup
+T4: Prompt: "Which word begins with the sound /S/?" | Target: Sun | Options: [A] Sun (Correct) | [B] Moon | [C] Tree
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items (700ms flash): 1: 2 Stars (⭐ ⭐), 2: 4 Apples (🍎 🍎 🍎 🍎), 3: 1 Cat (🐱), 4: 3 Balls (⚽ ⚽ ⚽)
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: Trace the glowing curved line from the left star to the right star across the screen center. | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: The Brave Little Pup - "Leo is a small brown puppy who lives in a quiet village. One afternoon, Leo found a lost kitten behind the old barn. He barked gently to guide the kitten back to its mother."
+Q1: What kind of animal is Leo? | Options: [A] A small brown puppy (Correct) | [B] A little kitten | [C] A big horse
+Q2: Where did Leo find the kitten? | Options: [A] In a park | [B] Behind the old barn (Correct) | [C] Inside the house
+Q3: How did Leo guide the kitten? | Options: [A] By running away | [B] By barking gently (Correct) | [C] By climbing a tree
+Spelling: 1. plant (Real) | 2. clock (Real) | 3. bright (Real) | 4. strop (Pseudo) | 5. flim (Pseudo)
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A (Select Larger): 1. 8 vs 3 (8) | 2. 14 vs 19 (19) | 3. 25 vs 17 (25) | 4. 6 vs 11 (11) | 5. 32 vs 28 (32)
+Part B (Fast Arithmetic): 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C (Sequences): 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1 (Simple): "The sun is hot." | T2 (Complex): "The quick brown fox jumps over the lazy dog."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): Red, Blue, Green, Yellow, Purple, Orange
+Round 2 (Letters): A, B, D, O, P, S, T, Z
+Round 3 (Mixed Switch): Red, A, 5, Blue, D, 9, Green, K
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. og | 2. ib | 3. strop | 4. flint | 5. flimberate | 6. sprottle
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "caught" | Distractor: Count backwards from 20 to 15 | Options: [A] cought | [B] caught (Correct) | [C] chaught | [D] coght
+T2: Target: "enough" | Distractor: Tap odd number: 4, 8, 7, 2 | Options: [A] enuff | [B] anough | [C] enough (Correct) | [D] enougth
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: Ecosystem Dynamics & Adaptation - "Forest ecosystems rely on intricate food webs where every organism plays a vital role. Plants convert sunlight into organic nutrients through photosynthesis. Primary consumers feed on plants, while apex predators control herbivore populations, preventing overgrazing and soil erosion."
+Q1: Primary role of apex predators? | [A] Convert sunlight | [B] Control herbivore populations (Correct) | [C] Produce nutrients
+Q2: Process allowing plants to create nutrients? | [A] Photosynthesis (Correct) | [B] Herbivory | [C] Erosion
+Q3: What if apex predators disappeared? | [A] Plants grow faster | [B] Overgrazing/erosion increases (Correct) | [C] Sunlight decreases
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Scale: 0 = Never | 1 = Sometimes | 2 = Often / Constantly
+Q1: I feel anxious or uneasy when asked to read aloud in class or group settings.
+Q2: I avoid tasks that involve long reading assignments or complex documents.
+Q3: I experience significant frustration when attempting timed math calculations.
+Q4: I feel my handwriting or writing speed holds me back despite knowing the answers.
+Q5: I spend double or triple the expected time completing reading or writing homework.
+Q6: I lose my line frequently or reread sentences multiple times to understand them.
+Q7: I feel mental fatigue or headache quickly when working with numbers or tables.
+Q8: I try to hide my reading/writing difficulties from peers or teachers.
+Q9: I worry that my academic speed does not reflect my true intelligence.
+Q10: I avoid choosing courses or careers that require extensive reading or writing.
+
+
+========================================
+LANGUAGE: Hindi (hi - हिन्दी)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'काम' शब्द के साथ कौन सा शब्द तुकबंदी करता है? | Target: काम | Options: [A] नाम (Correct) | [B] दिन | [C] घर
+T2: Prompt: 'तारा' शब्द के साथ कौन सा शब्द तुकबंदी करता है? | Target: तारा | Options: [A] सारा (Correct) | [B] कलम | [C] मछली
+T3: Prompt: 'ताला' शब्द के साथ कौन सा शब्द तुकबंदी करता है? | Target: ताला | Options: [A] माला (Correct) | [B] गेंद | [C] प्याला
+T4: Prompt: कौन सा शब्द /स/ ध्वनि से शुरू होता है? | Target: सूरज | Options: [A] सूरज (Correct) | [B] चाँद | [C] पेड़
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items (700ms flash): 1: 2 तारे, 2: 4 सेब, 3: 1 बिल्ली, 4: 3 गेंदें
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: स्क्रीन के बीच में बाएँ तारे से दाएँ तारे तक चमकती घुमावदार रेखा को ट्रेस करें। | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: बहादुर छोटा पिल्ला - "लियो एक छोटा भूरा पिल्ला है जो एक शांत गाँव में रहता है। एक दोपहर, लियो को पुराने खलिहान के पीछे एक खोया हुआ बिल्ली का बच्चा मिला। उसने बिल्ली के बच्चे को उसकी माँ के पास वापस ले जाने के लिए धीरे से भौंका।"
+Q1: लियो किस प्रकार का जानवर है? | Options: [A] एक छोटा भूरा पिल्ला (Correct) | [B] बिल्ली का बच्चा | [C] एक बड़ा घोड़ा
+Q2: लियो को बिल्ली का बच्चा कहाँ मिला? | Options: [A] एक पार्क में | [B] पुराने खलिहान के पीछे (Correct) | [C] घर के अंदर
+Q3: लियो ने बिल्ली के बच्चे का मार्गदर्शन कैसे किया? | Options: [A] भाग कर | [B] धीरे से भौंक कर (Correct) | [C] पेड़ पर चढ़ कर
+Spelling: 1. पौधा | 2. घड़ी | 3. चमकीला | 4. स्ट्रॉप | 5. फ्लिम
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A (Select Larger): 1. 8 या 3 (8) | 2. 14 या 19 (19) | 3. 25 या 17 (25) | 4. 6 या 11 (11) | 5. 32 या 28 (32)
+Part B (Fast Arithmetic): 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C (Sequences): 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1 (Simple): "धूप तेज है।" | T2 (Complex): "तेज़ भूरी लोमड़ी आलसी कुत्ते के ऊपर कूदती है।"
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): लाल, नीला, हरा, पीला, बैंगनी, नारंगी
+Round 2 (Letters): अ, ब, द, म, प, स, त, ज
+Round 3 (Mixed Switch): लाल, अ, 5, नीला, द, 9, हरा, क
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ओग | 2. इब | 3. स्ट्रॉप | 4. फ्लिंट | 5. फ्लिंबरेट | 6. स्प्रोटल
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "पकड़ा" | Distractor: 20 से 15 तक उल्टी गिनती गिनें | Options: [A] पकरा | [B] पकड़ा (Correct) | [C] पक्ड़ा | [D] पकढ़ा
+T2: Target: "काफी" | Distractor: विषम संख्या पर टैप करें: 4, 8, 7, 2 | Options: [A] खाफी | [B] काफ़ी | [C] काफी (Correct) | [D] कफी
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: पारिस्थितिकी तंत्र गतिकी - "वन पारिस्थितिकी तंत्र जटिल खाद्य जालों पर निर्भर करते हैं जहां हर जीव एक महत्वपूर्ण भूमिका निभाता है। पौधे प्रकाश संश्लेषण के माध्यम से सूर्य के प्रकाश को कार्बनिक पोषक तत्वों में परिवर्तित करते हैं। प्राथमिक उपभोक्ता पौधों को खाते हैं, जबकि शीर्ष शिकारी शाकाहारी आबादी को नियंत्रित करते हैं, जिससे अत्यधिक चराई और मिट्टी का कटाव रुकता है।"
+Q1: शीर्ष शिकारियों की प्राथमिक भूमिका क्या है? | [A] सूर्य के प्रकाश को परिवर्तित करना | [B] शाकाहारी आबादी को नियंत्रित करना (Correct) | [C] पोषक तत्व बनाना
+Q2: कौन सी प्रक्रिया पौधों को पोषक तत्व बनाने की अनुमति देती है? | [A] प्रकाश संश्लेषण (Correct) | [B] शाकाहार | [C] कटाव
+Q3: यदि शीर्ष शिकारी गायब हो जाएं तो क्या होगा? | [A] पौधे तेजी से बढ़ेंगे | [B] अत्यधिक चराई और मिट्टी का कटाव बढ़ेगा (Correct) | [C] धूप कम हो जाएगी
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: मुझे कक्षा में जोर से पढ़ने के लिए कहे जाने पर घबराहट महसूस होती है।
+Q2: मैं लंबे पढ़ने वाले कार्यों या जटिल दस्तावेजों से बचता हूं।
+Q3: समयबद्ध गणित की गणना करते समय मुझे बहुत निराशा होती है।
+Q4: मुझे लगता है कि जवाब जानने के बावजूद मेरी लिखावट या लिखने की गति मुझे पीछे रखती है।
+Q5: मुझे पढ़ने या लिखने का होमवर्क पूरा करने में दोगुना या तिगुना समय लगता है।
+Q6: मैं अक्सर अपनी लाइन खो देता हूं या वाक्यों को समझने के लिए उन्हें कई बार पढ़ता हूं।
+Q7: संख्याओं या तालिकाओं के साथ काम करते समय मुझे जल्दी मानसिक थकान या सिरदर्द महसूस होता है।
+Q8: मैं शिक्षकों या दोस्तों से अपनी पढ़ने/लिखने की कठिनाइयों को छिपाने की कोशिश करता हूं।
+Q9: मुझे चिंता है कि मेरी शैक्षणिक गति मेरी वास्तविक बुद्धिमत्ता को नहीं दर्शाती है।
+Q10: मैं ऐसे पाठ्यक्रम या करियर चुनने से बचता हूं जिनमें बहुत अधिक पढ़ने या लिखने की आवश्यकता होती है।
+
+
+========================================
+LANGUAGE: Bengali (bn - বাংলা)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'কাজ' শব্দের সাথে কোনটি ছন্দযুক্ত? | Target: কাজ | Options: [A] লাজ (Correct) | [B] দিন | [C] ঘর
+T2: Prompt: 'তারা' শব্দের সাথে কোনটি ছন্দযুক্ত? | Target: তারা | Options: [A] মারা (Correct) | [B] কলম | [C] মাছ
+T3: Prompt: 'তাল' শব্দের সাথে কোনটি ছন্দযুক্ত? | Target: তাল | Options: [A] মাল (Correct) | [B] বল | [C] কাপ
+T4: Prompt: কোন শব্দটি /স/ ধ্বনি দিয়ে শুরু হয়? | Target: সূর্য | Options: [A] সূর্য (Correct) | [B] চাঁদ | [C] গাছ
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 তারা, 2: 4 আপেল, 3: 1 বিড়াল, 4: 3 বল
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: পর্দার মাঝখান দিয়ে বাম তারা থেকে ডান তারা পর্যন্ত উজ্জ্বল বক্ররেখাটি অনুসরণ করুন। | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: সাহসী ছোট্ট কুকুরছানা - "লিও একটি ছোট্ট বাদামী কুকুরছানা যে একটি শান্ত গ্রামে বাস করে। একদিন বিকেলে, লিও পুরনো গোলাঘরের পিছনে একটি হারানো বিড়ালছানা খুঁজে পায়। সে বিড়ালছানাটিকে তার মায়ের কাছে ফিরিয়ে নিয়ে যাওয়ার জন্য মৃদুস্বরে ঘেউ ঘেউ করেছিল।"
+Q1: লিও কোন ধরনের প্রাণী? | Options: [A] ছোট বাদামী কুকুরছানা (Correct) | [B] বিড়ালছানা | [C] বড় ঘোড়া
+Q2: লিও বিড়ালছানাটিকে কোথায় খুঁজে পেয়েছিল? | Options: [A] পার্কে | [B] পুরনো গোলাঘরের পিছনে (Correct) | [C] ঘরের ভেতরে
+Q3: লিও কীভাবে বিড়ালছানাটিকে পথ দেখিয়েছিল? | Options: [A] দৌড়ে পালিয়ে | [B] মৃদু ঘেউ ঘেউ করে (Correct) | [C] গাছে উঠে
+Spelling: 1. গাছ | 2. ঘড়ি | 3. উজ্জ্বল | 4. স্ট্রপ | 5. ফ্লিম
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 না 3 (8) | 2. 14 না 19 (19) | 3. 25 না 17 (25) | 4. 6 না 11 (11) | 5. 32 না 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "রোদ খুব গরম।" | T2: "দ্রুত বাদামী শিয়াল অলস কুকুরের উপর দিয়ে লাফিয়ে পড়ে।"
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): লাল, নীল, সবুজ, হলুদ, বেগুনি, কমলা
+Round 2 (Letters): অ, ব, দ, ম, প, স, ত, জ
+Round 3 (Mixed): লাল, অ, 5, নীল, দ, 9, সবুজ, ক
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ওগ | 2. ইব | 3. স্ট্রপ | 4. ফ্লিন্ট | 5. ফ্লিম্বারেট | 6. স্প্রোটল
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "ধরা" | Distractor: ২০ থেকে ১৫ উল্টো গোন | Options: [A] ধোরা | [B] ধরা (Correct) | [C] ধড়া | [D] দরা
+T2: Target: "যথেষ্ট" | Distractor: বিজোড় সংখ্যায় ট্যাপ করুন: 4, 8, 7, 2 | Options: [A] যতেষ্ট | [B] জথেস্ট | [C] যথেষ্ট (Correct) | [D] জথেষ্ট
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: বাস্তুতন্ত্রের গতিশীলতা - "বন বাস্তুতন্ত্র জটিল খাদ্য জালের উপর নির্ভর করে যেখানে প্রতিটি জীব গুরুত্বপূর্ণ ভূমিকা পালন করে। উদ্ভিদ সালোকসংশ্লেষণের মাধ্যমে সূর্যালোককে জৈব পুষ্টিতে রূপান্তর করে। প্রাথমিক খাদকেরা উদ্ভিদ খায়, অন্যদিকে শীর্ষ শিকারীরা তৃণভোজী প্রাণীর সংখ্যা নিয়ন্ত্রণ করে, যার ফলে অতিরিক্ত চারণ এবং মাটির ক্ষয় রোধ হয়।"
+Q1: শীর্ষ শিকারীদের প্রাথমিক কাজ কী? | [A] সূর্যালোক রূপান্তর | [B] তৃণভোজীদের সংখ্যা নিয়ন্ত্রণ (Correct) | [C] পুষ্টি তৈরি
+Q2: কোন প্রক্রিয়া উদ্ভিদকে পুষ্টি তৈরি করতে সাহায্য করে? | [A] সালোকসংশ্লেষণ (Correct) | [B] তৃণভোজন | [C] ক্ষয়
+Q3: শীর্ষ শিকারী বিলুপ্ত হলে কী হবে? | [A] উদ্ভিদ দ্রুত বাড়বে | [B] অতিরিক্ত চারণ ও মাটির ক্ষয় বাড়বে (Correct) | [C] সূর্যালোক কমবে
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: ক্লাসে জোরে পড়ার কথা বললে আমি উদ্বিগ্ন বা অস্বস্তি বোধ করি।
+Q2: আমি দীর্ঘ পড়ার কাজ বা জটিল নথি এড়িয়ে চলি।
+Q3: সময় ধরে গণিতের হিসাব করার সময় আমি চরম হতাশা অনুভব করি।
+Q4: উত্তর জানা সত্ত্বেও আমার হাতের লেখা বা লেখার গতি আমাকে পিছিয়ে দেয় বলে মনে করি।
+Q5: পড়া বা লেখার হোমওয়ার্ক শেষ করতে আমার দ্বিগুণ বা তিনগুণ সময় লাগে।
+Q6: আমি প্রায়শই লাইন হারিয়ে ফেলি বা বোঝার জন্য একই বাক্য বারবার পড়ি।
+Q7: সংখ্যা বা টেবিল নিয়ে কাজ করার সময় আমি দ্রুত মানসিক ক্লান্তি বা মাথাব্যথা অনুভব করি।
+Q8: আমি শিক্ষক বা বন্ধুদের কাছ থেকে আমার পড়া/লেখার অসুবিধা লুকানোর চেষ্টা করি।
+Q9: আমি চিন্তিত যে আমার পড়ার গতি আমার আসল বুদ্ধিমত্তার প্রতিফলন করে না।
+Q10: আমি এমন কোর্স বা ক্যারিয়ার বেছে নেওয়া এড়িয়ে চলি যেখানে প্রচুর পড়া বা লেখার প্রয়োজন হয়।
+
+
+========================================
+LANGUAGE: Tamil (ta - தமிழ்)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'கல்' என்ற சொல்லுடன் எதுகை ஒலிக்கும் சொல் எது? | Target: கல் | Options: [A] பல் (Correct) | [B] நாய் | [C] வீடு
+T2: Prompt: 'மலை' என்ற சொல்லுடன் எதுகை ஒலிக்கும் சொல் எது? | Target: மலை | Options: [A] வலை (Correct) | [B] பேனா | [C] மீன்
+T3: Prompt: 'மரம்' என்ற சொல்லுடன் எதுகை ஒலிக்கும் சொல் எது? | Target: மரம் | Options: [A] கரம் (Correct) | [B] பந்து | [C] கோப்பை
+T4: Prompt: எந்த சொல் /சூ/ ஒலியில் தொடங்குகிறது? | Target: சூரியன் | Options: [A] சூரியன் (Correct) | [B] நிலா | [C] செடி
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 நட்சத்திரங்கள், 2: 4 ஆப்பிள்கள், 3: 1 பூனை, 4: 3 பந்துகள்
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: திரையின் நடுவே இடது நட்சத்திரத்திலிருந்து வலது நட்சத்திரம் வரை ஒளிரும் வளைந்த கோட்டை வரையவும். | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: தைரியமான சிறிய நாய்க்குட்டி - "லியோ ஒரு அமைதியான கிராமத்தில் வாழும் ஒரு சிறிய பழுப்பு நிற நாய்க்குட்டி. ஒரு மதியம், பழைய களஞ்சியத்தின் பின்னால் தொலைந்து போன ஒரு பூனைக்குட்டியை லியோ கண்டுபிடித்தது. அது பூனைக்குட்டியை அதன் தாயிடம் வழிகாட்ட மெதுவாக குரைத்தது."
+Q1: லியோ எந்த வகையான விலங்கு? | Options: [A] சிறிய பழுப்பு நாய்க்குட்டி (Correct) | [B] பூனைக்குட்டி | [C] பெரிய குதிரை
+Q2: லியோ பூனைக்குட்டியை எங்கே கண்டுபிடித்தது? | Options: [A] பூங்காவில் | [B] பழைய களஞ்சியத்தின் பின்னால் (Correct) | [C] வீட்டிற்குள்
+Q3: லியோ பூனைக்குட்டியை எப்படி வழிகாட்டியது? | Options: [A] ஓடிவிடுவதன் மூலம் | [B] மெதுவாக குரைப்பதன் மூலம் (Correct) | [C] மரம் ஏறுவதன் மூலம்
+Spelling: 1. செடி | 2. கடிகாரம் | 3. வெளிச்சம் | 4. ஸ்ட்ராப் | 5. ஃபிளிம்
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 அல்லது 3 (8) | 2. 14 அல்லது 19 (19) | 3. 25 அல்லது 17 (25) | 4. 6 அல்லது 11 (11) | 5. 32 அல்லது 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "சூரியன் சூடாக இருக்கிறது." | T2: "விரைவான பழுப்பு நிற நரி சோம்பேறி நாயின் மேல் குதிக்கிறது."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): சிவப்பு, நீலம், பச்சை, மஞ்சள், ஊதா, ஆரஞ்சு
+Round 2 (Letters): அ, க, ச, த, ப, ம, ர, வ
+Round 3 (Mixed): சிவப்பு, அ, 5, நீலம், க, 9, பச்சை, ச
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ஆக் | 2. இப் | 3. ஸ்ட்ராப் | 4. ஃபிளின்ட் | 5. ஃபிளிம்பரேட் | 6. ஸ்ப்ராட்டில்
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "பிடித்தான்" | Distractor: 20 முதல் 15 வரை பின்னோக்கி எண்ணவும் | Options: [A] பிடிதான் | [B] பிடித்தான் (Correct) | [C] பிடித்டான் | [D] பிடிடான்
+T2: Target: "போதுமான" | Distractor: ஒற்றைப்படை எண்ணைத் தொடவும்: 4, 8, 7, 2 | Options: [A] போடுமான | [B] போதுமன | [C] போதுமான (Correct) | [D] பொதுமான
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: சுற்றுச்சூழல் இயக்கவியல் - "வன சுற்றுச் சூழல் அமைப்புகள் ஒவ்வொரு உயிரினமும் முக்கிய பங்கு வகிக்கும் சிக்கலான உணவு வலைகளை நம்பியுள்ளன. தாவரங்கள் ஒளிச்சேர்க்கை மூலம் சூரிய ஒளியை கரிம ஊட்டச்சத்துக்களாக மாற்றுகின்றன. முதன்மை நுகர்வோர் தாவரங்களை உண்கின்றனர், அதே நேரத்தில் உச்ச வேட்டையாடுபவர்கள் தாவர உண்ணிகளின் எண்ணிக்கையைக் கட்டுப்படுத்தி, அதிக மேய்ச்சல் மற்றும் மண் அரிப்பைத் தடுக்கின்றன."
+Q1: உச்ச வேட்டையாடுபவர்களின் முதன்மை பங்கு என்ன? | [A] சூரிய ஒளியை மாற்றுவது | [B] தாவர உண்ணிகளின் எண்ணிக்கையைக் கட்டுப்படுத்துவது (Correct) | [C] ஊட்டச்சத்துக்களை உருவாக்குவது
+Q2: தாவரங்கள் ஊட்டச்சத்துக்களை உருவாக்க அனுமதிக்கும் செயல்முறை எது? | [A] ஒளிச்சேர்க்கை (Correct) | [B] தாவர உண்ணுதல் | [C] அரிப்பு
+Q3: உச்ச வேட்டையாடுபவர்கள் மறைந்துவிட்டால் என்ன நடக்கும்? | [A] தாவரங்கள் வேகமாக வளரும் | [B] அதிக மேய்ச்சல் மற்றும் மண் அரிப்பு அதிகரிக்கும் (Correct) | [C] சூரிய ஒளி குறையும்
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: வகுப்பில் சத்தமாகப் படிக்கச் சொல்லும்போது நான் பதட்டமாக அல்லது அசௌகரியமாக உணர்கிறேன்.
+Q2: நீண்ட வாசிப்பு அல்லது சிக்கலான ஆவணங்களை உள்ளடக்கிய பணிகளை நான் தவிர்க்கிறேன்.
+Q3: நேரக் கட்டுப்பாட்டுடன் கணிதக் கணக்கீடுகளைச் செய்யும்போது நான் மிகவும் விரக்தியடைகிறேன்.
+Q4: பதில்கள் தெரிந்திருந்தாலும் எனது கையெழுத்து அல்லது எழுதும் வேகம் என்னைப் பின்னுக்குத் தள்ளுவதாக உணர்கிறேன்.
+Q5: வாசிப்பு அல்லது எழுத்து வீட்டுப்பாடங்களை முடிக்க எதிர்பார்த்த நேரத்தை விட இரண்டு அல்லது மூன்று மடங்கு செலவிடுகிறேன்.
+Q6: நான் அடிக்கடி படிக்கும் வரியை தவறவிடுகிறேன் அல்லது வாக்கியங்களைப் புரிந்துகொள்ள பல முறை படிக்கிறேன்.
+Q7: எண்கள் அல்லது அட்டவணைகளுடன் வேலை செய்யும்போது நான் விரைவாக மனச் சோர்வு அல்லது தலைவலியை உணர்கிறேன்.
+Q8: எனது வாசிப்பு/எழுத்து சிரமங்களை நண்பர்கள் அல்லது ஆசிரியர்களிடமிருந்து மறைக்க முயற்சிக்கிறேன்.
+Q9: எனது கல்வி வேகம் எனது உண்மையான புத்திசாலித்தனத்தைப் பிரதிபலிக்கவில்லையோ என்று நான் கவலைப்படுகிறேன்.
+Q10: அதிக வாசிப்பு அல்லது எழுத்து தேவைப்படும் படிப்புகள் அல்லது வேலைகளைத் தேர்ந்தெடுப்பதைத் தவிர்க்கிறேன்.
+
+
+========================================
+LANGUAGE: Telugu (te - తెలుగు)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'కల' పదంతో ఏ పదం ప్రాసను కలిగి ఉంటుంది? | Target: కల | Options: [A] వల (Correct) | [B] కుక్క | [C] సూర్యుడు
+T2: Prompt: 'నది' పదంతో ఏ పదం ప్రాసను కలిగి ఉంటుంది? | Target: నది | Options: [A] గది (Correct) | [B] కలం | [C] చేప
+T3: Prompt: 'చెట్టు' పదంతో ఏ పదం ప్రాసను కలిగి ఉంటుంది? | Target: చెట్టు | Options: [A] బొట్టు (Correct) | [B] బంతి | [C] కప్పు
+T4: Prompt: ఏ పదం /సూ/ శబ్దంతో మొదలవుతుంది? | Target: సూర్యుడు | Options: [A] సూర్యుడు (Correct) | [B] చంద్రుడు | [C] చెట్టు
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 నక్షత్రాలు, 2: 4 ఆపిల్స్, 3: 1 పిల్లి, 4: 3 బంతులు
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: స్క్రీన్ మధ్యలో ఎడమ నక్షత్రం నుండి కుడి నక్షత్రం వరకు మెరుస్తున్న వక్ర రేఖను గీయండి. | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: ధైర్యమైన చిన్న కుక్కపిల్ల - "లియో ప్రశాంతమైన గ్రామంలో నివసించే ఒక చిన్న గోధుమ రంగు కుక్కపిల్ల. ఒక మధ్యాహ్నం, లియో పాత బార్న్ వెనుక తప్పిపోయిన పిల్లికూనను కనుగొన్నాడు. పిల్లికూనను దాని తల్లి వద్దకు చేర్చడానికి అతను నెమ్మదిగా మొరిగాడు."
+Q1: లియో ఎలాంటి జంతువు? | Options: [A] చిన్న గోధుమ కుక్కపిల్ల (Correct) | [B] పిల్లికూన | [C] పెద్ద గుర్రం
+Q2: లియో పిల్లికూనను ఎక్కడ కనుగొన్నాడు? | Options: [A] పార్కులో | [B] పాత బార్న్ వెనుక (Correct) | [C] ఇంట్లో
+Q3: లియో పిల్లికూనను ఎలా దారి చూపాడు? | Options: [A] పారిపోవడం ద్వారా | [B] నెమ్మదిగా మొరగడం ద్వారా (Correct) | [C] చెట్టు ఎక్కడం ద్వారా
+Spelling: 1. మొక్క | 2. గడియారం | 3. ప్రకాశవంతమైన | 4. స్ట్రాప్ | 5. ఫ్లిమ్
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 లేదా 3 (8) | 2. 14 లేదా 19 (19) | 3. 25 లేదా 17 (25) | 4. 6 లేదా 11 (11) | 5. 32 లేదా 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "సూర్యుడు వేడిగా ఉన్నాడు." | T2: "వేగవంతమైన గోధుమ రంగు నక్క బద్ధకమైన కుక్క మీదుగా దూకుతుంది."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): ఎరుపు, నీలం, ఆకుపచ్చ, పసుపు, ఊదా, నారింజ
+Round 2 (Letters): అ, క, చ, ట, త, ప, య, స
+Round 3 (Mixed): ఎరుపు, అ, 5, నీలం, క, 9, ఆకుపచ్చ, చ
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ఆగ్ | 2. ఇబ్ | 3. స్ట్రాప్ | 4. ఫ్లింట్ | 5. ఫ్లింబరేట్ | 6. స్ప్రాటిల్
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "పట్టుకున్నాడు" | Distractor: 20 నుండి 15 వరకు వెనక్కి లెక్కించండి | Options: [A] పటుకున్నాడు | [B] పట్టుకున్నాడు (Correct) | [C] పట్టుకునాడు | [D] పట్టుకన్నాడు
+T2: Target: "చాలు" | Distractor: బేసి సంఖ్యను నొక్కండి: 4, 8, 7, 2 | Options: [A] చలు | [B] ఛాలు | [C] చాలు (Correct) | [D] చలూ
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: పర్యావరణ వ్యవస్థ - "అటవీ పర్యావరణ వ్యవస్థలు ప్రతి జీవి కీలక పాత్ర పోషించే సంక్లిష్టమైన ఆహార వలయాలపై ఆధారపడి ఉంటాయి. మొక్కలు కిరణజన్య సంయోగక్రియ ద్వారా సూర్యరశ్మిని సేంద్రియ పోషకాలుగా మారుస్తాయి. ప్రాథమిక వినియోగదారులు మొక్కలను తింటాయి, అయితే అగ్ర మాంసాహారులు శాకాహారుల జనాభాను నియంత్రిస్తాయి, అధిక మేత మరియు నేల కోతను నివారిస్తాయి."
+Q1: అగ్ర మాంసాహారుల ప్రాథమిక పాత్ర ఏమిటి? | [A] సూర్యరశ్మిని మార్చడం | [B] శాకాహారుల జనాభాను నియంత్రించడం (Correct) | [C] పోషకాలను ఉత్పత్తి చేయడం
+Q2: మొక్కలు పోషకాలను సృష్టించడానికి అనుమతించే ప్రక్రియ ఏది? | [A] కిరణజన్య సంయోగక్రియ (Correct) | [B] శాకాహారం | [C] నేల కోత
+Q3: అగ్ర మాంసాహారులు అదృశ్యమైతే ఏమి జరుగుతుంది? | [A] మొక్కలు వేగంగా పెరుగుతాయి | [B] అధిక మేత మరియు నేల కోత పెరుగుతుంది (Correct) | [C] సూర్యరశ్మి తగ్గుతుంది
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: తరగతిలో గట్టిగా చదవమని అడిగినప్పుడు నేను ఆందోళనగా లేదా అసౌకర్యంగా భావిస్తాను.
+Q2: సుదీర్ఘ పఠనం లేదా సంక్లిష్ట పత్రాలతో కూడిన పనులను నేను నివారిస్తాను.
+Q3: సమయానుసారం గణిత గణనలను చేసేటప్పుడు నేను తీవ్ర నిరాశను అనుభవిస్తాను.
+Q4: సమాధానాలు తెలిసినప్పటికీ నా చేతివ్రాత లేదా రాసే వేగం నన్ను వెనక్కి నెడుతుందని నేను భావిస్తాను.
+Q5: చదవడం లేదా రాయడం హోంవర్క్ పూర్తి చేయడానికి నేను ఆశించిన దానికంటే రెట్టింపు లేదా మూడు వంతులు ఎక్కువ సమయం తీసుకుంటాను.
+Q6: నేను తరచుగా లైన్ కోల్పోతాను లేదా అర్థం చేసుకోవడానికి వాక్యాలను చాలాసార్లు చదువుతాను.
+Q7: సంఖ్యలు లేదా పట్టికలతో పనిచేసేటప్పుడు నేను త్వరగా మానసిక అలసట లేదా తలనొప్పిని భావిస్తాను.
+Q8: నేను నా చదవడం/రాయడం కష్టాలను తోటివారి నుండి లేదా ఉపాధ్యాయుల నుండి దాచడానికి ప్రయత్నిస్తాను.
+Q9: నా విద్యా వేగం నా నిజమైన తెలివితేటలను ప్రతిబింబించదని నేను ఆందోళన చెందుతున్నాను.
+Q10: విస్తృతంగా చదవడం లేదా రాయడం అవసరమయ్యే కోర్సులు లేదా కెరీర్లను ఎంచుకోవడాన్ని నేను నివారిస్తాను.
+
+
+========================================
+LANGUAGE: Marathi (mr - मराठी)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'काम' या शब्दाशी यमक जुळणारा शब्द कोणता? | Target: काम | Options: [A] नाम (Correct) | [B] दिवस | [C] घर
+T2: Prompt: 'तारा' या शब्दाशी यमक जुळणारा शब्द कोणता? | Target: तारा | Options: [A] वारा (Correct) | [B] पेन | [C] मासा
+T3: Prompt: 'ससा' या शब्दाशी यमक जुळणारा शब्द कोणता? | Target: ससा | Options: [A] ठसा (Correct) | [B] चेंडू | [C] कप
+T4: Prompt: कोणता शब्द /सू/ ध्वनीने सुरू होतो? | Target: सूर्य | Options: [A] सूर्य (Correct) | [B] चंद्र | [C] झाड
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 तारे, 2: 4 सफरचंद, 3: 1 मांजर, 4: 3 चेंडू
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: स्क्रीनच्या मध्यभागी डाव्या ताऱ्यापासून उजव्या ताऱ्यापर्यंत चमकणारी वक्र रेषा गिरवा. | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: शूर छोटे पिल्लू - "लिओ हे एका शांत गावात राहणारे एक छोटे तपकिरी रंगाचे पिल्लू आहे. एका दुपारी, लिओला जुन्या धान्याच्या कोठारामागे एक हरवलेले मांजराचे पिल्लू सापडले. त्याने मांजराच्या पिल्लाला त्याच्या आईकडे मार्गदर्शन करण्यासाठी हळूवारपणे भुंकले."
+Q1: लिओ कोणत्या प्रकारचा प्राणी आहे? | Options: [A] छोटे तपकिरी पिल्लू (Correct) | [B] मांजराचे पिल्लू | [C] मोठा घोडा
+Q2: लिओला मांजराचे पिल्लू कुठे सापडले? | Options: [A] बागेत | [B] जुन्या कोठारामागे (Correct) | [C] घराच्या आत
+Q3: लिओने मांजराच्या पिल्लाला कसे मार्गदर्शन केले? | Options: [A] पळून जाऊन | [B] हळूवार भुंकून (Correct) | [C] झाडावर चढून
+Spelling: 1. झाड | 2. घड्याळ | 3. तेजस्वी | 4. स्ट्रॉप | 5. फ्लिम
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 किंवा 3 (8) | 2. 14 किंवा 19 (19) | 3. 25 किंवा 17 (25) | 4. 6 किंवा 11 (11) | 5. 32 किंवा 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "ऊन खूप गरम आहे." | T2: "चपळ तपकिरी कोल्हा आळशी कुत्र्यावरून उडी मारतो."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): लाल, निळा, हिरवा, पिवळा, जांभळा, नारिंगी
+Round 2 (Letters): अ, ब, क, ड, प, स, त, म
+Round 3 (Mixed): लाल, अ, 5, निळा, ड, 9, हिरवा, क
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ओग | 2. इब | 3. स्ट्रॉप | 4. फ्लिंट | 5. फ्लिंबरेट | 6. स्प्रोटल
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "पकडले" | Distractor: 20 ते 15 उलटी मोजणी करा | Options: [A] पकडळे | [B] पकडले (Correct) | [C] पक्डले | [D] पकड्ल
+T2: Target: "पुरेसे" | Distractor: विषम संख्येवर टॅप करा: 4, 8, 7, 2 | Options: [A] पुरेस | [B] फुरेसे | [C] पुरेसे (Correct) | [D] पूरेसे
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: परिसंस्था गतिशीलता - "वन परिसंस्था गुंतागुंतीच्या अन्न जाळ्यांवर अवलंबून असतात जिथे प्रत्येक जीव महत्त्वाची भूमिका बजावतो. वनस्पती प्रकाशसंश्लेषणाद्वारे सूर्यप्रकाशाचे सेंद्रिय पोषक तत्वांमध्ये रूपांतर करतात. प्राथमिक भक्षक वनस्पती खातात, तर शीर्ष शिकारी शाकाहारी प्राण्यांच्या लोकसंख्येवर नियंत्रण ठेवतात, ज्यामुळे अतिचराई आणि मातीची धूप टळते."
+Q1: शीर्ष शिकाऱ्यांची प्राथमिक भूमिका काय आहे? | [A] सूर्यप्रकाश रूपांतरित करणे | [B] शाकाहारी लोकसंख्येवर नियंत्रण ठेवणे (Correct) | [C] पोषक तत्वे तयार करणे
+Q2: कोणती प्रक्रिया वनस्पतींना पोषक तत्वे तयार करण्यास मदत करते? | [A] प्रकाशसंश्लेषण (Correct) | [B] शाकाहार | [C] मातीची धूप
+Q3: जर शीर्ष शिकारी नाहीसे झाले तर काय होईल? | [A] वनस्पती वेगाने वाढतील | [B] अतिचराई आणि मातीची धूप वाढेल (Correct) | [C] सूर्यप्रकाश कमी होईल
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: वर्गात मोठ्याने वाचायला सांगितल्यावर मला अस्वस्थ किंवा चिंता वाटते.
+Q2: मी लांबलचक वाचन किंवा गुंतागुंतीचे दस्तऐवज असलेली कामे टाळतो.
+Q3: वेळ लावून गणिताची आकडेमोड करताना मला खूप निराशा येते.
+Q4: उत्तरे माहित असूनही माझे हस्ताक्षर किंवा लिहिण्याचा वेग मला मागे खेचतो असे मला वाटते.
+Q5: वाचनाचा किंवा लिखाणाचा गृहपाठ पूर्ण करण्यासाठी मला अपेक्षेपेक्षा दुप्पट किंवा तिप्पट वेळ लागतो.
+Q6: मी वारंवार ओळ विसरतो किंवा समजून घेण्यासाठी वाक्ये अनेक वेळा वाचतो.
+Q7: संख्या किंवा तक्त्यांसह काम करताना मला लवकर मानसिक थकवा किंवा डोकेदुखी जाणवते.
+Q8: मी माझ्या वाचन/लेखनाच्या अडचणी मित्र किंवा शिक्षकांपासून लपवण्याचा प्रयत्न करतो.
+Q9: माझा शैक्षणिक वेग माझ्या खऱ्या बुद्धिमत्तेला प्रतिबिंबित करत नाही अशी मला चिंता वाटते.
+Q10: मी असे अभ्यासक्रम किंवा करिअर निवडणे टाळतो ज्यामध्ये भरपूर वाचन किंवा लेखन आवश्यक असते.
+
+
+========================================
+LANGUAGE: Gujarati (gu - ગુજરાતી)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'કામ' શબ્દ સાથે કયો શબ્દ પ્રાસ ધરાવે છે? | Target: કામ | Options: [A] નામ (Correct) | [B] દિવસ | [C] ઘર
+T2: Prompt: 'તારા' શબ્દ સાથે કયો શબ્દ પ્રાસ ધરાવે છે? | Target: તારા | Options: [A] મારા (Correct) | [B] પેન | [C] માછલી
+T3: Prompt: 'તાળું' શબ્દ સાથે કયો શબ્દ પ્રાસ ધરાવે છે? | Target: તાળું | Options: [A] માળું (Correct) | [B] દડો | [C] કપ
+T4: Prompt: કયો શબ્દ /સૂર્ય/ અવાજથી શરૂ થાય છે? | Target: સૂર્ય | Options: [A] સૂર્ય (Correct) | [B] ચંદ્ર | [C] ઝાડ
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 તારા, 2: 4 સફરજન, 3: 1 બિલાડી, 4: 3 દડા
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: સ્ક્રીનની મધ્યમાં ડાબા તારાથી જમણા તારા સુધી ચમકતી વક્ર રેખા દોરો. | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: બહાદુર નાનું ગલૂડિયું - "લિયો એક નાનું ભૂખરું ગલૂડિયું છે જે એક શાંત ગામમાં રહે છે. એક બપોરે, લિયોને જૂના કોઠારની પાછળ એક ખોવાયેલું બિલાડીનું બચ્ચું મળ્યું. તેણે બિલાડીના બચ્ચાને તેની માતા પાસે લઈ જવા માટે ધીમેથી ભસ્યો."
+Q1: લિયો કયા પ્રકારનું પ્રાણી છે? | Options: [A] નાનું ભૂખરું ગલૂડિયું (Correct) | [B] બિલાડીનું બચ્ચું | [C] મોટો ઘોડો
+Q2: લિયોને બિલાડીનું બચ્ચું ક્યાં મળ્યું? | Options: [A] બગીચામાં | [B] જૂના કોઠારની પાછળ (Correct) | [C] ઘરની અંદર
+Q3: લિયોએ બિલાડીના બચ્ચાને કેવી રીતે માર્ગદર્શન આપ્યું? | Options: [A] ભાગી જઈને | [B] ધીમેથી ભસીને (Correct) | [C] ઝાડ પર ચઢીને
+Spelling: 1. છોડ | 2. ઘડિયાળ | 3. તેજસ્વી | 4. સ્ટ્રોપ | 5. ફ્લિમ
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 અથવા 3 (8) | 2. 14 અથવા 19 (19) | 3. 25 અથવા 17 (25) | 4. 6 અથવા 11 (11) | 5. 32 અથવા 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "તડકો ગરમ છે." | T2: "ઝડપી ભૂખરું શિયાળ આળસુ કૂતરા પર કૂદી પડે છે."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): લાલ, વાદળી, લીલો, પીળો, જાંબલી, નારંગી
+Round 2 (Letters): અ, બ, ક, ડ, પ, સ, ત, મ
+Round 3 (Mixed): લાલ, અ, 5, વાદળી, ડ, 9, લીલો, ક
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ઓગ | 2. ઇબ | 3. સ્ટ્રોપ | 4. ફ્લિન્ટ | 5. ફ્લિમ્બરેટ | 6. સ્પ્રૉટલ
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "પકડ્યું" | Distractor: 20 થી 15 સુધી ઊંધી ગણતરી કરો | Options: [A] પકળ્યું | [B] પકડ્યું (Correct) | [C] પકડ્યુ | [D] પકંડ્યું
+T2: Target: "પૂરતું" | Distractor: એકી સંખ્યા પર ટેપ કરો: 4, 8, 7, 2 | Options: [A] પુરતુ | [B] પૂરતુ | [C] પૂરતું (Correct) | [D] પુરતું
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: ઇકોસિસ્ટમ ડાયનેમિક્સ - "વન ઇકોસિસ્ટમ્સ જટિલ ફૂડ વેબ પર આધાર રાખે છે જ્યાં દરેક જીવ મહત્વપૂર્ણ ભૂમિકા ભજવે છે. છોડ પ્રકાશસંશ્લેષણ દ્વારા સૂર્યપ્રકાશને કાર્બનિક પોષક તત્વોમાં રૂપાંતરિત કરે છે. પ્રાથમિક ગ્રાહકો છોડ ખાય છે, જ્યારે ટોચના શિકારીઓ શાકાહારી વસ્તીને નિયંત્રિત કરે છે, જે અતિશય ચરાઈ અને જમીનનું ધોવાણ અટકાવે છે."
+Q1: ટોચના શિકારીઓની પ્રાથમિક ભૂમિકા શું છે? | [A] સૂર્યપ્રકાશને રૂપાંતરિત કરવો | [B] શાકાહારી વસ્તીને નિયંત્રિત કરવી (Correct) | [C] પોષક તત્વો બનાવવા
+Q2: કઈ પ્રક્રિયા છોડને પોષક તત્વો બનાવવા દે છે? | [A] પ્રકાશસંશ્લેષણ (Correct) | [B] શાકાહાર | [C] ધોવાણ
+Q3: જો ટોચના શિકારીઓ અદૃશ્ય થઈ જાય તો શું થશે? | [A] છોડ ઝડપથી વધશે | [B] અતિશય ચરાઈ અને જમીનનું ધોવાણ વધશે (Correct) | [C] સૂર્યપ્રકાશ ઘટશે
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: જ્યારે મને વર્ગમાં મોટેથી વાંચવાનું કહેવામાં આવે ત્યારે મને ચિંતા કે અસ્વસ્થતા અનુભવાય છે.
+Q2: હું લાંબા વાંચન અથવા જટિલ દસ્તાવેજો ધરાવતા કાર્યો કરવાનું ટાળું છું.
+Q3: સમયમર્યાદાવાળી ગણિતની ગણતરીઓ કરતી વખતે હું ખૂબ જ નિરાશ થઈ જાઉં છું.
+Q4: જવાબો જાણવા છતાં મારા અક્ષરો અથવા લખવાની ઝડપ મને પાછળ રાખે છે એવું મને લાગે છે.
+Q5: વાંચન કે લેખનનું હોમવર્ક પૂરું કરવામાં મને અપેક્ષા કરતાં બમણો કે ત્રણ ગણો સમય લાગે છે.
+Q6: હું વારંવાર મારી લાઇન ભૂલી જાઉં છું અથવા વાક્યો સમજવા માટે તેને ઘણી વખત વાંચું છું.
+Q7: સંખ્યાઓ અથવા કોષ્ટકો સાથે કામ કરતી વખતે મને ઝડપથી માનસિક થાક અથવા માથાનો દુખાવો થાય છે.
+Q8: હું મારી વાંચવા/લખવાની મુશ્કેલીઓને શિક્ષકો કે મિત્રોથી છુપાવવાનો પ્રયાસ કરું છું.
+Q9: મને ચિંતા છે કે મારી શૈક્ષણિક ઝડપ મારી સાચી બુદ્ધિમત્તાને દર્શાવતી નથી.
+Q10: હું એવા અભ્યાસક્રમો કે કારકિર્દી પસંદ કરવાનું ટાળું છું જેમાં ઘણું વાંચન કે લેખન જરૂરી હોય.
+
+
+========================================
+LANGUAGE: Kannada (kn - ಕನ್ನಡ)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'ಕಾಮ' ಪದದೊಂದಿಗೆ ಪ್ರಾಸಬದ್ಧವಾದ ಪದ ಯಾವುದು? | Target: ಕಾಮ | Options: [A] ನಾಮ (Correct) | [B] ದಿನ | [C] ಮನೆ
+T2: Prompt: 'ಮಲೆ' ಪದದೊಂದಿಗೆ ಪ್ರಾಸಬದ್ಧವಾದ ಪದ ಯಾವುದು? | Target: ಮಲೆ | Options: [A] ಬಲೆ (Correct) | [B] ಪೆನ್ನು | [C] ಮೀನು
+T3: Prompt: 'ಕೆರೆ' ಪದದೊಂದಿಗೆ ಪ್ರಾಸಬದ್ಧವಾದ ಪದ ಯಾವುದು? | Target: ಕೆರೆ | Options: [A] ತೆರೆ (Correct) | [B] ಚೆಂಡು | [C] ಕಪ್
+T4: Prompt: ಯಾವ ಪದವು /ಸೂ/ ಶಬ್ದದಿಂದ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ? | Target: ಸೂರ್ಯ | Options: [A] ಸೂರ್ಯ (Correct) | [B] ಚಂದ್ರ | [C] ಮರ
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 ನಕ್ಷತ್ರಗಳು, 2: 4 ಸೇಬುಗಳು, 3: 1 ಬೆಕ್ಕು, 4: 3 ಚೆಂಡುಗಳು
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: ಪರದೆಯ ಮಧ್ಯದಲ್ಲಿ ಎಡ ನಕ್ಷತ್ರದಿಂದ ಬಲ ನಕ್ಷತ್ರದವರೆಗೆ ಹೊಳೆಯುವ ಬಾಗಿದ ರೇಖೆಯನ್ನು ಎಳೆಯಿರಿ. | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: ಧೈರ್ಯಶಾಲಿ ಸಣ್ಣ ನಾಯಿಮರಿ - "ಲಿಯೋ ಒಂದು ಶಾಂತ ಹಳ್ಳಿಯಲ್ಲಿ ವಾಸಿಸುವ ಸಣ್ಣ ಕಂದು ಬಣ್ಣದ ನಾಯಿಮರಿ. ಒಂದು ಮಧ್ಯಾಹ್ನ, ಲಿಯೋ ಹಳೆಯ ಕೊಟ್ಟಿಗೆಯ ಹಿಂದೆ ಕಳೆದುಹೋದ ಬೆಕ್ಕಿನ ಮರಿಯನ್ನು ಕಂಡುಕೊಂಡನು. ಅವನು ಬೆಕ್ಕಿನ ಮರಿಯನ್ನು ಅದರ ತಾಯಿಯ ಬಳಿಗೆ ಕರೆದೊಯ್ಯಲು ಮೆಲ್ಲಗೆ ಬೊಗಳಿದನು."
+Q1: ಲಿಯೋ ಯಾವ ರೀತಿಯ ಪ್ರಾಣಿ? | Options: [A] ಸಣ್ಣ ಕಂದು ನಾಯಿಮರಿ (Correct) | [B] ಬೆಕ್ಕಿನ ಮರಿ | [C] ದೊಡ್ಡ ಕುದುರೆ
+Q2: ಲಿಯೋ ಬೆಕ್ಕಿನ ಮರಿಯನ್ನು ಎಲ್ಲಿ ಕಂಡುಕೊಂಡನು? | Options: [A] ಉದ್ಯಾನದಲ್ಲಿ | [B] ಹಳೆಯ ಕೊಟ್ಟಿಗೆಯ ಹಿಂದೆ (Correct) | [C] ಮನೆಯೊಳಗೆ
+Q3: ಲಿಯೋ ಬೆಕ್ಕಿನ ಮರಿಗೆ ಹೇಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡಿದನು? | Options: [A] ಓಡಿಹೋಗುವ ಮೂಲಕ | [B] ಮೆಲ್ಲಗೆ ಬೊಗಳುವ ಮೂಲಕ (Correct) | [C] ಮರ ಹತ್ತುವ ಮೂಲಕ
+Spelling: 1. ಸಸ್ಯ | 2. ಗಡಿಯಾರ | 3. ಪ್ರಕಾಶಮಾನವಾದ | 4. ಸ್ಟ್ರಾಪ್ | 5. ಫ್ಲಿಮ್
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 ಅಥವಾ 3 (8) | 2. 14 ಅಥವಾ 19 (19) | 3. 25 ಅಥವಾ 17 (25) | 4. 6 ಅಥವಾ 11 (11) | 5. 32 ಅಥವಾ 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "ಸೂರ್ಯನು ಬಿಸಿಯಾಗಿದ್ದಾನೆ." | T2: "ವೇಗದ ಕಂದು ನರಿ ಸೋಮಾರಿ ನಾಯಿಯ ಮೇಲೆ ಜಿಗಿಯುತ್ತದೆ."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): ಕೆಂಪು, ನೀಲಿ, ಹಸಿರು, ಹಳದಿ, ನೇರಳೆ, ಕಿತ್ತಳೆ
+Round 2 (Letters): ಅ, ಕ, ಚ, ಟ, ತ, ಪ, ಯ, ಸ
+Round 3 (Mixed): ಕೆಂಪು, ಅ, 5, ನೀಲಿ, ಕ, 9, ಹಸಿರು, ಚ
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ಓಗ್ | 2. ಇಬ್ | 3. ಸ್ಟ್ರಾಪ್ | 4. ಫ್ಲಿಂಟ್ | 5. ಫ್ಲಿಂಬರೇಟ್ | 6. ಸ್ಪ್ರಾಟಲ್
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "ಹಿಡಿದರು" | Distractor: 20 ರಿಂದ 15 ರವರೆಗೆ ಹಿಂದಕ್ಕೆ ಎಣಿಸಿ | Options: [A] ಹಿಡದರು | [B] ಹಿಡಿದರು (Correct) | [C] ಹಿಡಿದರೂ | [D] ಹಿದಿದರು
+T2: Target: "ಸಾಕು" | Distractor: ಬೆಸ ಸಂಖ್ಯೆಯನ್ನು ಸ್ಪರ್ಶಿಸಿ: 4, 8, 7, 2 | Options: [A] ಷಾಕು | [B] ಸಕು | [C] ಸಾಕು (Correct) | [D] ಚಾಕು
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: ಪರಿಸರ ವ್ಯವಸ್ಥೆ - "ಅರಣ್ಯ ಪರಿಸರ ವ್ಯವಸ್ಥೆಗಳು ಪ್ರತಿಯೊಂದು ಜೀವಿಯೂ ಪ್ರಮುಖ ಪಾತ್ರ ವಹಿಸುವ ಸಂಕೀರ್ಣ ಆಹಾರ ಜಾಲಗಳನ್ನು ಅವಲಂಬಿಸಿವೆ. ಸಸ್ಯಗಳು ದ್ಯುತಿಸಂಶ್ಲೇಷಣೆಯ ಮೂಲಕ ಸೂರ್ಯನ ಬೆಳಕನ್ನು ಸಾವಯವ ಪೋಷಕಾಂಶಗಳಾಗಿ ಪರಿವರ್ತಿಸುತ್ತವೆ. ಪ್ರಾಥಮಿಕ ಗ್ರಾಹಕರು ಸಸ್ಯಗಳನ್ನು ತಿನ್ನುತ್ತಾರೆ, ಆದರೆ ಉನ್ನತ ಪರಭಕ್ಷಕಗಳು ಸಸ್ಯಾಹಾರಿಗಳ ಜನಸಂಖ್ಯೆಯನ್ನು ನಿಯಂತ್ರಿಸುತ್ತವೆ, ಅತಿಯಾದ ಮೇಯುವಿಕೆ ಮತ್ತು ಮಣ್ಣಿನ ಸವೆತವನ್ನು ತಡೆಯುತ್ತವೆ."
+Q1: ಉನ್ನತ ಪರಭಕ್ಷಕಗಳ ಪ್ರಾಥಮಿಕ ಪಾತ್ರವೇನು? | [A] ಸೂರ್ಯನ ಬೆಳಕನ್ನು ಪರಿವರ್ತಿಸುವುದು | [B] ಸಸ್ಯಾಹಾರಿಗಳ ಜನಸಂಖ್ಯೆಯನ್ನು ನಿಯಂತ್ರಿಸುವುದು (Correct) | [C] ಪೋಷಕಾಂಶಗಳನ್ನು ಉತ್ಪಾದಿಸುವುದು
+Q2: ಸಸ್ಯಗಳು ಪೋಷಕಾಂಶಗಳನ್ನು ರಚಿಸಲು ಯಾವ ಪ್ರಕ್ರಿಯೆ ಅನುಮತಿಸುತ್ತದೆ? | [A] ದ್ಯುತಿಸಂಶ್ಲೇಷಣೆ (Correct) | [B] ಸಸ್ಯಾಹಾರ | [C] ಸವೆತ
+Q3: ಉನ್ನತ ಪರಭಕ್ಷಕಗಳು ಕಣ್ಮರೆಯಾದರೆ ಏನಾಗುತ್ತದೆ? | [A] ಸಸ್ಯಗಳು ವೇಗವಾಗಿ ಬೆಳೆಯುತ್ತವೆ | [B] ಅತಿಯಾದ ಮೇಯುವಿಕೆ ಮತ್ತು ಮಣ್ಣಿನ ಸವೆತ ಹೆಚ್ಚಾಗುತ್ತದೆ (Correct) | [C] ಸೂರ್ಯನ ಬೆಳಕು ಕಡಿಮೆಯಾಗುತ್ತದೆ
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: ತರಗತಿಯಲ್ಲಿ ಜೋರಾಗಿ ಓದಲು ಕೇಳಿದಾಗ ನಾನು ಆತಂಕ ಅಥವಾ ಮುಜುಗರವನ್ನು ಅನುಭವಿಸುತ್ತೇನೆ.
+Q2: ದೀರ್ಘ ಓದುವಿಕೆ ಅಥವಾ ಸಂಕೀರ್ಣ ದಾಖಲೆಗಳನ್ನು ಒಳಗೊಂಡಿರುವ ಕಾರ್ಯಗಳನ್ನು ನಾನು ತಪ್ಪಿಸುತ್ತೇನೆ.
+Q3: ಸಮಯ ನಿಗದಿಪಡಿಸಿದ ಗಣಿತದ ಲೆಕ್ಕಾಚಾರಗಳನ್ನು ಮಾಡುವಾಗ ನಾನು ತೀವ್ರ ಹತಾಶೆಯನ್ನು ಅನುಭವಿಸುತ್ತೇನೆ.
+Q4: ಉತ್ತರಗಳು ತಿಳಿದಿದ್ದರೂ ನನ್ನ ಕೈಬರಹ ಅಥವಾ ಬರೆಯುವ ವೇಗ ನನ್ನನ್ನು ಹಿಂದೆ ಉಳಿಯುವಂತೆ ಮಾಡುತ್ತದೆ ಎಂದು ನಾನು ಭಾವಿಸುತ್ತೇನೆ.
+Q5: ಓದುವ ಅಥವಾ ಬರೆಯುವ ಮನೆಕೆಲಸವನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ನಾನು ನಿರೀಕ್ಷೆಗಿಂತ ಎರಡು ಅಥವಾ ಮೂರು ಪಟ್ಟು ಹೆಚ್ಚು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತೇನೆ.
+Q6: ನಾನು ಆಗಾಗ್ಗೆ ಸಾಲನ್ನು ಕಳೆದುಕೊಳ್ಳುತ್ತೇನೆ ಅಥವಾ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ವಾಕ್ಯಗಳನ್ನು ಹಲವು ಬಾರಿ ಓದುತ್ತೇನೆ.
+Q7: ಸಂಖ್ಯೆಗಳು ಅಥವಾ ಕೋಷ್ಟಕಗಳೊಂದಿಗೆ ಕೆಲಸ ಮಾಡುವಾಗ ನಾನು ತ್ವರಿತವಾಗಿ ಮಾನಸಿಕ ಆಯಾಸ ಅಥವಾ ತಲೆನೋವನ್ನು ಅನುಭವಿಸುತ್ತೇನೆ.
+Q8: ನನ್ನ ಓದುವ/ಬರೆಯುವ ತೊಂದರೆಗಳನ್ನು ಸ್ನೇಹಿತರು ಅಥವಾ ಶಿಕ್ಷಕರಿಂದ ಮರೆಮಾಡಲು ನಾನು ಪ್ರಯತ್ನಿಸುತ್ತೇನೆ.
+Q9: ನನ್ನ ಶೈಕ್ಷಣಿಕ ವೇಗವು ನನ್ನ ನಿಜವಾದ ಬುದ್ಧಿವಂತಿಕೆಯನ್ನು ಪ್ರತಿಬಿಂಬಿಸುವುದಿಲ್ಲ ಎಂದು ನಾನು ಚಿಂತಿಸುತ್ತೇನೆ.
+Q10: ವ್ಯಾಪಕವಾದ ಓದುವಿಕೆ ಅಥವಾ ಬರವಣಿಗೆಯ ಅಗತ್ಯವಿರುವ ಕೋರ್ಸ್ಗಳು ಅಥವಾ ವೃತ್ತಿಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡುವುದನ್ನು ನಾನು ತಪ್ಪಿಸುತ್ತೇನೆ.
+
+
+========================================
+LANGUAGE: Malayalam (ml - മലയാളം)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'പാട്ട്' എന്ന പദത്തോട് പ്രാസമുള്ള പദം ഏത്? | Target: പാട്ട് | Options: [A] കാട്ട് (Correct) | [B] പകൽ | [C] വീട്
+T2: Prompt: 'മാല' എന്ന പദത്തോട് പ്രാസമുള്ള പദം ഏത്? | Target: മാല | Options: [A] പാല (Correct) | [B] പേന | [C] മത്സ്യം
+T3: Prompt: 'മരം' എന്ന പദത്തോട് പ്രാസമുള്ള പദം ഏത്? | Target: മരം | Options: [A] കരം (Correct) | [B] പന്ത് | [C] കപ്പ്
+T4: Prompt: ഏത് പദമാണ് /സൂ/ ശബ്ദത്തിൽ തുടങ്ങുന്നത്? | Target: സൂര്യൻ | Options: [A] സൂര്യൻ (Correct) | [B] ചന്ദ്രൻ | [C] മരം
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 നക്ഷത്രങ്ങൾ, 2: 4 ആപ്പിളുകൾ, 3: 1 പൂച്ച, 4: 3 പന്തുകൾ
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: സ്ക്രീനിന്റെ മധ്യത്തിലൂടെ ഇടത്തെ നക്ഷത്രത്തിൽ നിന്ന് വലത്തെ നക്ഷത്രത്തിലേക്ക് തിളങ്ങുന്ന വളഞ്ഞ വര വരയ്ക്കുക. | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: ധീരനായ ചെറിയ നായ്ക്കുട്ടി - "ശാന്തമായ ഒരു ഗ്രാമത്തിൽ ജീവിക്കുന്ന ഒരു ചെറിയ തവിട്ട് നായ്ക്കുട്ടിയാണ് ലിയോ. ഒരു ഉച്ചതിരിഞ്ഞ്, പഴയ കളപ്പുരയുടെ പിന്നിൽ ഒരു ചെറിയ പൂച്ചക്കുട്ടിയെ ലിയോ കണ്ടെത്തി. പൂച്ചക്കുട്ടിയെ അതിന്റെ അമ്മയുടെ അടുത്തേക്ക് നയിക്കാൻ അവൻ പതുക്കെ കുരച്ചു."
+Q1: ലിയോ ഏതുതരം മൃഗമാണ്? | Options: [A] ചെറിയ തവിട്ട് നായ്ക്കുട്ടി (Correct) | [B] പൂച്ചക്കുട്ടി | [C] വലിയ കുതിര
+Q2: ലിയോ പൂച്ചക്കുട്ടിയെ എവിടെയാണ് കണ്ടെത്തിയത്? | Options: [A] പാർക്കിൽ | [B] പഴയ കളപ്പുരയുടെ പിന്നിൽ (Correct) | [C] വീടിനുള്ളിൽ
+Q3: ലിയോ പൂച്ചക്കുട്ടിയെ എങ്ങനെയാണ് വഴികാട്ടിയത്? | Options: [A] ഓടിപ്പോയി | [B] പതുക്കെ കുരച്ച് (Correct) | [C] മരത്തിൽ കയറി
+Spelling: 1. ചെടി | 2. ക്ലോക്ക് | 3. തിളക്കമുള്ള | 4. സ്ട്രോപ്പ് | 5. ഫ്ലിം
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 അല്ലെങ്കിൽ 3 (8) | 2. 14 അല്ലെങ്കിൽ 19 (19) | 3. 25 അല്ലെങ്കിൽ 17 (25) | 4. 6 അല്ലെങ്കിൽ 11 (11) | 5. 32 അല്ലെങ്കിൽ 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "സൂര്യൻ ചൂടുള്ളതാണ്." | T2: "വേഗമുള്ള തവിട്ട് കുറുക്കൻ മടിയനായ നായയുടെ മുകളിലൂടെ ചാടുന്നു."
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): ചുവപ്പ്, നീല, പച്ച, മഞ്ഞ, പർപ്പിൾ, ഓറഞ്ച്
+Round 2 (Letters): അ, ക, ച, ട, ത, പ, യ, സ
+Round 3 (Mixed): ചുവപ്പ്, അ, 5, നീല, ക, 9, പച്ച, ച
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ഓഗ് | 2. ഇബ് | 3. സ്ട്രോപ്പ് | 4. ഫ്ലിന്റ് | 5. ഫ്ലിംബറേറ്റ് | 6. സ്പ്രോട്ടിൽ
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "പിടിച്ചു" | Distractor: 20 മുതൽ 15 വരെ പിന്നോട്ട് എണ്ണുക | Options: [A] പിഡിചു | [B] പിടിച്ചു (Correct) | [C] പിടിച്ചൂ | [D] പീടിച്ചു
+T2: Target: "മതി" | Distractor: ഒറ്റസംഖ്യയിൽ സ്പർശിക്കുക: 4, 8, 7, 2 | Options: [A] മഥി | [B] മാതി | [C] മതി (Correct) | [D] മതീ
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: പരിസ്ഥിതി വ്യവസ്ഥ - "വന പരിസ്ഥിതി വ്യവസ്ഥകൾ ഓരോ ജീവിക്കും പ്രധാന പങ്കുള്ള സങ്കീർണ്ണമായ ഭക്ഷണ ശൃംഖലകളെ ആശ്രയിച്ചിരിക്കുന്നു. സസ്യങ്ങൾ പ്രകാശസംശ്ലേഷണത്തിലൂടെ സൂര്യപ്രകാശത്തെ ജൈവ പോഷകങ്ങളാക്കി മാറ്റുന്നു. പ്രാഥമിക ഉപഭോക്താക്കൾ സസ്യങ്ങളെ ഭക്ഷിക്കുന്നു, അതേസമയം ഉയർന്ന വേട്ടക്കാർ സസ്യഭുക്കുകളുടെ എണ്ണം നിയന്ത്രിക്കുകയും അമിതമായ മേച്ചിലും മണ്ണൊലിപ്പും തടയുകയും ചെയ്യുന്നു."
+Q1: ഉയർന്ന വേട്ടക്കാരുടെ പ്രധാന പങ്ക് എന്താണ്? | [A] സൂര്യപ്രകാശം മാറ്റുന്നു | [B] സസ്യഭുക്കുകളുടെ എണ്ണം നിയന്ത്രിക്കുന്നു (Correct) | [C] പോഷകങ്ങൾ ഉണ്ടാക്കുന്നു
+Q2: പോഷകങ്ങൾ ഉണ്ടാക്കാൻ സസ്യങ്ങളെ അനുവദിക്കുന്ന പ്രക്രിയ ഏത്? | [A] പ്രകാശസംശ്ലേഷണം (Correct) | [B] സസ്യാഹാരം | [C] മണ്ണൊലിപ്പ്
+Q3: ഉയർന്ന വേട്ടക്കാർ ഇല്ലാതായാൽ എന്ത് സംഭവിക്കും? | [A] സസ്യങ്ങൾ വേഗത്തിൽ വളരും | [B] അമിത മേച്ചിലും മണ്ണൊലിപ്പും വർദ്ധിക്കും (Correct) | [C] സൂര്യപ്രകാശം കുറയും
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: ക്ലാസ്സിൽ ഉറക്കെ വായിക്കാൻ ആവശ്യപ്പെടുമ്പോൾ എനിക്ക് ഉത്കണ്ഠയോ അസ്വസ്ഥതയോ അനുഭവപ്പെടുന്നു.
+Q2: ദീർഘനേരം വായിക്കേണ്ടതോ സങ്കീർണ്ണമായ രേഖകളോ ഉള്ള ജോലികൾ ഞാൻ ഒഴിവാക്കുന്നു.
+Q3: സമയം നിശ്ചയിച്ചുള്ള ഗണിത കണക്കുകൂട്ടലുകൾ ചെയ്യുമ്പോൾ എനിക്ക് കടുത്ത നിരാശ അനുഭവപ്പെടുന്നു.
+Q4: ഉത്തരങ്ങൾ അറിയാമെങ്കിലും എന്റെ കൈയക്ഷരമോ എഴുതുന്ന വേഗതയോ എന്നെ പിന്നിലാക്കുന്നുവെന്ന് എനിക്ക് തോന്നുന്നു.
+Q5: വായനയോ എഴുത്തോ ഗൃഹപാഠം ചെയ്തുതീർക്കാൻ ഞാൻ പ്രതീക്ഷിച്ചതിലും ഇരട്ടിയോ മൂന്നിരട്ടിയോ സമയം എടുക്കുന്നു.
+Q6: മനസ്സിലാക്കാൻ വേണ്ടി ഞാൻ പലപ്പോഴും വരി തെറ്റിക്കുകയോ വാക്യങ്ങൾ പലതവണ വായിക്കുകയോ ചെയ്യുന്നു.
+Q7: അക്കങ്ങളോ പട്ടികകളോ ഉപയോഗിച്ച് പ്രവർത്തിക്കുമ്പോൾ എനിക്ക് പെട്ടെന്ന് മാനസിക ക്ഷീണമോ തലവേദനയോ ഉണ്ടാകുന്നു.
+Q8: എന്റെ വായന/എഴുത്ത് ബുദ്ധിമുട്ടുകൾ സുഹൃത്തുക്കളിൽ നിന്നോ അധ്യാപകരിൽ നിന്നോ മറച്ചുവെക്കാൻ ഞാൻ ശ്രമിക്കുന്നു.
+Q9: എന്റെ അക്കാദമിക് വേഗത എന്റെ യഥാർത്ഥ ബുദ്ധിശക്തിയെ പ്രതിഫലിപ്പിക്കുന്നില്ലെന്ന് ഞാൻ ഭയപ്പെടുന്നു.
+Q10: ധാരാളം വായനയോ എഴുത്തോ ആവശ്യമുള്ള കോഴ്സുകളോ കരിയറുകളോ തിരഞ്ഞെടുക്കുന്നത് ഞാൻ ഒഴിവാക്കുന്നു.
+
+
+========================================
+LANGUAGE: Punjabi (pa - ਪੰਜਾਬੀ)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'ਕੰਮ' ਸ਼ਬਦ ਦੇ ਨਾਲ ਕਿਹੜਾ ਸ਼ਬਦ ਤੁਕਬੰਦੀ ਕਰਦਾ ਹੈ? | Target: ਕੰਮ | Options: [A] ਚੰਮ (Correct) | [B] ਦਿਨ | [C] ਘਰ
+T2: Prompt: 'ਤਾਰਾ' ਸ਼ਬਦ ਦੇ ਨਾਲ ਕਿਹੜਾ ਸ਼ਬਦ ਤੁਕਬੰਦੀ ਕਰਦਾ ਹੈ? | Target: ਤਾਰਾ | Options: [A] ਸਾਰਾ (Correct) | [B] ਪੈੱਨ | [C] ਮੱਛੀ
+T3: Prompt: 'ਤਾਲਾ' ਸ਼ਬਦ ਦੇ ਨਾਲ ਕਿਹੜਾ ਸ਼ਬਦ ਤੁਕਬੰਦੀ ਕਰਦਾ ਹੈ? | Target: ਤਾਲਾ | Options: [A] ਮਾਲਾ (Correct) | [B] ਗੇਂਦ | [C] ਕੱਪ
+T4: Prompt: ਕਿਹੜਾ ਸ਼ਬਦ /ਸ/ ਆਵਾਜ਼ ਨਾਲ ਸ਼ੁਰੂ ਹੁੰਦਾ ਹੈ? | Target: ਸੂਰਜ | Options: [A] ਸੂਰਜ (Correct) | [B] ਚੰਨ | [C] ਦਰੱਖਤ
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 ਤਾਰੇ, 2: 4 ਸੇਬ, 3: 1 ਬਿੱਲੀ, 4: 3 ਗੇਂਦਾਂ
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: ਸਕ੍ਰੀਨ ਦੇ ਵਿਚਕਾਰ ਖੱਬੇ ਤਾਰੇ ਤੋਂ ਸੱਜੇ ਤਾਰੇ ਤੱਕ ਚਮਕਦੀ ਕਰਵ ਲਾਈਨ ਨੂੰ ਟਰੇਸ ਕਰੋ। | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: ਬਹਾਦਰ ਛੋਟਾ ਕਤੂਰਾ - "ਲੀਓ ਇੱਕ ਛੋਟਾ ਭੂਰਾ ਕਤੂਰਾ ਹੈ ਜੋ ਇੱਕ ਸ਼ਾਂਤ ਪਿੰਡ ਵਿੱਚ ਰਹਿੰਦਾ ਹੈ। ਇੱਕ ਦੁਪਹਿਰ, ਲੀਓ ਨੂੰ ਪੁਰਾਣੇ ਖੇਤ ਦੇ ਪਿੱਛੇ ਇੱਕ ਗੁਆਚਿਆ ਹੋਇਆ ਬਿੱਲੀ ਦਾ ਬੱਚਾ ਮਿਲਿਆ। ਉਸਨੇ ਬਿੱਲੀ ਦੇ ਬੱਚੇ ਨੂੰ ਉਸਦੀ ਮਾਂ ਕੋਲ ਵਾਪਸ ਲਿਜਾਣ ਲਈ ਹੌਲੀ ਜਿਹੀ ਭੌਂਕਿਆ।"
+Q1: ਲੀਓ ਕਿਸ ਕਿਸਮ ਦਾ ਜਾਨਵਰ ਹੈ? | Options: [A] ਇੱਕ ਛੋਟਾ ਭੂਰਾ ਕਤੂਰਾ (Correct) | [B] ਬਿੱਲੀ ਦਾ ਬੱਚਾ | [C] ਇੱਕ ਵੱਡਾ ਘੋੜਾ
+Q2: ਲੀਓ ਨੂੰ ਬਿੱਲੀ ਦਾ ਬੱਚਾ ਕਿੱਥੇ ਮਿਲਿਆ? | Options: [A] ਇੱਕ ਪਾਰਕ ਵਿੱਚ | [B] ਪੁਰਾਣੇ ਖੇਤ ਦੇ ਪਿੱਛੇ (Correct) | [C] ਘਰ ਦੇ ਅੰਦਰ
+Q3: ਲੀਓ ਨੇ ਬਿੱਲੀ ਦੇ ਬੱਚੇ ਦੀ ਅਗਵਾਈ ਕਿਵੇਂ ਕੀਤੀ? | Options: [A] ਭੱਜ ਕੇ | [B] ਹੌਲੀ ਜਿਹੀ ਭੌਂਕ ਕੇ (Correct) | [C] ਦਰੱਖਤ 'ਤੇ ਚੜ੍ਹ ਕੇ
+Spelling: 1. ਪੌਦਾ | 2. ਘੜੀ | 3. ਚਮਕਦਾਰ | 4. ਸਟਰੌਪ | 5. ਫਲਿਮ
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 ਜਾਂ 3 (8) | 2. 14 ਜਾਂ 19 (19) | 3. 25 ਜਾਂ 17 (25) | 4. 6 ਜਾਂ 11 (11) | 5. 32 ਜਾਂ 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "ਧੁੱਪ ਤੇਜ਼ ਹੈ।" | T2: "ਤੇਜ਼ ਭੂਰੀ ਲੂੰਬੜੀ ਆਲਸੀ ਕੁੱਤੇ ਦੇ ਉੱਪਰੋਂ ਛਾਲ ਮਾਰਦੀ ਹੈ।"
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): ਲਾਲ, ਨੀਲਾ, ਹਰਾ, ਪੀਲਾ, ਜਾਮਨੀ, ਸੰਤਰੀ
+Round 2 (Letters): ੳ, ਅ, ੲ, ਸ, ਹ, ਕ, ਖ, ਗ
+Round 3 (Mixed): ਲਾਲ, ੳ, 5, ਨੀਲਾ, ਸ, 9, ਹਰਾ, ਕ
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ਓਗ | 2. ਇਬ | 3. ਸਟਰੌਪ | 4. ਫਲਿੰਟ | 5. ਫਲਿੰਬਰੇਟ | 6. ਸਪਰੋਟਲ
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "ਫੜਿਆ" | Distractor: 20 ਤੋਂ 15 ਤੱਕ ਉਲਟੀ ਗਿਣਤੀ ਗਿਣੋ | Options: [A] ਫਰਿਆ | [B] ਫੜਿਆ (Correct) | [C] ਫੜੀਆ | [D] ਫਡ਼ਿਆ
+T2: Target: "ਕਾਫ਼ੀ" | Distractor: ਟਾਂਕ ਸੰਖਿਆ 'ਤੇ ਟੈਪ ਕਰੋ: 4, 8, 7, 2 | Options: [A] ਕਾਫੀ | [B] ਕਫੀ | [C] ਕਾਫ਼ੀ (Correct) | [D] ਖਾਫੀ
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: ਈਕੋਸਿਸਟਮ ਡਾਇਨਾਮਿਕਸ - "ਜੰਗਲ ਦੇ ਈਕੋਸਿਸਟਮ ਗੁੰਝਲਦਾਰ ਭੋਜਨ ਜਾਲਾਂ 'ਤੇ ਨਿਰਭਰ ਕਰਦੇ ਹਨ ਜਿੱਥੇ ਹਰ ਜੀਵ ਇੱਕ ਮਹੱਤਵਪੂਰਣ ਭੂਮਿਕਾ ਨਿਭਾਉਂਦਾ ਹੈ। ਪੌਦੇ ਪ੍ਰਕਾਸ਼ ਸੰਸ਼ਲੇਸ਼ਣ ਦੁਆਰਾ ਸੂਰਜ ਦੀ ਰੌਸ਼ਨੀ ਨੂੰ ਜੈਵਿਕ ਪੌਸ਼ਟਿਕ ਤੱਤਾਂ ਵਿੱਚ ਬਦਲਦੇ ਹਨ। ਪ੍ਰਾਇਮਰੀ ਖਪਤਕਾਰ ਪੌਦਿਆਂ ਨੂੰ ਖਾਂਦੇ ਹਨ, ਜਦੋਂ ਕਿ ਚੋਟੀ ਦੇ ਸ਼ਿਕਾਰੀ ਸ਼ਾਕਾਹਾਰੀ ਆਬਾਦੀ ਨੂੰ ਨਿਯੰਤਰਿਤ ਕਰਦੇ ਹਨ, ਜਿਸ ਨਾਲ ਜ਼ਿਆਦਾ ਚਰਾਉਣ ਅਤੇ ਮਿੱਟੀ ਦੇ ਕਟਣ ਨੂੰ ਰੋਕਿਆ ਜਾਂਦਾ ਹੈ।"
+Q1: ਚੋਟੀ ਦੇ ਸ਼ਿਕਾਰੀਆਂ ਦੀ ਮੁਢਲੀ ਭੂਮਿਕਾ ਕੀ ਹੈ? | [A] ਸੂਰਜ ਦੀ ਰੌਸ਼ਨੀ ਨੂੰ ਬਦਲਣਾ | [B] ਸ਼ਾਕਾਹਾਰੀ ਆਬਾਦੀ ਨੂੰ ਕੰਟਰੋਲ ਕਰਨਾ (Correct) | [C] ਪੌਸ਼ਟਿਕ ਤੱਤ ਪੈਦਾ ਕਰਨਾ
+Q2: ਕਿਹੜੀ ਪ੍ਰਕਿਰਿਆ ਪੌਦਿਆਂ ਨੂੰ ਪੌਸ਼ਟਿਕ ਤੱਤ ਬਣਾਉਣ ਦਿੰਦੀ ਹੈ? | [A] ਪ੍ਰਕਾਸ਼ ਸੰਸ਼ਲੇਸ਼ਣ (Correct) | [B] ਸ਼ਾਕਾਹਾਰੀ | [C] ਮਿੱਟੀ ਦਾ ਕਟਣ
+Q3: ਜੇ ਚੋਟੀ ਦੇ ਸ਼ਿਕਾਰੀ ਗਾਇਬ ਹੋ ਜਾਣ ਤਾਂ ਕੀ ਹੋਵੇਗਾ? | [A] ਪੌਦੇ ਤੇਜ਼ੀ ਨਾਲ ਵਧਣਗੇ | [B] ਜ਼ਿਆਦਾ ਚਰਾਉਣਾ ਅਤੇ ਮਿੱਟੀ ਦਾ ਕਟਣ ਵਧੇਗਾ (Correct) | [C] ਧੁੱਪ ਘਟੇਗੀ
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: ਜਦੋਂ ਮੈਨੂੰ ਕਲਾਸ ਵਿੱਚ ਉੱਚੀ ਆਵਾਜ਼ ਵਿੱਚ ਪੜ੍ਹਨ ਲਈ ਕਿਹਾ ਜਾਂਦਾ ਹੈ ਤਾਂ ਮੈਨੂੰ ਘਬਰਾਹਟ ਜਾਂ ਬੇਚੈਨੀ ਮਹਿਸੂਸ ਹੁੰਦੀ ਹੈ।
+Q2: ਮੈਂ ਉਨ੍ਹਾਂ ਕੰਮਾਂ ਤੋਂ ਬਚਦਾ ਹਾਂ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਲੰਬੀ ਪੜ੍ਹਾਈ ਜਾਂ ਗੁੰਝਲਦਾਰ ਦਸਤਾਵੇਜ਼ ਸ਼ਾਮਲ ਹੁੰਦੇ ਹਨ।
+Q3: ਸਮਾਂਬੱਧ ਗਣਿਤ ਦੀਆਂ ਗਣਨਾਵਾਂ ਕਰਦੇ ਸਮੇਂ ਮੈਨੂੰ ਬਹੁਤ ਨਿਰਾਸ਼ਾ ਹੁੰਦੀ ਹੈ।
+Q4: ਮੈਨੂੰ ਲੱਗਦਾ ਹੈ ਕਿ ਜਵਾਬ ਜਾਣਨ ਦੇ ਬਾਵਜੂਦ ਮੇਰੀ ਲਿਖਾਈ ਜਾਂ ਲਿਖਣ ਦੀ ਗਤੀ ਮੈਨੂੰ ਪਿੱਛੇ ਰੱਖਦੀ ਹੈ।
+Q5: ਮੈਨੂੰ ਪੜ੍ਹਨ ਜਾਂ ਲਿਖਣ ਦਾ ਹੋਮਵਰਕ ਪੂਰਾ ਕਰਨ ਵਿੱਚ ਉਮੀਦ ਨਾਲੋਂ ਦੁੱਗਣਾ ਜਾਂ ਤਿੱਗਣਾ ਸਮਾਂ ਲੱਗਦਾ ਹੈ।
+Q6: ਮੈਂ ਅਕਸਰ ਆਪਣੀ ਲਾਈਨ ਗੁਆ ਦਿੰਦਾ ਹਾਂ ਜਾਂ ਵਾਕਾਂ ਨੂੰ ਸਮਝਣ ਲਈ ਉਹਨਾਂ ਨੂੰ ਕਈ ਵਾਰ ਪੜ੍ਹਦਾ ਹਾਂ।
+Q7: ਸੰਖਿਆਵਾਂ ਜਾਂ ਟੇਬਲਾਂ ਨਾਲ ਕੰਮ ਕਰਦੇ ਸਮੇਂ ਮੈਨੂੰ ਜਲਦੀ ਮਾਨਸਿਕ ਥਕਾਵਟ ਜਾਂ ਸਿਰਦਰਦ ਮਹਿਸੂਸ ਹੁੰਦਾ ਹੈ।
+Q8: ਮੈਂ ਦੋਸਤਾਂ ਜਾਂ ਅਧਿਆਪਕਾਂ ਤੋਂ ਆਪਣੀਆਂ ਪੜ੍ਹਨ/ਲਿਖਣ ਦੀਆਂ ਮੁਸ਼ਕਲਾਂ ਨੂੰ ਛੁਪਾਉਣ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ ਹਾਂ।
+Q9: ਮੈਨੂੰ ਚਿੰਤਾ ਹੈ ਕਿ ਮੇਰੀ ਅਕਾਦਮਿਕ ਗਤੀ ਮੇਰੀ ਅਸਲ ਬੁੱਧੀ ਨੂੰ ਨਹੀਂ ਦਰਸਾਉਂਦੀ।
+Q10: ਮੈਂ ਅਜਿਹੇ ਕੋਰਸ ਜਾਂ ਕਰੀਅਰ ਚੁਣਨ ਤੋਂ ਬਚਦਾ ਹਾਂ ਜਿਨ੍ਹਾਂ ਲਈ ਬਹੁਤ ਜ਼ਿਆਦਾ ਪੜ੍ਹਨ ਜਾਂ ਲਿਖਣ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।
+
+
+========================================
+LANGUAGE: Odia (or - ଓଡ଼ିଆ)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'କାମ' ଶବ୍ଦ ସହିତ କେଉଁ ଶବ୍ଦର ଛନ୍ଦ ମିଳେ? | Target: କାମ | Options: [A] ନାମ (Correct) | [B] ଦିନ | [C] ଘର
+T2: Prompt: 'ତାରା' ଶବ୍ଦ ସହିତ କେଉଁ ଶବ୍ଦର ଛନ୍ଦ ମିଳେ? | Target: ତାରା | Options: [A] ପାରା (Correct) | [B] କଲମ | [C] ମାଛ
+T3: Prompt: 'ତାଲା' ଶବ୍ଦ ସହିତ କେଉଁ ଶବ୍ଦର ଛନ୍ଦ ମିଳେ? | Target: ତାଲା | Options: [A] ମାଲା (Correct) | [B] ବଲ୍ | [C] କପ୍
+T4: Prompt: କେଉଁ ଶବ୍ଦ /ସୂ/ ଧ୍ୱନିରୁ ଆରମ୍ଭ ହୁଏ? | Target: ସୂର୍ଯ୍ୟ | Options: [A] ସୂର୍ଯ୍ୟ (Correct) | [B] ଜହ୍ନ | [C] ଗଛ
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 ତାରା, 2: 4 ସେଓ, 3: 1 ବିରାଡ଼ି, 4: 3 ବଲ୍
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: ସ୍କ୍ରିନର ମଝି ଦେଇ ବାମ ତାରାରୁ ଡାହାଣ ତାରା ପର୍ଯ୍ୟନ୍ତ ଉଜ୍ଜ୍ୱଳ ବକ୍ର ରେଖା ଆଙ୍କନ୍ତୁ। | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: ସାହସୀ ଛୋଟ କୁକୁର ଛୁଆ - "ଲିଓ ଏକ ଛୋଟ ବାଦାମୀ ରଙ୍ଗର କୁକୁର ଛୁଆ ଯିଏ ଏକ ଶାନ୍ତ ଗାଁରେ ରହେ। ଗୋଟିଏ ଉପରବେଳା, ଲିଓ ପୁରୁଣା ଅମାର ପଛରେ ଏକ ହଜିଯାଇଥିବା ବିରାଡ଼ି ଛୁଆ ପାଇଲା। ସେ ବିରାଡ଼ି ଛୁଆଟିକୁ ତାର ମା ପାଖକୁ ନେଇଯିବା ପାଇଁ ଧୀରେ ଧୀରେ ଭୁକିଲା।"
+Q1: ଲିଓ କି ପ୍ରକାରର ପଶୁ? | Options: [A] ଛୋଟ ବାଦାମୀ କୁକୁର ଛୁଆ (Correct) | [B] ବିରାଡ଼ି ଛୁଆ | [C] ବଡ ଘୋଡା
+Q2: ଲିଓ ବିରାଡ଼ି ଛୁଆକୁ କେଉଁଠାରେ ପାଇଲା? | Options: [A] ପାର୍କରେ | [B] ପୁରୁଣା ଅମାର ପଛରେ (Correct) | [C] ଘର ଭିତରେ
+Q3: ଲିଓ ବିରାଡ଼ି ଛୁଆକୁ କିପରି ବାଟ ଦେଖାଇଲା? | Options: [A] ଦୌଡି ପଳାଇ | [B] ଧୀରେ ଭୁକି (Correct) | [C] ଗଛ ଚଢି
+Spelling: 1. ଗଛ | 2. ଘଣ୍ଟା | 3. ଉଜ୍ଜ୍ୱଳ | 4. ଷ୍ଟ୍ରପ୍ | 5. ଫ୍ଲିମ୍
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 କିମ୍ବା 3 (8) | 2. 14 କିମ୍ବା 19 (19) | 3. 25 କିମ୍ବା 17 (25) | 4. 6 କିମ୍ବା 11 (11) | 5. 32 କିମ୍ବା 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "ଖରା ବହୁତ ଗରମ।" | T2: "ଦ୍ରୁତ ବାଦାମୀ ବିଲୁଆ ଅଳସୁଆ କୁକୁର ଉପର ଦେଇ ଡେଇଁପଡେ।"
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): ଲାଲ୍, ନୀଳ, ସବୁଜ, ହଳଦିଆ, ବାଇଗଣୀ, କମଳା
+Round 2 (Letters): ଅ, ବ, କ, ଡ, ପ, ସ, ତ, ମ
+Round 3 (Mixed): ଲାଲ୍, ଅ, 5, ନୀଳ, ଡ, 9, ସବୁଜ, କ
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ଓଗ୍ | 2. ଇବ୍ | 3. ଷ୍ଟ୍ରପ୍ | 4. ଫ୍ଲିଣ୍ଟ୍ | 5. ଫ୍ଲିମ୍ବରେଟ୍ | 6. ସ୍ପ୍ରୋଟଲ୍
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "ଧରିଲା" | Distractor: 20 ରୁ 15 ପଛକୁ ଗଣନ୍ତୁ | Options: [A] ଢରିଲା | [B] ଧରିଲା (Correct) | [C] ଧରୀଲା | [D] ଦରିଲା
+T2: Target: "ଯଥେଷ୍ଟ" | Distractor: ଅଯୁଗ୍ମ ସଂଖ୍ୟାରେ ଟ୍ୟାପ୍ କରନ୍ତୁ: 4, 8, 7, 2 | Options: [A] ଜଥେଷ୍ଟ | [B] ଯତେଷ୍ଟ | [C] ଯଥେଷ୍ଟ (Correct) | [D] ଯଥେସ୍ଟ
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: ଇକୋସିଷ୍ଟମ୍ ଗତିଶୀଳତା - "ଜଙ୍ଗଲ ଇକୋସିଷ୍ଟମ୍ ଜଟିଳ ଖାଦ୍ୟ ଜାଲ ଉପରେ ନିର୍ଭର କରେ ଯେଉଁଠାରେ ପ୍ରତ୍ୟେକ ଜୀବ ଏକ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ଭୂମିକା ଗ୍ରହଣ କରେ। ଉଦ୍ଭିଦ ଆଲୋକଶ୍ଳେଷଣ ମାଧ୍ୟମରେ ସୂର୍ଯ୍ୟାଲୋକକୁ ଜୈବିକ ପୁଷ୍ଟିକର ଖାଦ୍ୟରେ ପରିଣତ କରେ। ପ୍ରାଥମିକ ଖାଦକ ଉଦ୍ଭିଦ ଖାଆନ୍ତି, ଯେତେବେଳେ କି ଶୀର୍ଷ ଶିକାରୀମାନେ ତୃଣଭୋଜୀ ଜନସଂଖ୍ୟାକୁ ନିୟନ୍ତ୍ରଣ କରନ୍ତି, ଯାହାଦ୍ୱାରା ଅଧିକ ଚରିବା ଏବଂ ମୃତ୍ତିକା କ୍ଷୟ ରୋକାଯାଏ।"
+Q1: ଶୀର୍ଷ ଶିକାରୀମାନଙ୍କର ପ୍ରାଥମିକ ଭୂମିକା କ'ଣ? | [A] ସୂର୍ଯ୍ୟାଲୋକକୁ ପରିଣତ କରିବା | [B] ତୃଣଭୋଜୀ ଜନସଂଖ୍ୟାକୁ ନିୟନ୍ତ୍ରଣ କରିବା (Correct) | [C] ପୁଷ୍ଟିକର ଖାଦ୍ୟ ଉତ୍ପାଦନ କରିବା
+Q2: କେଉଁ ପ୍ରକ୍ରିୟା ଉଦ୍ଭିଦକୁ ପୁଷ୍ଟିକର ଖାଦ୍ୟ ତିଆରି କରିବାକୁ ଦିଏ? | [A] ଆଲୋକଶ୍ଳେଷଣ (Correct) | [B] ତୃଣଭୋଜନ | [C] ମୃତ୍ତିକା କ୍ଷୟ
+Q3: ଯଦି ଶୀର୍ଷ ଶିକାରୀମାନେ ଅଦୃଶ୍ୟ ହୋଇଯାଆନ୍ତି ତେବେ କ'ଣ ହେବ? | [A] ଉଦ୍ଭିଦ ଶୀଘ୍ର ବଢିବ | [B] ଅଧିକ ଚରିବା ଏବଂ ମୃତ୍ତିକା କ୍ଷୟ ବୃଦ୍ଧି ପାଇବ (Correct) | [C] ସୂର୍ଯ୍ୟାଲୋକ କମିଯିବ
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: ଶ୍ରେଣୀରେ ଜୋରରେ ପଢିବାକୁ କୁହାଗଲେ ମୁଁ ଉଦ୍ବିଗ୍ନ କିମ୍ବା ଅସ୍ୱାଭାବିକ ଅନୁଭବ କରେ।
+Q2: ମୁଁ ଲମ୍ବା ପଢିବା କାର୍ଯ୍ୟ କିମ୍ବା ଜଟିଳ ଦଲିଲ ଥିବା କାର୍ଯ୍ୟରୁ ଦୂରେଇ ରୁହେ।
+Q3: ସମୟ ନିର୍ଦ୍ଧାରିତ ଗଣିତ ହିସାବ କରିବା ସମୟରେ ମୁଁ ବହୁତ ନିରାଶ ଅନୁଭବ କରେ।
+Q4: ଉତ୍ତର ଜାଣିଥିଲେ ମଧ୍ୟ ମୋର ହସ୍ତାକ୍ଷର କିମ୍ବା ଲେଖିବାର ବେଗ ମୋତେ ପଛରେ ପକାଇଦିଏ ବୋଲି ମୁଁ ଅନୁଭବ କରେ।
+Q5: ପଢିବା କିମ୍ବା ଲେଖିବା ହୋମୱାର୍କ ଶେଷ କରିବାକୁ ମୁଁ ଆଶା କରାଯାଉଥିବା ସମୟର ଦୁଇ କିମ୍ବା ତିନି ଗୁଣ ଅଧିକ ସମୟ ନିଏ।
+Q6: ମୁଁ ବାରମ୍ବାର ମୋର ଲାଇନ୍ ହରାଇଦିଏ କିମ୍ବା ବୁଝିବା ପାଇଁ ବାକ୍ୟଗୁଡ଼ିକୁ ଏକାଧିକ ଥର ପଢେ।
+Q7: ସଂଖ୍ୟା କିମ୍ବା ଟେବୁଲ ସହିତ କାମ କରିବା ସମୟରେ ମୁଁ ଶୀଘ୍ର ମାନସିକ ଥକାପଣ କିମ୍ବା ମୁଣ୍ଡବିନ୍ଧା ଅନୁଭବ କରେ।
+Q8: ମୁଁ ମୋର ପଢିବା/ଲେଖିବା ଅସୁବିଧାକୁ ସାଙ୍ଗ କିମ୍ବା ଶିକ୍ଷକଙ୍କ ଠାରୁ ଲୁଚାଇବାକୁ ଚେଷ୍ଟା କରେ।
+Q9: ମୁଁ ଚିନ୍ତିତ ଯେ ମୋର ଶିକ୍ଷଣର ବେଗ ମୋର ପ୍ରକୃତ ବୁଦ୍ଧିମତ୍ତାକୁ ପ୍ରତିଫଳିତ କରେ ନାହିଁ।
+Q10: ମୁଁ ଏପରି ପାଠ୍ୟକ୍ରମ କିମ୍ବା କ୍ୟାରିୟର ବାଛିବାରୁ ଦୂରେଇ ରୁହେ ଯେଉଁଥିରେ ବହୁତ ପଢିବା କିମ୍ବା ଲେଖିବା ଆବଶ୍ୟକ ହୁଏ।
+
+
+========================================
+LANGUAGE: Urdu (ur - اردو)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: لفظ 'کام' کے ساتھ کون سا لفظ ہم قافیہ ہے؟ | Target: کام | Options: [A] نام (Correct) | [B] دن | [C] گھر
+T2: Prompt: لفظ 'تارا' کے ساتھ کون سا لفظ ہم قافیہ ہے؟ | Target: تارا | Options: [A] سارا (Correct) | [B] قلم | [C] مچھلی
+T3: Prompt: لفظ 'تالا' کے ساتھ کون سا لفظ ہم قافیہ ہے؟ | Target: تالا | Options: [A] مالا (Correct) | [B] گیند | [C] کپ
+T4: Prompt: کون سا لفظ /س/ کی آواز سے شروع ہوتا ہے؟ | Target: سورج | Options: [A] سورج (Correct) | [B] چاند | [C] درخت
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 تارے, 2: 4 سیب, 3: 1 بلی, 4: 3 گیندیں
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: اسکرین کے وسط میں بائیں تارے سے دائیں تارے تک چمکتی ہوئی مڑے دار لکیر بنائیں۔ | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: بہادر چھوٹا پلا - "لیو ایک چھوٹا بھورا پلا ہے جو ایک پرسکون گاؤں میں رہتا ہے۔ ایک دوپہر، لیو کو پرانے کھلیان کے پیچھے ایک کھویا ہوا بلی کا بچہ ملا۔ اس نے بلی کے بچے کو اس کی ماں کے پاس واپس لے جانے کے لیے آہستہ سے بھونکا۔"
+Q1: لیو کس قسم کا جانور ہے؟ | Options: [A] ایک چھوٹا بھورا پلا (Correct) | [B] بلی کا بچہ | [C] ایک بڑا گھوڑا
+Q2: لیو کو بلی کا بچہ کہاں ملا؟ | Options: [A] ایک پارک میں | [B] پرانے کھلیان کے پیچھے (Correct) | [C] گھر کے اندر
+Q3: لیو نے بلی کے بچے کی رہنمائی کیسے کی؟ | Options: [A] بھاگ کر | [B] آہستہ سے بھونک کر (Correct) | [C] درخت پر چڑھ کر
+Spelling: 1. پودا | 2. گھڑی | 3. چمکیلا | 4. اسٹراپ | 5. فلم
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 یا 3 (8) | 2. 14 یا 19 (19) | 3. 25 یا 17 (25) | 4. 6 یا 11 (11) | 5. 32 یا 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "دھوپ تیز ہے۔" | T2: "تیز بھوری لومڑی سست کتے کے اوپر سے چھلانگ لگاتی ہے۔"
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): لال، نیلا، ہرا، پیلا، جامنی، نارنجی
+Round 2 (Letters): الف، ب، ج، د، س، م، ن، و
+Round 3 (Mixed): لال، الف، 5، نیلا، د، 9، ہرا، ج
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. اوگ | 2. اب | 3. اسٹراپ | 4. فلنٹ | 5. فلمبریٹ | 6. اسپروٹل
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "پکڑا" | Distractor: 20 سے 15 تک الٹی گنتی گنیں | Options: [A] بکڑا | [B] پکڑا (Correct) | [C] پکرا | [D] پکڈا
+T2: Target: "کافی" | Distractor: طاق عدد پر ٹیپ کریں: 4, 8, 7, 2 | Options: [A] قافی | [B] کافیہ | [C] کافی (Correct) | [D] کفی
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: ماحولیاتی نظام - "جنگلات کا ماحولیاتی نظام پیچیدہ فوڈ ویب پر منحصر ہے جہاں ہر جاندار اہم کردار ادا کرتا ہے۔ پودے فوٹو سنتھیسس کے ذریعے سورج کی روشنی کو غذائی اجزاء میں تبدیل کرتے ہیں۔ ابتدائی صارفین پودوں کو کھاتے ہیں، جبکہ بڑے شکاری سبزی خوروں کی آبادی کو کنٹرول کرتے ہیں، جس سے زیادہ چرنے اور مٹی کے کٹاؤ کو روکا جاتا ہے۔"
+Q1: بڑے شکاریوں کا بنیادی کردار کیا ہے؟ | [A] سورج کی روشنی کو تبدیل کرنا | [B] سبزی خوروں کی آبادی کو کنٹرول کرنا (Correct) | [C] غذائی اجزاء بنانا
+Q2: کون سا عمل پودوں کو غذائی اجزاء بنانے کی اجازت دیتا ہے؟ | [A] فوٹو سنتھیسس (Correct) | [B] سبز خوری | [C] مٹی کا کٹاؤ
+Q3: اگر بڑے شکاری غائب ہو جائیں تو کیا ہوگا؟ | [A] پودے تیزی سے بڑھیں گے | [B] چرنے اور مٹی کا کٹاؤ بڑھے گا (Correct) | [C] دھوپ کم ہو جائے گی
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: کلاس میں بلند آواز سے پڑھنے کو کہا جائے تو مجھے گھبراہٹ ہوتی ہے۔
+Q2: میں لمبے پڑھنے والے کاموں یا پیچیدہ دستاویزات سے بچتا ہوں۔
+Q3: وقت کی پابندی کے ساتھ ریاضی کا حساب کرتے وقت مجھے بہت مایوسی ہوتی ہے۔
+Q4: جوابات جاننے کے باوجود میری لکھائی یا لکھنے کی رفتار مجھے پیچھے رکھتی ہے۔
+Q5: پڑھنے یا لکھنے کا ہوم ورک مکمل کرنے میں مجھے دوگنا یا تین گنا وقت لگتا ہے۔
+Q6: میں اکثر اپنی لائن بھول جاتا ہوں یا جملوں کو سمجھنے کے لیے کئی بار پڑھتا ہوں۔
+Q7: اعداد یا جدولوں کے ساتھ کام کرتے وقت مجھے جلدی ذہنی تھکاوٹ یا سر درد محسوس ہوتا ہے۔
+Q8: میں دوستوں یا اساتذہ سے اپنی پڑھنے/لکھنے کی مشکلات کو چھپانے کی کوشش کرتا ہوں۔
+Q9: مجھے فکر ہے کہ میری تعلیمی رفتار میری اصل ذہانت کو ظاہر نہیں کرتی۔
+Q10: میں ایسے کورسز یا کیریئر منتخب کرنے سے گریز کرتا ہوں جن میں بہت زیادہ پڑھنا یا لکھنا شامل ہو۔
+
+
+========================================
+LANGUAGE: Bhojpuri (bho - भोजपुरी)
+========================================
+--- TIER 1: PRECURSOR RISK SCREENING (AGES 3–5) ---
+SUBTEST 1: PHONOLOGICAL RHYME & SOUND MATCHING
+T1: Prompt: 'काम' शब्द के साथ कवन शब्द के तुक मिलेला? | Target: काम | Options: [A] नाम (Correct) | [B] दिन | [C] घर
+T2: Prompt: 'तारा' शब्द के साथ कवन शब्द के तुक मिलेला? | Target: तारा | Options: [A] सारा (Correct) | [B] कलम | [C] मछरी
+T3: Prompt: 'ताला' शब्द के साथ कवन शब्द के तुक मिलेला? | Target: ताला | Options: [A] माला (Correct) | [B] गेंद | [C] कप
+T4: Prompt: कवन शब्द /स/ आवाज से शुरू होला? | Target: सूरज | Options: [A] सूरज (Correct) | [B] चंदा | [C] गाछ
+SUBTEST 2: VISUAL SUBITIZING & NUMBER SENSE
+Items: 1: 2 तारा, 2: 4 सेव, 3: 1 बिलाई, 4: 3 गेंद
+SUBTEST 3: GRAPHOMOTOR & MIDLINE CROSSING
+Task: स्क्रीन के बीच में बावाँ तारा से दावाँ तारा ले चमकीला टेढ़का रेखा खींचीं। | Coordinates: (10,50)->(30,20)->(50,50)->(70,80)->(90,50)
+
+--- TIER 2: MANIFESTATION DYSLEXIA, DYSCALCULIA & DYSGRAPHIA (AGES 6–9) ---
+SUBTEST 1: DYSLEXIA - COMPREHENSION PASSAGE & SPELLING
+Passage: बहादुर छोटका पिल्ला - "लियो एगो छोट भूअर पिल्ला ह जे एगो शांत गाँव में रहेला। एक दुपहरिया, लियो के पुरान बखार के पाछे एगो भुलाइल बिलाई के बच्चा मिलल। ऊ बिलाई के बच्चा के ओकरी माई लगे पहुँचावे खातिर धीरे-धीरे भूँकल।"
+Q1: लियो कइसन जानवर ह? | Options: [A] एगो छोट भूअर पिल्ला (Correct) | [B] बिलाई के बच्चा | [C] बड़हन घोड़ा
+Q2: लियो के बिलाई के बच्चा कहाँ मिलल? | Options: [A] एगो पार्क में | [B] पुरान बखार के पाछे (Correct) | [C] घर के भीतर
+Q3: लियो बिलाई के बच्चा के रास्ता कइसे देखवलस? | Options: [A] भाग के | [B] धीरे-धीरे भूँक के (Correct) | [C] गाछ पर चढ़ के
+Spelling: 1. पौधा | 2. घड़ी | 3. चमकीला | 4. स्ट्रॉप | 5. फ्लिम
+SUBTEST 2: DYSCALCULIA - MAGNITUDE, FACTS & SEQUENCES
+Part A: 1. 8 भा 3 (8) | 2. 14 भा 19 (19) | 3. 25 भा 17 (25) | 4. 6 भा 11 (11) | 5. 32 भा 28 (32)
+Part B: 1. 2+3=5 | 2. 5+5=10 | 3. 9-4=5 | 4. 4+4=8 | 5. 10-3=7
+Part C: 1. "2, 4, 6, _" (8) | 2. "5, 10, 15, _" (20) | 3. "10, 9, 8, _" (7) | 4. "3, 6, 9, _" (12)
+SUBTEST 3: DYSGRAPHIA - HANDWRITING & DICTATION
+T1: "घाम तेज बा।" | T2: "तेज भूअर लोमड़ी आलसी कुकुर के ऊपर से कूदत बिया।"
+
+--- TIER 3: COMPENSATION-RESISTANT HIGH-GRADE TESTING (AGES 10–13) ---
+SUBTEST 1: MULTI-ROUND RAN
+Round 1 (Colors): लाल, नीला, हरियर, पियर, बैंगनी, नारंगी
+Round 2 (Letters): अ, ब, द, म, प, स, त, ज
+Round 3 (Mixed): लाल, अ, 5, नीला, द, 9, हरियर, क
+SUBTEST 2: ADAPTIVE NONSENSE-WORD DECODING
+Items: 1. ओग | 2. इब | 3. स्ट्रॉप | 4. फ्लिंट | 5. फ्लिंबरेट | 6. स्प्रोटल
+SUBTEST 3: SIGHT-WORD MEMORY DECAY WITH DISTRACTOR
+T1: Target: "पकड़ल" | Distractor: 20 से 15 ले उल्टा गिनती गिनीं | Options: [A] पकरल | [B] पकड़ल (Correct) | [C] पक्ड़ल | [D] पकडल
+T2: Target: "बहुत" | Distractor: विषम संख्या पर टैप करीं: 4, 8, 7, 2 | Options: [A] बहत | [B] बहूत | [C] बहुत (Correct) | [D] भहुत
+SUBTEST 4: ADVANCED SCIENTIFIC COMPREHENSION PASSAGE
+Passage: जंगल के इकोसिस्टम - "जंगल के इकोसिस्टम (पारिस्थितिकी तंत्र) जटिल भोजन जाल पर निर्भर करेला जहवाँ हर जीव के आपन जरूरी काम होला। गाछ-पात प्रकाश संश्लेषण से घाम के पोषक तत्व में बदलेलें। प्राथमिक उपभोक्ता गाछ-पात खाले, जबकि सबसे बड़ शिकारी शाकाहारी जानवरन के आबादी के कंट्रोल करेलें, जवना से बेसी चराई आ माटी के कटाव रुकेला।"
+Q1: बड़ शिकारी लोगन के मुख्य काम का ह? | [A] घाम के बदलल | [B] शाकाहारी आबादी के कंट्रोल कइल (Correct) | [C] पोषक तत्व बनावल
+Q2: कवन प्रक्रिया गाछ-पात के पोषक तत्व बनावे देला? | [A] प्रकाश संश्लेषण (Correct) | [B] शाकाहार | [C] माटी कटाव
+Q3: जदि बड़ शिकारी गाइब हो जास त का होई? | [A] गाछ तेजी से बढ़ी | [B] बेसी चराई आ माटी के कटाव बढ़ी (Correct) | [C] घाम कम हो जाई
+
+--- TIER 4: EXECUTIVE FUNCTION & ACADEMIC DISTRESS (AGES 14+) ---
+Q1: जब हमरा के क्लास में जोर से पढ़े के कहल जाला त हमरा घबراہट होला।
+Q2: हम लमहर पढ़े वाला काम भा मुश्किल कागजात से बचेनी।
+Q3: टाइम लगा के गणित बनावे में हमरा बहुत खीझ बढेला।
+Q4: हमरा लागेला कि जवाब जनला के बाद भी हमार लिखाई भा लिखे के रफ्तारी हमरा के पाछे राखेला।
+Q5: हमरा पढ़े भा लिखे के होमवर्क पूरा करे में दुगुना भा तिगुना समय लागेला।
+Q6: हम अक्सर आपन लाइन भुला जाइला भा समझे खातिर लाइन के कई बेर पढ़ेनी।
+Q7: संख्या भा टेबल के साथे काम करत घरी हमरा जल्दी दिमागी थकान भा कपार दरद होखे लागेला।
+Q8: हम आपन पढ़े/लिखे के दिक्कत के दोस्त भा मास्टर साहेब लोग से छुपावे के कोसिस करेनी।
+Q9: हमरा ई चिंता रहेला कि हमार पढ़े-लिखे के रफ्तारी हमार असली तेज दिमाग के नइखे देखावत।
+Q10: हम अइसन पढ़ाई भा नोकरी चुने से बचेनी जवना में बहुत बेसी पढ़े भा लिखे के काम होखे।
+================================================================================
+                                END OF DOCUMENT
+================================================================================

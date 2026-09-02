@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Dyslexia Risk Screening Hub — SehatSaathi{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📖 Dyslexia Risk Screening Hub</h1>
+<p class="page-subtitle">Multilingual early screening for reading, phonological, and RAN decoding risk in children.</p>
+<div class="title-separator" style="background-color: #3498db;"></div>
+
+<!-- Step 1: Age, Gender, and Language Intake Screen -->
+<div class="card" style="margin-bottom: 2rem; border-color: rgba(52, 152, 219, 0.4); text-align: left; padding: 1.5rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: #3498db; display: flex; align-items: center; gap: 0.5rem;">
+        <span>👤</span> Child Intake & Language Calibration
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+        <div>
+            <label for="child-age" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary);">Child's Age (Years)*</label>
+            <input type="number" id="child-age" min="6" max="16" value="8" style="width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.6rem; border-radius: 6px; font-family: Outfit; font-size: 1rem;" required>
+            <span style="font-size: 0.75rem; color: #7A7A8A; display: block; margin-top: 0.25rem;">Age calibrates developmental risk cutoffs.</span>
+        </div>
+
+        <div>
+            <label for="child-gender" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary);">Gender (Optional Metadata)</label>
+            <select id="child-gender" style="width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.65rem; border-radius: 6px; font-family: Outfit; font-size: 1rem;">
+                <option value="unspecified">Rather not say / Unspecified</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="child-name" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary);">Child Name / ID (For Progress Tracking)</label>
+            <input type="text" id="child-name" placeholder="e.g., Aarav" style="width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.6rem; border-radius: 6px; font-family: Outfit; font-size: 1rem;">
+        </div>
+
+        <div>
+            <label for="test-language" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary);">Test Language*</label>
+            <select id="test-language" style="width: 100%; background: var(--bg-dark); border: 1px solid #3498db; color: white; padding: 0.65rem; border-radius: 6px; font-family: Outfit; font-size: 1rem; font-weight: 600;">
+                <option value="en" selected>English (English)</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="bn">বাংলা (Bengali - Ready)</option>
+                <option value="ta">தமிழ் (Tamil - Ready)</option>
+                <option value="te">తెలుగు (Telugu - Ready)</option>
+                <option value="mr">मराठी (Marathi - Ready)</option>
+                <option value="gu">ગુજરાતી (Gujarati - Ready)</option>
+                <option value="kn">கன்னட (Kannada - Ready)</option>
+                <option value="ml">മലയാളം (Malayalam - Ready)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi - Ready)</option>
+                <option value="or">ଓଡ଼ିଆ (Odia - Ready)</option>
+                <option value="ur">اردو (Urdu - Ready)</option>
+                <option value="bho">भोजपुरी (Bhojpuri - Ready)</option>
+            </select>
+            <span id="fallback-badge" style="font-size: 0.75rem; color: var(--color-warning); display: none; margin-top: 0.25rem;">ⓘ Falling back to English for missing sections.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: The 5 Subtests Layout -->
+<div class="test-layout">
+    <div class="test-controls" style="gap: 1.25rem;">
+        <div class="progress-container">
+            <div id="dyslexia-progress" class="progress-bar" style="background-color: #3498db; width: 0%;"></div>
+        </div>
+        <div id="dyslexia-progress-text" style="font-size: 0.95rem; color: var(--text-secondary); margin-top: -0.75rem;">
+            0 of 5 subtests completed
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Subtest 1 -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.1rem;">
+                <div>
+                    <h3 class="card-sm-title">1. Background Questionnaire</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;">Family history, speech development &amp; reading avoidance intake.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span id="score-questionnaire" class="status-indicator">Not Started</span>
+                    <a id="link-questionnaire" href="{{ url_for('dyslexia_questionnaire') }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; background: #3498db; border-color: #3498db;">Start</a>
+                </div>
+            </div>
+
+            <!-- Subtest 2 -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.1rem;">
+                <div>
+                    <h3 class="card-sm-title">2. Rapid Automatized Naming (RAN)</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;">Timed visual grids (letters, digits, colors, objects) with mic naming.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span id="score-ran" class="status-indicator">Not Started</span>
+                    <a id="link-ran" href="{{ url_for('dyslexia_ran') }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; background: #3498db; border-color: #3498db;">Start</a>
+                </div>
+            </div>
+
+            <!-- Subtest 3 -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.1rem;">
+                <div>
+                    <h3 class="card-sm-title">3. Phonological Awareness</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;">Auditory sound manipulation, rhyming, blending &amp; phoneme segmentation.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span id="score-phonological" class="status-indicator">Not Started</span>
+                    <a id="link-phonological" href="{{ url_for('dyslexia_phonological') }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; background: #3498db; border-color: #3498db;">Start</a>
+                </div>
+            </div>
+
+            <!-- Subtest 4 -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.1rem;">
+                <div>
+                    <h3 class="card-sm-title">4. Nonsense-Word Decoding</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;">Evaluating pure phonological decoding with phonotactically valid nonwords.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span id="score-decoding" class="status-indicator">Not Started</span>
+                    <a id="link-decoding" href="{{ url_for('dyslexia_decoding') }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; background: #3498db; border-color: #3498db;">Start</a>
+                </div>
+            </div>
+
+            <!-- Subtest 5 -->
+            <div class="card-sm" style="flex-direction: row; justify-content: space-between; text-align: left; align-items: center; padding: 1.1rem;">
+                <div>
+                    <h3 class="card-sm-title">5. Oral Reading &amp; Spelling</h3>
+                    <p class="card-sm-desc" style="margin-bottom: 0;">Oral passage reading fluency (WCPM) &amp; qualitative error classification.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span id="score-oral_spelling" class="status-indicator">Not Started</span>
+                    <a id="link-oral_spelling" href="{{ url_for('dyslexia_oral_spelling') }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; background: #3498db; border-color: #3498db;">Start</a>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: space-between;">
+            <button id="btn-reset-dyslexia" class="btn btn-secondary" style="color: var(--color-danger); border-color: rgba(231,76,60,0.3);">
+                🔄 Reset Screening Session
+            </button>
+            <button id="btn-calc-dyslexia" class="btn btn-primary" style="background: linear-gradient(135deg, #3498db, #9b59b6); border: none; font-size: 1rem; padding: 0.75rem 1.5rem;">
+                📊 View Comprehensive Diagnostic Results ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- Right Column: Calculate & Novel Feature Panels -->
+    <div class="test-controls" style="justify-content: flex-start;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;">Screening Controls</h2>
+
+        <!-- STEP 6 NOVEL FEATURE 5: Longitudinal Re-Test Tracking Widget -->
+        <div style="margin-top: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1rem; text-align: left;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: #3498db; margin-bottom: 0.5rem;">📈 Longitudinal Re-Test Progress</h3>
+            <div id="longitudinal-content" style="font-size: 0.85rem; color: var(--text-secondary);">
+                Enter child's name to view history across sessions.
+            </div>
+        </div>
+
+        <!-- STEP 6 NOVEL FEATURE 4: Session Audio Playback Panel for Expert Review -->
+        <div style="margin-top: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1rem; text-align: left;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: #03DAC5; margin-bottom: 0.5rem;">🎙️ Expert Review Audio Playback</h3>
+            <div id="audio-review-list" style="font-size: 0.85rem; color: var(--text-secondary);">
+                No audio recordings saved for review yet.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- STEP 7: Dyslexia-Specific Medical Disclaimer -->
+<div class="card" style="margin-top: 2.5rem; background: rgba(255,179,0,0.08); border: 1px solid rgba(255,179,0,0.3); text-align: left; padding: 1.25rem;">
+    <h3 style="color: #FFB300; font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>⚕️</span> Dyslexia Screening Disclaimer
+    </h3>
+    <p style="font-size: 0.85rem; line-height: 1.5; color: var(--text-primary); margin: 0;">
+        This module screens for early signs associated with dyslexia risk. It is not a diagnostic tool and does not replace assessment by a qualified psychologist, special educator, or speech-language pathologist. Results should be discussed with a professional, especially for children above age 10 showing risk indicators.
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const subtests = ['questionnaire', 'ran', 'phonological', 'decoding', 'oral_spelling'];
+    const ageInput = document.getElementById('child-age');
+    const genderSelect = document.getElementById('child-gender');
+    const nameInput = document.getElementById('child-name');
+    const langSelect = document.getElementById('test-language');
+    const fallbackBadge = document.getElementById('fallback-badge');
+    const calcBtn = document.getElementById('btn-calc-dyslexia');
+    const resetBtn = document.getElementById('btn-reset-dyslexia');
+
+    // Restore intake settings from localStorage
+    if (localStorage.getItem('dyslexia_age')) ageInput.value = localStorage.getItem('dyslexia_age');
+    if (localStorage.getItem('dyslexia_gender')) genderSelect.value = localStorage.getItem('dyslexia_gender');
+    if (localStorage.getItem('dyslexia_name')) nameInput.value = localStorage.getItem('dyslexia_name');
+    if (localStorage.getItem('dyslexia_lang')) langSelect.value = localStorage.getItem('dyslexia_lang');
+
+    function saveIntake() {
+        localStorage.setItem('dyslexia_age', ageInput.value);
+        localStorage.setItem('dyslexia_gender', genderSelect.value);
+        localStorage.setItem('dyslexia_name', nameInput.value);
+        localStorage.setItem('dyslexia_lang', langSelect.value);
+        
+        if (!['en', 'hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'or', 'ur', 'bho'].includes(langSelect.value)) {
+            fallbackBadge.style.display = 'block';
+        } else {
+            fallbackBadge.style.display = 'none';
+        }
+    }
+
+    ageInput.addEventListener('change', saveIntake);
+    genderSelect.addEventListener('change', saveIntake);
+    nameInput.addEventListener('input', () => { saveIntake(); loadLongitudinal(); });
+    langSelect.addEventListener('change', saveIntake);
+    saveIntake();
+
+    // Check completed subtests
+    let completedCount = 0;
+    subtests.forEach(st => {
+        const val = localStorage.getItem(`dyslexia_score_${st}`);
+        const indicator = document.getElementById(`score-${st}`);
+        const link = document.getElementById(`link-${st}`);
+        
+        if (val !== null) {
+            completedCount++;
+            const riskNum = parseFloat(val);
+            const performanceMarks = Math.max(0, (100.0 - riskNum)).toFixed(1);
+            
+            let bandText = "Low Risk";
+            let colorHex = "#2ecc71";
+            let bgHex = "rgba(46, 204, 113, 0.15)";
+            let borderHex = "rgba(46, 204, 113, 0.4)";
+            
+            if (riskNum >= 45) {
+                bandText = "High Risk";
+                colorHex = "#e74c3c";
+                bgHex = "rgba(231, 76, 60, 0.15)";
+                borderHex = "rgba(231, 76, 60, 0.4)";
+            } else if (riskNum >= 25) {
+                bandText = "Moderate Risk";
+                colorHex = "#f1c40f";
+                bgHex = "rgba(241, 196, 15, 0.15)";
+                borderHex = "rgba(241, 196, 15, 0.4)";
+            }
+
+            indicator.innerHTML = `✓ ${performanceMarks}% Performance (${bandText})`;
+            indicator.style.color = colorHex;
+            indicator.style.background = bgHex;
+            indicator.style.borderColor = borderHex;
+            indicator.style.fontWeight = 'bold';
+            if (link) {
+                link.innerText = '↺ Re-test';
+                link.style.background = 'rgba(52, 152, 219, 0.2)';
+            }
+        }
+    });
+
+    const progressPct = (completedCount / 5.0) * 100;
+    document.getElementById('dyslexia-progress').style.width = `${progressPct}%`;
+    document.getElementById('dyslexia-progress-text').innerText = `${completedCount} of 5 subtests completed`;
+
+    if (completedCount === 5) {
+        calcBtn.removeAttribute('disabled');
+    }
+
+    calcBtn.addEventListener('click', () => {
+        saveIntake();
+        window.location.href = "{{ url_for('dyslexia_results') }}";
+    });
+
+    resetBtn.addEventListener('click', () => {
+        subtests.forEach(st => localStorage.removeItem(`dyslexia_score_${st}`));
+        localStorage.removeItem('dyslexia_composite_result');
+        window.location.reload();
+    });
+
+    // STEP 6 NOVEL FEATURE 5: Longitudinal Tracking Loader
+    function loadLongitudinal() {
+        const name = nameInput.value.trim() || 'DefaultChild';
+        const historyKey = `dyslexia_history_${name.toLowerCase()}`;
+        const historyRaw = localStorage.getItem(historyKey);
+        const container = document.getElementById('longitudinal-content');
+
+        if (!historyRaw) {
+            container.innerHTML = `<em>No prior session history found for "${name}".</em>`;
+            return;
+        }
+
+        try {
+            const history = JSON.parse(historyRaw);
+            if (history.length === 0) {
+                container.innerHTML = `<em>No prior session history found for "${name}".</em>`;
+                return;
+            }
+            let html = `<ul style="list-style: none; padding: 0; margin: 0;">`;
+            history.slice(-3).reverse().forEach((entry, idx) => {
+                const dateStr = new Date(entry.timestamp).toLocaleDateString('en-IN');
+                html += `<li style="margin-bottom: 0.4rem; padding-bottom: 0.4rem; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+                    <strong>${dateStr}</strong>: ${entry.risk_band} (${entry.composite_score}%) - <em>${entry.trend || 'baseline'}</em>
+                </li>`;
+            });
+            html += `</ul>`;
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = `<em>Error loading progress records.</em>`;
+        }
+    }
+
+    // STEP 6 NOVEL FEATURE 4: Audio Playback Loader
+    function loadAudioReview() {
+        const audioDataStr = localStorage.getItem('dyslexia_review_audio');
+        const container = document.getElementById('audio-review-list');
+        if (!audioDataStr) {
+            container.innerHTML = `<em>No audio clips saved in current session.</em>`;
+            return;
+        }
+        try {
+            const clips = JSON.parse(audioDataStr);
+            let html = '';
+            clips.forEach(clip => {
+                html += `<div style="margin-bottom: 0.6rem;">
+                    <strong>${clip.label}:</strong><br>
+                    <audio controls src="${clip.url}" style="width: 100%; height: 32px; margin-top: 0.25rem;"></audio>
+                </div>`;
+            });
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = `<em>Audio list unavailable.</em>`;
+        }
+    }
+
+    loadLongitudinal();
+    loadAudioReview();
+});
+</script>
+{% endblock %}

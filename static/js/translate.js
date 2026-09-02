@@ -17,6 +17,16 @@ const translationMap = {
         "sec-anemia-desc": "Estimate blood pallor index non-invasively through camera stream evaluation. The scanner runs complete computer vision steps entirely inside the browser:",
         "sec-tb-title": "🫁 TB Cough Analyzer",
         "sec-tb-desc": "Assess respiratory cough signatures using audio diagnostics. This module utilizes the Web Audio API to capture and analyze acoustic features of cough signals:",
+        "sec-dyslexia-title": "📖 Dyslexia Risk Screening",
+        "sec-dyslexia-desc": "Multilingual developmental screening for children evaluating rapid automatized naming, phonological awareness, nonword decoding, and reading fluency:",
+        "sec-dyslexia-li1": "<strong>Rapid Naming (RAN)</strong>: Visual-verbal retrieval speed across letters, digits, colors, and objects.",
+        "sec-dyslexia-li2": "<strong>Phonological Awareness</strong>: Sound manipulation, rhyming, blending, and phoneme segmentation.",
+        "sec-dyslexia-li3": "<strong>Nonsense-Word Decoding</strong>: Pure phonological decoding accuracy evaluated with target nonwords.",
+        "sec-dyslexia-li4": "<strong>Oral Reading & Spelling</strong>: Reading fluency (WCPM) and rule-based spelling error classification.",
+        "btn-launch-dyslexia": "Launch Dyslexia Module",
+        "tag-developmental": "Developmental / Speech",
+        "sec-dyslexia-vis-title": "Cognitive & Phonetic DSP",
+        "sec-dyslexia-vis-desc": "Extracts silence hesitation gaps, self-corrections, and phoneme edit distances.",
         "menu-title": "Disease Screening Hub",
         "menu-subtitle": "Select a multi-disease screening module to begin the assessment.",
         "card-parkinson-title": "Parkinson's Screening",
@@ -25,6 +35,8 @@ const translationMap = {
         "card-anemia-desc": "Non-invasive CV-based conjunctiva and palm pallor analysis. Normalizes against sclera white-balancing reference to estimate anemia risk bands.",
         "card-tb-title": "Tuberculosis Cough Analyzer",
         "card-tb-desc": "Instant client-side pulmonary analysis. Identifies TB spectrogram and audio envelope signatures directly through device microphone inputs.",
+        "card-dyslexia-title": "Dyslexia Risk Screening",
+        "card-dyslexia-desc": "Multilingual child screening pipeline: Background Questionnaire, Rapid Automatized Naming (RAN), Phonological Awareness, Non-word Decoding, and Oral Reading/Spelling.",
         "card-health-title": "AI Health Score",
         "card-health-desc": "Consolidated wellness index and clinical action report compiled automatically from completed screening results.",
         "btn-launch-module": "Launch Module",
@@ -1283,7 +1295,11 @@ const translationMap = {
 };
 
 // ── Language code → BCP-47 lang tag mapping ────────────────────────────────
-const langTagMap = { en:'en', hi:'hi', bn:'bn', mr:'mr', ta:'ta', te:'te' };
+// ── Language code → BCP-47 lang tag mapping ────────────────────────────────
+const langTagMap = {
+    en:'en', hi:'hi', bn:'bn', mr:'mr', ta:'ta', te:'te',
+    gu:'gu', kn:'kn', ml:'ml', pa:'pa', or:'or', ur:'ur', bho:'bho'
+};
 
 const langOptions = [
     { val: 'en', label: '🇬🇧 English',          flag: '🇬🇧' },
@@ -1291,8 +1307,64 @@ const langOptions = [
     { val: 'bn', label: '🇧🇩 বাংলা (Bengali)',   flag: '🇧🇩' },
     { val: 'mr', label: '🇮🇳 मराठी (Marathi)',    flag: '🇮🇳' },
     { val: 'ta', label: '🇮🇳 தமிழ் (Tamil)',      flag: '🇮🇳' },
-    { val: 'te', label: '🇮🇳 తెలుగు (Telugu)',    flag: '🇮🇳' }
+    { val: 'te', label: '🇮🇳 తెలుగు (Telugu)',    flag: '🇮🇳' },
+    { val: 'gu', label: '🇮🇳 ગુજરાતી (Gujarati)', flag: '🇮🇳' },
+    { val: 'kn', label: '🇮🇳 ಕನ್ನಡ (Kannada)',   flag: '🇮🇳' },
+    { val: 'ml', label: '🇮🇳 മലയാളം (Malayalam)', flag: '🇮🇳' },
+    { val: 'pa', label: '🇮🇳 ਪੰਜਾਬੀ (Punjabi)',   flag: '🇮🇳' },
+    { val: 'or', label: '🇮🇳 ଓଡ଼ିଆ (Odia)',       flag: '🇮🇳' },
+    { val: 'ur', label: '🇵🇰 اردو (Urdu)',        flag: '🇵🇰' },
+    { val: 'bho', label: '🇮🇳 भोजपुरी (Bhojpuri)', flag: '🇮🇳' }
 ];
+
+// ── Google Translate API Client Integration ────────────────────────────────
+const translateCache = {};
+
+window.translateTextWithGoogle = async function(text, targetLang) {
+    if (!text || !targetLang || targetLang === 'en') return text;
+    
+    const cacheKey = targetLang + '::' + text;
+    if (translateCache[cacheKey]) {
+        return translateCache[cacheKey];
+    }
+    
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data[0]) {
+                const translated = data[0].map(item => item[0]).join('');
+                if (translated) {
+                    translateCache[cacheKey] = translated;
+                    return translated;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Google Translate client fetch failed, trying server proxy:", e);
+    }
+    
+    // Server endpoint fallback
+    try {
+        const res = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text, target_lang: targetLang })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.translated) {
+                translateCache[cacheKey] = data.translated;
+                return data.translated;
+            }
+        }
+    } catch (err) {
+        console.error("Server translation error:", err);
+    }
+    
+    return text;
+};
 
 // ── Core translate function ─────────────────────────────────────────────────
 function translatePage(lang, animate) {
@@ -1308,11 +1380,11 @@ function translatePage(lang, animate) {
         // Smooth fade-out → swap → fade-in
         els.forEach(el => { el.style.opacity = '0'; });
         setTimeout(() => {
-            _applyTranslations(els, dict);
+            _applyTranslations(els, dict, lang);
             els.forEach(el => { el.style.opacity = '1'; });
         }, 180);
     } else {
-        _applyTranslations(els, dict);
+        _applyTranslations(els, dict, lang);
     }
 
     // Sync every language selector on the page
@@ -1326,16 +1398,31 @@ function translatePage(lang, animate) {
     }
 }
 
-function _applyTranslations(els, dict) {
-    els.forEach(el => {
+function _applyTranslations(els, dict, lang) {
+    const enDict = translationMap['en'] || {};
+    
+    els.forEach(async el => {
         const key = el.getAttribute('data-trn');
-        if (!dict[key]) return;
+        let translation = dict ? dict[key] : null;
+
+        // If key is not in static dictionary and lang is not English, use Google Translate API
+        if (!translation && lang && lang !== 'en') {
+            const sourceText = enDict[key] || el.getAttribute('data-trn-src') || el.innerText || el.textContent;
+            if (sourceText) {
+                if (!el.getAttribute('data-trn-src')) {
+                    el.setAttribute('data-trn-src', sourceText);
+                }
+                translation = await window.translateTextWithGoogle(sourceText, lang);
+            }
+        }
+
+        if (!translation) return;
 
         // For <option> elements, set textContent (innerHTML breaks select options)
         if (el.tagName === 'OPTION') {
-            el.textContent = dict[key];
+            el.textContent = translation;
         } else {
-            el.innerHTML = dict[key];
+            el.innerHTML = translation;
         }
 
         // Translate placeholder attribute if the key + '-ph' exists
@@ -1351,6 +1438,7 @@ function _applyTranslations(els, dict) {
 
 // ── Switch language (called from any selector) ─────────────────────────────
 function switchLanguage(lang) {
+
     localStorage.setItem('sehatsaathi_lang', lang);
     translatePage(lang, true);
 }

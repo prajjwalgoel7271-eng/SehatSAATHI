@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Subtest 3: Phonological Awareness — Dyslexia Screening{% endblock %}
+
+{% block content %}
+<h1 class="page-title">🗣️ Subtest 3: Phonological Awareness</h1>
+<p class="page-subtitle">Assessing auditory sound manipulation, rhyming, blending, and phoneme segmentation.</p>
+<div class="title-separator" style="background-color: #3498db;"></div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: left; padding: 2rem;">
+    <div id="task-progress-bar" style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden;">
+        <div id="task-progress-inner" style="height: 100%; background: #3498db; width: 0%; transition: width 0.3s ease;"></div>
+    </div>
+
+    <div id="phonological-box">
+        <div style="text-align: center; padding: 2rem; color: #3498db;">Loading auditory phonological tasks...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const lang = localStorage.getItem('dyslexia_lang') || 'en';
+    let tasks = [];
+    let currentTaskIdx = 0;
+    let taskResults = [];
+    let taskStartTime = 0;
+
+    const box = document.getElementById('phonological-box');
+    const progressInner = document.getElementById('task-progress-inner');
+
+    try {
+        const resp = await fetch(`/api/dyslexia/content/phonological_tasks?lang=${lang}`);
+        const data = await resp.json();
+        tasks = data.tasks || [];
+        renderTask(0);
+    } catch (err) {
+        box.innerHTML = '<span style="color: var(--color-danger);">Failed to load phonological tasks.</span>';
+    }
+
+    function renderTask(idx) {
+        if (idx >= tasks.length) {
+            finishPhonologicalSubtest();
+            return;
+        }
+
+        const t = tasks[idx];
+        const progressPct = ((idx + 1) / tasks.length) * 100;
+        progressInner.style.width = `${progressPct}%`;
+
+        let optionsHtml = '';
+        t.options.forEach(opt => {
+            optionsHtml += `
+                <button class="btn btn-secondary opt-btn" data-val="${opt}" style="padding: 1rem 1.5rem; font-size: 1.1rem; border-color: rgba(52, 152, 219, 0.4);">
+                    ${opt}
+                </button>
+            `;
+        });
+
+        box.innerHTML = `
+            <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: #3498db; text-transform: uppercase;">Task ${idx + 1} of ${tasks.length} (${t.type.replace('_', ' ')})</span>
+                <button id="btn-speak-prompt" style="background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer;">
+                    🔊 Listen Prompt Aloud
+                </button>
+            </div>
+            
+            <h2 style="font-size: 1.3rem; font-weight: 700; color: white; margin-bottom: 1.5rem; line-height: 1.4;">
+                ${t.prompt}
+            </h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                ${optionsHtml}
+            </div>
+        `;
+
+        taskStartTime = performance.now();
+
+        // Speech Synthesis for prompt
+        document.getElementById('btn-speak-prompt').addEventListener('click', () => {
+            if ('speechSynthesis' in window) {
+                const synth = window.speechSynthesis;
+                const utter = new SpeechSynthesisUtterance(t.prompt);
+                utter.lang = lang === 'hi' ? 'hi-IN' : 'en-US';
+                synth.speak(utter);
+            }
+        });
+
+        // Option click handlers
+        document.querySelectorAll('.opt-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const selected = e.target.getAttribute('data-val');
+                const elapsedSec = (performance.now() - taskStartTime) / 1000.0;
+                const isCorrect = (selected.trim().toUpperCase() === t.correct.trim().toUpperCase());
+
+                taskResults.push({
+                    id: t.id,
+                    correct: isCorrect,
+                    time_sec: elapsedSec
+                });
+
+                // STEP 6 NOVEL FEATURE 2: Adaptive Item Branching
+                if (currentTaskIdx === 1 && taskResults.length >= 2) {
+                    const allFastAndCorrect = taskResults.every(r => r.correct && r.time_sec < 3.0);
+                    if (allFastAndCorrect && tasks.length > 5) {
+                        // Adaptive skip to harder items
+                        currentTaskIdx = 4;
+                    } else {
+                        currentTaskIdx++;
+                    }
+                } else {
+                    currentTaskIdx++;
+                }
+
+                renderTask(currentTaskIdx);
+            });
+        });
+    }
+
+    async function finishPhonologicalSubtest() {
+        box.innerHTML = '<div style="text-align: center; padding: 2rem; color: #2ecc71; font-weight: bold;">Subtest complete. Analyzing results...</div>';
+
+        const res = await fetch('/api/dyslexia/analyze/phonological', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_results: taskResults, lang })
+        });
+        const result = await res.json();
+
+        localStorage.setItem('dyslexia_score_phonological', result.score);
+        window.location.href = "{{ url_for('dyslexia_hub') }}";
+    }
+});
+</script>
+{% endblock %}

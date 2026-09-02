@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Subtest 4: Nonsense-Word Decoding — Dyslexia Screening{% endblock %}
+
+{% block content %}
+<h1 class="page-title">🔤 Subtest 4: Nonsense-Word Decoding</h1>
+<p class="page-subtitle">Evaluate pure phonological decoding by having the child read phonotactically valid nonwords aloud.</p>
+<div class="title-separator" style="background-color: #3498db;"></div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: left; padding: 2rem;">
+    <div id="decoding-box">
+        <div style="text-align: center; padding: 2rem; color: #3498db;">Loading nonword decoding items...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const lang = localStorage.getItem('dyslexia_lang') || 'en';
+    let nonwordItems = [];
+    let currentIdx = 0;
+    let decodingResults = [];
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recognition = null;
+    let currentTranscribedText = "";
+
+    const box = document.getElementById('decoding-box');
+
+    // Initialize Web Speech API if supported
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = lang === 'hi' ? 'hi-IN' : 'en-US';
+        
+        recognition.onresult = (event) => {
+            currentTranscribedText = event.results[0][0].transcript;
+        };
+    }
+
+    try {
+        const resp = await fetch(`/api/dyslexia/content/nonwords?lang=${lang}`);
+        const data = await resp.json();
+        nonwordItems = data.items || [];
+        renderItem(0);
+    } catch (e) {
+        box.innerHTML = '<span style="color: var(--color-danger);">Failed to load nonword items.</span>';
+    }
+
+    function renderItem(idx) {
+        if (idx >= nonwordItems.length) {
+            finishDecodingSubtest();
+            return;
+        }
+
+        const item = nonwordItems[idx];
+        currentTranscribedText = "";
+
+        box.innerHTML = `
+            <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: #3498db; text-transform: uppercase;">Item ${idx + 1} of ${nonwordItems.length} (${item.difficulty})</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Target Phonemes: ${item.phoneme_target}</span>
+            </div>
+
+            <div style="text-align: center; margin: 2rem 0; padding: 2.5rem; background: rgba(255,255,255,0.03); border: 2px dashed #3498db; border-radius: 12px;">
+                <span style="font-size: 3.5rem; font-weight: 800; color: white; letter-spacing: 2px;">
+                    ${item.nonword}
+                </span>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    Spoken Pronunciation / Transcript Input:
+                </label>
+                <input type="text" id="spoken-transcript" placeholder="Child reads nonword aloud..." style="width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 6px; font-family: Outfit; font-size: 1rem;">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button id="btn-record-nonword" class="btn btn-primary" style="background: #2ecc71; border-color: #2ecc71; padding: 0.75rem 1.25rem;">
+                    🎙️ Record Speech (Mic)
+                </button>
+                <button id="btn-submit-nonword" class="btn btn-primary" style="background: #3498db; border-color: #3498db; padding: 0.75rem 1.5rem;">
+                    Submit &amp; Next Nonword ➔
+                </button>
+            </div>
+        `;
+
+        const recordBtn = document.getElementById('btn-record-nonword');
+        const submitBtn = document.getElementById('btn-submit-nonword');
+        const transcriptInput = document.getElementById('spoken-transcript');
+
+        recordBtn.addEventListener('click', async () => {
+            if (recordBtn.innerText.includes('Record')) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.start();
+
+                    if (recognition) {
+                        try { recognition.start(); } catch(e) {}
+                    }
+
+                    recordBtn.innerText = '⏹️ Stop Recording';
+                    recordBtn.style.background = '#e74c3c';
+                } catch (e) {
+                    alert('Microphone permission required for audio recording.');
+                }
+            } else {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(blob);
+                        let savedClips = JSON.parse(localStorage.getItem('dyslexia_review_audio') || '[]');
+                        savedClips.push({ label: `Nonword "${item.nonword}"`, url: audioUrl });
+                        localStorage.setItem('dyslexia_review_audio', JSON.stringify(savedClips));
+                    };
+                }
+                if (recognition) {
+                    try { recognition.stop(); } catch(e) {}
+                }
+                setTimeout(() => {
+                    if (currentTranscribedText && !transcriptInput.value) {
+                        transcriptInput.value = currentTranscribedText;
+                    }
+                }, 400);
+
+                recordBtn.innerText = '🎙️ Record Speech (Mic)';
+                recordBtn.style.background = '#2ecc71';
+            }
+        });
+
+        submitBtn.addEventListener('click', () => {
+            const spoken = transcriptInput.value.trim() || item.nonword;
+            decodingResults.push({
+                target: item.nonword,
+                spoken: spoken
+            });
+            currentIdx++;
+            renderItem(currentIdx);
+        });
+    }
+
+    async function finishDecodingSubtest() {
+        box.innerHTML = '<div style="text-align: center; padding: 2rem; color: #2ecc71; font-weight: bold;">Subtest complete. Analyzing nonword decoding accuracy...</div>';
+
+        const res = await fetch('/api/dyslexia/analyze/decoding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ decoding_items: decodingResults, lang })
+        });
+        const result = await res.json();
+
+        localStorage.setItem('dyslexia_score_decoding', result.score);
+        window.location.href = "{{ url_for('dyslexia_hub') }}";
+    }
+});
+</script>
+{% endblock %}
